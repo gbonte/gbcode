@@ -1,1 +1,1 @@
-# gbcode
+Commonly used R code
