@@ -272,7 +272,7 @@ gsloo<-function(X,
 #' Ranking
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{mlg.ulb.ac.be}
-#' @title rankrho
+#' @title Ranking filter
 #'
 #'
 rankrho<-function(X,Y,nmax=5,regr=FALSE,first=NULL){
@@ -318,7 +318,7 @@ rankregr<-function(X,Y,nmax=5){
 #' minimum redundancy Maximum Relevance
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{mlg.ulb.ac.be}
-#' @title mrmr
+#' @title mRMR filter
 
 mrmr<-function(X,Y,nmax=5,first=NULL,back=FALSE){
   ## mRMR filter
@@ -413,7 +413,7 @@ strimmer.rank<-function(X,Y,nmax){
 #' minimum interaction Maximum Relevance
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{mlg.ulb.ac.be}
-#' @title mimr
+#' @title mIMR filter
 #'
 #'
 mimr<-function(X,Y,nmax=5,first=NULL,

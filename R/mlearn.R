@@ -6,7 +6,6 @@ library(MASS)
 library(gam)
 library(tree)
 library(randomForest)
-##library(boost)
 library(rpart)
 library(gbm)
 library(mboost)
@@ -17,16 +16,22 @@ library(kernlab)
 #' Wrapper on learning algoritmhs
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{mlg.ulb.ac.be}
-#' @title pred
+#' @title Wrapper on learning algoritmhs for regression and classification
 #'
-#'@param algo: learning algoritmh
+#'@param algo: learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}
 #'@param X: training input
 #'@param Y: training output
 #'@param X.ts: test input
-#'@param classi
-#'@return predicted test output
+#'@param classi: TRUE for classification, FALSE for regression
+#'@param ...: parameters of the learning algoritmh from the original package
+#'@return if \code{classi=FALSE} predicted test output; if \code{classi=TRUE} a list with
+#' \itemize{
+#' \item{\code{pred}:}  predicted class
+#' \item{ \code{prob}:} posteriori probability
+#'}
 #'
 #'@examples
+#'## regression example
 #' library(randomForest)
 #' n=4
 #' N=1000
@@ -38,10 +43,30 @@ library(kernlab)
 #' Ytr=Y[Itr]
 #' Xts=X[Its,]
 #' Yts=Y[Its]
-#' Yhat=pred("rf",Xtr,Ytr,Xts,classi=FALSE)
+#' Yhat=pred("rf",Xtr,Ytr,Xts,ntree=1000, classi=FALSE)
 #' e=Yts-Yhat
+#' ## normalized mean squared error
 #' NMSE=mean(e^2)/var(Yts)
 #' print(NMSE)
+#'
+#' ## classification example
+#' n=4
+#' N=1000
+#' X=array(rnorm(N*n),c(N,n))
+#' Y=numeric(N)
+#' Y[which(X[,1]*X[,2]+rnorm(N,sd=0.1)>0)]<-1
+#' Y=factor(Y)
+#' Itr=sample(N,round(N/2))
+#' Its=setdiff(1:N,Itr)
+#' Xtr=X[Itr,]
+#' Ytr=Y[Itr]
+#' Xts=X[Its,]
+#' Yts=Y[Its]
+#' Yhat=pred("lda",Xtr,Ytr,Xts,classi=TRUE)$pred
+#' e=as.numeric(Yts!=Yhat)
+#' ## misclassification error
+#' MISCL=sum(e)
+#' print(MISCL/N)
 #'
 pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
 
@@ -59,7 +84,6 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
 
   if (algo=="qda")
       P<-qda.pred(X,Y,X.ts,class=classi)
-
 
   if (algo=="nb"){
     if (!classi)
@@ -382,7 +406,6 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
     d<-data.frame(cbind(Y,X))
     names(d)[1]<-"Y"
     names(d)[2:(n+1)]<-paste("x",1:n,sep="")
-
 
 
     mod<-lazy(Y~.,d,control=lazy.control(distance="euclidean",
