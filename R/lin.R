@@ -25,6 +25,15 @@ library(MASS)
 #' \item{ \code{e.loo}:} leave-one-out error
 #'}
 #'
+#'@examples
+#'N<-100
+#' n<-10
+#' X<-array(rnorm(N*n),c(N,n))
+#' Y<-sin(X[,1]*X[,2])
+#' R<-regrlin(X,Y,X)
+#' R2<-regrlin.d(X,Y,X,lambda=1e-5)
+#'
+#'
 regrlin<-function(X,Y,X.ts=NULL,lambda=1e-3){
 
   n<-NCOL(X) # number input variables
@@ -149,19 +158,4 @@ regrlazy<-function(X,Y,X.ts=NULL,conPar=1,linPar=2,cmbPar=10,return.more=FALSE){
   return(ll)
 }
 
-demo<-function(){
 
-N<-100
-n<-10
-X<-array(rnorm(N*n),c(N,n))
-Y<-sin(X[,1]*X[,2])
-
-R<-regrlin(X,Y,X)
-
-R2<-regrlin.d(X,Y,X,lambda=1e-5)
-browser()
-
-
-
-
-}
