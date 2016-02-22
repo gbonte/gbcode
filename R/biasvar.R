@@ -1,16 +1,39 @@
 
-BiasVar<-function(N=25,n=10, R=200){
+#### BiasVar ####
+#' Demo of bias/variance tradeoff
+#'
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{mlg.ulb.ac.be}
+#' @title Demo of bias/variance tradeoff
+#'@export
+#'
+#'@param N: number of observations
+#'@param n: max degree of polynomial fitting
+#'@param R: number of repetitions for bias and variance estimation
+#'@param seed: seed random generator
+#'
+#'@return: list with
+#'\itemize{
+#'\item{Remp}: training MSE
+#'\item{B}: estimated squared bias
+#'\item{V}: estimated sqaured variance
+#'}
+#'@examples
+#'
+#'BiasVar()
+#'
+#'
+#'
+BiasVar<-function(N=25,n=10, R=200,seed=1){
 
 
   f<-function(x,ord){
     f<-1
     for (i in 1:ord)
       f<-f+(x^i)
-
     f
   }
 
-  set.seed(1)
   B<-NULL
   V=NULL
   x<-seq(-2,2,length.out=N)
@@ -22,9 +45,7 @@ BiasVar<-function(N=25,n=10, R=200){
 
 
   Remp<-numeric(n)
-  FPE<-numeric(n)
-  PSE<-numeric(n)
-  MSE.loo<-numeric(n)
+
   x.ts<-seq(-2,2,length.out=200)
 
 
@@ -60,12 +81,12 @@ BiasVar<-function(N=25,n=10, R=200){
     } ## for rr
     lines(x.ts,Y.ts,type="l",ylim=c(min(Y),max(Y)),lwd=5)
     lines(x.ts,apply(Pr,1,mean),type="l",ylim=c(min(Y),max(Y)),lwd=5,col="green")
-    bias=mean(abs(Y.ts-apply(Pr,1,mean)))
+    bias=mean((Y.ts-apply(Pr,1,mean))^2)
     vvar=mean(apply(Pr,1,var))
     B=c(B,bias)
     V=c(V,vvar)
-    title(paste("Bias",round(bias,2),
-                "Var",round(vvar,2), "degree=",r))
+    title(paste("Bias^2=",round(bias,4),
+                ", Var=",round(vvar,2), ", degree=",r))
     cat(r,"\n")
     par(ask=TRUE)
   }
@@ -74,5 +95,5 @@ BiasVar<-function(N=25,n=10, R=200){
   lines(1:n,V,col="green")
   lines(1:n,B+V)
   legend(8,1,c("BIAS^2","VARIANCE","MSE"),text.col=c("red","green","black"))
-  list(Remp=Remp,MSE.loo=MSE.loo,B=B, V=V)
+  list(Remp=Remp,B=B, V=V)
 }

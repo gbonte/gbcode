@@ -12,6 +12,7 @@
 #'@param n: number of observed variables
 #'@param neff: number of effective features
 #'@param sdn: standard deviation of Gaussian noise
+#'@param seed: seed random generator
 #'
 #'@examples
 #'
@@ -25,7 +26,8 @@
 #'
 #'
 #'
-regrDataset<-function(N,n,neff,sdn){
+regrDataset<-function(N,n,neff,sdn,seed=0){
+  set.seed(seed)
   Sigma=Posdef(n)
   X<-scale(rmvnorm(N,sigma=Sigma ))
   feat<-sample(n,neff)
@@ -55,12 +57,12 @@ nonlin.fct<-function(X,f=1){
   fx<-sample(n,sample(2:(n-2),1))
   fy<-setdiff(1:n,fx)
   if (length(fx)==1)
-    x=X[,fx]
+    x=abs(X[,fx])
   else
     x=apply(abs(X[,fx]),1,mean)
 
   if (length(fy)==1)
-    y=X[,fy]
+    y=abs(X[,fy])
   else
     y=apply(abs(X[,fy]),1,mean)
 

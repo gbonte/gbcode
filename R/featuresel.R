@@ -1,31 +1,40 @@
-#' Rankrho function
+#' ranking
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references \url{mlg.ulb.ac.be}
-#' @description value
-#' @details aa
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description Ranking filter based on mutual information
+#' @details Ranking filter based on mutaul information
 #' @title rankrho
 #' @name rankrho
-#' @keywords internal
 #' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param nmax: number of top returned features
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-rankrho(X,Y,nmax=3)
 
 
-rankrho<-function(X,Y,nmax=5,regr=FALSE,first=NULL){
-  n<-NCOL(X)
-  N<-NROW(X)
+
+rankrho<-function(X,Y,nmax=5,regr=FALSE){
+
   m<-NCOL(Y)
+  ## number of outputs
+
   X<-scale(X)
 
-  Iy<-numeric(n)
-  if (!regr){
-    Iy<-cor2I2(corXY(X,Y))
-  } else {
-    for (i in 1:n)
-      Iy[i]<-abs(regrlin(X[,i],Y)$beta.hat[2])
-  }
+  Iy<-cor2I2(corXY(X,Y))
 
   if (m>1)
     Iy<-apply(Iy,1,mean)
-
 
   return(sort(c(Iy), decreasing=T, index.return=T)$ix[1:nmax])
 
@@ -34,14 +43,287 @@ rankrho<-function(X,Y,nmax=5,regr=FALSE,first=NULL){
 
 
 
+#' mrmr
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description mRMR filter based on mutual information
+#' @details mRMR (minimum redundancy maximum relevance) filter based on mutual information
+#' @title mrmr
+#' @name mrmr
+#' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param nmax: number of top returned features
+#' @param back: if TRUE, backward reordering based on linear regression
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-mrmr(X,Y,nmax=3)
+mrmr<-function(X,Y,nmax=5,back=FALSE){
+
+  n<-NCOL(X)
+  N<-NROW(X)
+  m<-NCOL(Y)
+
+  if (is.factor(X[,1]) && is.factor(Y)){
+    require(infotheo)
+    Iy<-numeric(n)
+    Ix<-array(0,c(n,n))
+    for (i in 1:n){
+      for (j in 1:n){
+        Ix[i,j]<-mutinformation(X[,i],X[,j])
+      }
+      Iy[i]<-mutinformation(X[,i],Y)
+    }
+  }else {
+    X<-scale(X)
+    Iy<-cor2I2(corXY(X,Y))
+    CCx<-cor(X,use="pairwise.complete.obs")
+    Ix<-cor2I2(CCx)
+  }
+
+  subs<-which.max(Iy)
+  for (j in length(subs):min(n-1,nmax)){
+    mrmr<-numeric(n)-Inf
+    if (length(subs)<(n-1)){
+      if (length(subs)>1){
+        mrmr[-subs]<- Iy[-subs]+apply(-Ix[subs,-subs],2,mean)
+      } else {
+        mrmr[-subs]<- Iy[-subs]+(-Ix[subs,-subs])
+      }
+    } else {
+      mrmr[-subs]<-Inf
+    }
+
+    s<-which.max(mrmr)
+    subs<-c(subs,s)
+  }
+
+  if (back){  ## backward reordering based on linear regression
+    nsubs<-NULL
+    while (length(subs)>1){
+      pd<-numeric(length(subs))
+      for (ii in 1:length(subs))
+        pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.emp
+      nsubs<-c(subs[which.min(pd)],nsubs)
+      subs<-setdiff(subs,subs[which.min(pd)])
+    }
+    subs<-c(subs,nsubs)
+  }
+  subs[1:nmax]
+}
+
+
+#' cmim
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description cmim filter based on mutual information
+#' @details cmim (Fleuret) filter based on mutual information
+#' @title cmim
+#' @name cmim
+#' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param nmax: number of top returned features
+#' @param back: if TRUE, backward reordering based on linear regression
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-cmim(X,Y,nmax=3)
+cmim<-function(X,Y,nmax=5,back=TRUE){
+
+  X<-scale(X)
+  Y<-scale(Y)
+  m<-NCOL(Y) # number of outputs
+  n<-NCOL(X)
+  N<-NROW(X)
+  CY<-cor(X,Y[,1])
+  subset<-1:n
+  Iy<-array(NA,c(n,m))
+  Ixx<-array(NA,c(n,n))
+
+  for (i in 1:(n))
+    for (j in setdiff(1:n,i))
+      Ixx[i,j]<-cor2I2(pcor1(X[,i],Y,X[,j]))
+
+  for (i in 1:m){
+    Iy[,i]<-cor2I2(cor(X,Y[,i],use="pairwise.complete.obs"))
+
+  }
+
+  mrmr<-array(0,c(n,m))
+  subs<-which.max(Iy)
+  for (j in length(subs):min(n-2,nmax)){
+    mrmr<-numeric(n)-Inf
+    if (length(subs)<(n-1) & length(subs)>1){
+      mrmr[-subs]<- apply(Ixx[-subs,subs],1,min)
+    } else {
+      mrmr[-subs]<- Ixx[-subs,subs]
+
+    }
+    s<-which.max(mrmr)
+    subs<-c(subs,s)
+  }
+
+
+  if (back){
+    nsubs<-NULL
+    while (length(subs)>1){
+      pd<-numeric(length(subs))
+
+      for (ii in 1:length(subs))
+        pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.emp
+      nsubs<-c(subs[which.min(pd)],nsubs)
+      subs<-setdiff(subs,subs[which.min(pd)])
+
+
+    }
+    subs<-c(subs,nsubs)
+  }
+
+
+  subset[subs[1:nmax]]
+
+}
+
+
+
+
+#' rankregr
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description Feature ranking based on linear least squares regression coefficients
+#' @details Feature ranking based on linear least squares regression coefficients
+#' @title rankregr
+#' @name rankregr
+#' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param nmax: number of top returned features
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-rankregr(X,Y,nmax=3)
+rankregr<-function(X,Y,lambda=0.01,nmax=5){
+  n<-NCOL(X)
+  N<-NROW(X)
+  m<-NCOL(Y)
+  R<-regrlin(X,Y,lambda=lambda)
+  return(sort(abs(R$beta.hat[2:(n+1)]),decr=T,ind=T)$ix[1:nmax])
+}
+
+
+#' linearFsel
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description Wrapper feature selection based on forward selection and linear regression
+#' @details Wrapper feature selection based on forward selection and linear regression
+#' @title linearFsel
+#' @name linearFsel
+#' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param nmax: number of top returned features
+#' @param nmax2: number of forward selection steps
+#' @param back: if TRUE, backward reordering based on linear regression
+#' @param loo: if TRUE, assessment based on leave-one-out MSE
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-linearFsel(X,Y,nmax=3)
+linearFsel<-function(X,Y,nmax=5,nmax2=NCOL(X),loo=FALSE,back=FALSE){
+  subset<-which(apply(X,2,sd)>0)
+  ## it removes constant features
+
+  X<-X[,subset]
+
+  X<-scale(X)
+  Y<-as.numeric(Y)
+  Y<-scale(Y)
+  m<-NCOL(Y) # number of outputs
+  n<-NCOL(X)
+  N<-NROW(X)
+
+  NMAX<-min(nmax,nmax2)
+  if (back)
+    NMAX<-min(n,2*nmax)
+  CY<-corXY(X,Y)
+
+  subs<-which.max(abs(CY))
+  for (j in length(subs):NMAX){
+    subs<-subs[1:j]
+    pd<-numeric(n)+Inf
+    for (i in setdiff(1:n,subs)){
+      if (loo)
+        pd[i]<-regrlin(X[,c(subs,i)],Y)$MSE.loo
+      else
+        pd[i]<-regrlin(X[,c(subs,i)],Y)$MSE.emp
+    }
+    s<-which.min(pd)
+    subs<-c(subs,sort(pd,decr=FALSE,ind=TRUE)$ix[1:(n-length(subs))])
+  }
+
+  if (back){
+    nsubs<-NULL
+    while (length(subs)>1){
+      pd<-numeric(length(subs))
+      for (ii in 1:length(subs))
+        if (loo)
+          pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.loo
+        else
+          pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.emp
+        nsubs<-c(subs[which.min(pd)],nsubs)
+        subs<-setdiff(subs,subs[which.min(pd)])
+    }
+    subs<-c(subs,nsubs)
+  }
+  subset[subs[1:nmax]]
+
+}
+
+
+
+
 errfunction<-function(X,Y,algo,cv=10, classi=TRUE,...){
-  ## returns empirical error if cv=1, cross-validation error if cv>1
-  ## 17/11/2011
+  ## returns empirical error if cv<=1, cross-validation error if cv>1
+
   N<-NROW(X)
   n<-NCOL(X)
   if (classi){ ## classification
 
-    if (cv==1){
+    if (cv<=1){
       p<-pred(algo,X,Y,X,...)$pred
       erri<-length(which(p!=Y))/length(Y)
       return(erri)
@@ -66,7 +348,7 @@ errfunction<-function(X,Y,algo,cv=10, classi=TRUE,...){
     if (cv==1){
       p<-pred(algo,X,Y,X,class=FALSE,...)
       erri<-mean((p-Y)^2)
-       return(erri)
+      return(erri)
     }
 
     size.fold<-round(N/cv)
@@ -98,12 +380,50 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
   mean(err)
 }
 
+#' forwardSel
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description Wrapper feature selection based on forward selection and a generic predictor
+#' @details Wrapper feature selection based on forward selection and a generic predictor
+#' @title forwardSel
+#' @name forwardSel
+#' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param algo: see the options of \link{pred}
+#' @param nmax: number of top returned features
+#' @param nmax2: number of forward selection steps
+#' @param classi: if TRUE, classification problem else regression
+#' @param back: if TRUE, backward reordering based on linear regression
+#' @param cv: number of cross-validation folds (if \code{cv=1} no cross-validation)
+#' @param verbose: if TRUE it prints out the MSE estimations
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' ## regression example
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-forwardSel(X,Y,nmax=3)
+#'
+#' ## classification example
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=1)
+#' X<-R$X
+#' Y<-factor(round(R$Y))
+#' real.features<-R$feat
+#' ranked.features<-forwardSel(X,Y,nmax=3,classi=TRUE,cv=3)
+#'
+forwardSel<-function(X,Y,algo="rf",nmax=5,nmax2=nmax,cv=1,classi=FALSE,verbose=FALSE,...){
 
-forward.sel<-function(X,Y,algo,nmax,nmax2=nmax,cv=1,classi=TRUE,verbose=FALSE,...){
-  ## wrappper forward selection
-  ## 17/11/2011
   n<-NCOL(X)
-
   selected<-NULL
   for ( i in 1:nmax2){
     accuracy<-numeric(n)+NA
@@ -129,9 +449,9 @@ forward.sel<-function(X,Y,algo,nmax,nmax2=nmax,cv=1,classi=TRUE,verbose=FALSE,..
 
 
 gsloo<-function(X,
-             Y,
-             max.var=ncol(X),
-             trace=FALSE,automatic=F,class=F,shave=F,est.par=F){
+                Y,
+                max.var=ncol(X),
+                trace=FALSE,automatic=F,class=F,shave=F,est.par=F){
   # Gram-Schmidt
 
   if (class & (!is.factor(Y)))
@@ -175,7 +495,7 @@ gsloo<-function(X,
 
   J<-NULL
   NMSE<-NULL
-   max.cc<-numeric(NCOL(XX))
+  max.cc<-numeric(NCOL(XX))
   for (k in 1:min(max.var,n)){
     X.Y<-t(XX)%*%Y  ## XX[N,n] Y [N,1] -> X.Y [n,1]
     n.M<-apply(XX,2,normv,2)
@@ -233,7 +553,7 @@ gsloo<-function(X,
           theta<-theta[1:k-1]
           break
 
-      }
+        }
 
       }
     }
@@ -252,50 +572,50 @@ gsloo<-function(X,
     Y<- Y-x.sel%*%(x.sel%*%Y)/as.numeric(x.sel%*%x.sel)
 
 
-   if (shave){
-     sd.XX<-apply(XX,2,sd)
-     rel.sd<-sd.XX
-     which.compress<-setdiff(which(rel.sd <quantile(rel.sd,prob=0.05) | rel.sd<0.25),corr.var)
+    if (shave){
+      sd.XX<-apply(XX,2,sd)
+      rel.sd<-sd.XX
+      which.compress<-setdiff(which(rel.sd <quantile(rel.sd,prob=0.05) | rel.sd<0.25),corr.var)
 
 
-     if (length(which.compress)>0){
-       print(min(sd.XX[which.compress]))
+      if (length(which.compress)>0){
+        print(min(sd.XX[which.compress]))
 
-       Z<-pca(X[,c(corr.var,which.compress)],n.comp=length(selected))
+        Z<-pca(X[,c(corr.var,which.compress)],n.comp=length(selected))
 
-       if (T){
-         XX<-X
-         for (s in 1:length(selected)){
-           x.sel<-Z$data[,s]
-           cor.sel<-(x.sel %*%XX)/as.numeric(x.sel%*%x.sel)
-           XX<- XX-x.sel%*%cor.sel
+        if (T){
+          XX<-X
+          for (s in 1:length(selected)){
+            x.sel<-Z$data[,s]
+            cor.sel<-(x.sel %*%XX)/as.numeric(x.sel%*%x.sel)
+            XX<- XX-x.sel%*%cor.sel
 
-         }
-       }
-     ##  XX[,selected]<-Z$data[,1:length(selected)]  useless
-       corr.var<-c(corr.var,which.compress)
+          }
+        }
+        ##  XX[,selected]<-Z$data[,1:length(selected)]  useless
+        corr.var<-c(corr.var,which.compress)
 
 
-     }
-   }
+      }
+    }
 
 
 
 
     if (trace)
-      {
-        print(selected)
-        print(NMSE)
+    {
+      print(selected)
+      print(NMSE)
 
 
-      }
+    }
     rm(X.Y,x.sel,cc,s,n.M)
     gc()
   }
 
   if (est.par){
     par<-solve(A,theta,LINPACK=T)
-   par<-c(muY-muX[selected]%*%par,par)
+    par<-c(muY-muX[selected]%*%par,par)
   }
   list(sel=corr.var,par=par,Jloo=J,NMSE=NMSE,max.cor=max.cc,pval=pval)
 
@@ -305,93 +625,6 @@ gsloo<-function(X,
 
 
 
-rankregr<-function(X,Y,nmax=5){
-  ## mutual information ranking
-  ## 17/10/11
-  n<-NCOL(X)
-  N<-NROW(X)
-  m<-NCOL(Y)
-  R<-regrlin(X,Y)
-  return(sort(abs(R$beta.hat[2:(n+1)]),decr=T,ind=T)$ix[1:nmax])
-
-
-}
-
-
-
-
-mrmr<-function(X,Y,nmax=5,first=NULL,back=FALSE){
-  ## mRMR filter
-  # 17/10/11
-
-
-  n<-NCOL(X)
-  N<-NROW(X)
-  m<-NCOL(Y)
-
-  if (is.factor(X[,1]) && is.factor(Y)){
-    require(infotheo)
-    Iy<-numeric(n)
-    Ix<-array(0,c(n,n))
-    for (i in 1:n){
-      for (j in 1:n){
-        Ix[i,j]<-mutinformation(X[,i],X[,j])
-      }
-      Iy[i]<-mutinformation(X[,i],Y)
-    }
-  }else {
-
-    X<-scale(X)
-    Iy<-cor2I2(corXY(X,Y))
-
-    CCx<-cor(X,use="pairwise.complete.obs")
-    Ix<-cor2I2(CCx)
-
-  }
-
-  subs<-which.max(Iy)
-  for (j in length(subs):min(n-1,nmax)){
-    mrmr<-numeric(n)-Inf
-    if (length(subs)<(n-1)){
-      if (length(subs)>1){
-        mrmr[-subs]<- Iy[-subs]+apply(-Ix[subs,-subs],2,mean)
-      } else {
-
-        mrmr[-subs]<- Iy[-subs]+(-Ix[subs,-subs])
-
-      }
-    } else {
-      mrmr[-subs]<-Inf
-    }
-
-    s<-which.max(mrmr)
-    subs<-c(subs,s)
-
-  }
-
-
-  if (back){  ## backward reordering based on linear regression
-    nsubs<-NULL
-    while (length(subs)>1){
-      pd<-numeric(length(subs))
-
-      for (ii in 1:length(subs))
-        pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.emp
-
-      nsubs<-c(subs[which.min(pd)],nsubs)
-      subs<-setdiff(subs,subs[which.min(pd)])
-
-
-    }
-    subs<-c(subs,nsubs)
-  }
-
-
-
-  subs[1:nmax]
-
-
-}
 
 
 strimmer.rank<-function(X,Y,nmax){
@@ -466,37 +699,37 @@ mimr<-function(X,Y,nmax=5,first=NULL,
   }
 
   if (nmax>length(subs)){
-  last.subs<-0
-  for (j in length(subs):min(n-1,NMAX-1)){
-    mrmr<-numeric(n)-Inf
-    if (length(subs)<(n-1)){
-      if (length(subs)>1){
-        mrmr[-subs]<- (1-lambda)*Iy[-subs]+caus*lambda*apply(-Ix[subs,-subs]+Ixx[subs,-subs],2,mean)
+    last.subs<-0
+    for (j in length(subs):min(n-1,NMAX-1)){
+      mrmr<-numeric(n)-Inf
+      if (length(subs)<(n-1)){
+        if (length(subs)>1){
+          mrmr[-subs]<- (1-lambda)*Iy[-subs]+caus*lambda*apply(-Ix[subs,-subs]+Ixx[subs,-subs],2,mean)
+        } else {
+          mrmr[-subs]<- (1-lambda)*Iy[-subs]+caus*lambda*(-Ix[subs,-subs]+Ixx[subs,-subs])
+        }
       } else {
-        mrmr[-subs]<- (1-lambda)*Iy[-subs]+caus*lambda*(-Ix[subs,-subs]+Ixx[subs,-subs])
+        mrmr[-subs]<-Inf
       }
-    } else {
-      mrmr[-subs]<-Inf
+      s<-which.max(mrmr)
+      subs<-c(subs,s)
     }
-    s<-which.max(mrmr)
-    subs<-c(subs,s)
+
+
+    if (back){
+      nsubs<-NULL
+
+      while (length(subs)>1){
+        pd<-numeric(length(subs))
+        for (ii in 1:length(subs))
+          pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.loo
+        nsubs<-c(subs[which.min(pd)],nsubs)
+        subs<-setdiff(subs,subs[which.min(pd)])
+      }
+      subs<-c(subs,nsubs)
+    } # if back
+
   }
-
-
-  if (back){
-    nsubs<-NULL
-
-    while (length(subs)>1){
-      pd<-numeric(length(subs))
-      for (ii in 1:length(subs))
-        pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.loo
-      nsubs<-c(subs[which.min(pd)],nsubs)
-      subs<-setdiff(subs,subs[which.min(pd)])
-    }
-    subs<-c(subs,nsubs)
-  } # if back
-
-}
 
   ra<-subset[subs]
 
@@ -521,16 +754,16 @@ mimrback<-function(X,Y,lambda=0.5,lambda2=lambda,lag=1,nmax=10,back=FALSE,init=F
   subs<-which.min(Iy)
 
   for (i in 1:(n-2)){
-  pd<-numeric(n)+Inf
+    pd<-numeric(n)+Inf
 
-  if (length(subs)>1)
-    pd[-subs]<- (1-lambda)*(Iy[-subs])+lambda*(apply(-Ix[subs,-subs]+Ixx[subs,-subs],2,mean))
-  else
-     pd[-subs]<- (1-lambda)*(Iy[-subs])+lambda*((-Ix[subs,-subs]+Ixx[subs,-subs]))
-  subs<-c(which.min(pd),subs)
+    if (length(subs)>1)
+      pd[-subs]<- (1-lambda)*(Iy[-subs])+lambda*(apply(-Ix[subs,-subs]+Ixx[subs,-subs],2,mean))
+    else
+      pd[-subs]<- (1-lambda)*(Iy[-subs])+lambda*((-Ix[subs,-subs]+Ixx[subs,-subs]))
+    subs<-c(which.min(pd),subs)
 
 
-}
+  }
   subs<-c(setdiff(1:n,subs),subs)
 
 
@@ -554,12 +787,12 @@ mCRMR<-function(X,Y,lambda=0.5,nmax=10,maxpert=FALSE){
   if (!maxpert)
     for (i in 1:n){
       cut[i]<-(1-lambda)*(Iy[i]-H[i])-lambda*mean(Iy[-i]-Ix[i,-i]+Ixx[i,-i])
-####            max I(y;x_i)                   min  mean_j {I(y;xj| xi)}
+      ####            max I(y;x_i)                   min  mean_j {I(y;xj| xi)}
 
     } else {
       for (i in 1:n){  ## max perturbation
         cut[i]<-(1-lambda)*(Iy[i]-H[i])-lambda*mean(-Ix[i,-i]+Ixx[i,-i])
-####                          max  mean_j {I(y,x_j)- I(y;xj| xi)}
+        ####                          max  mean_j {I(y,x_j)- I(y;xj| xi)}
 
       }
     }
@@ -568,79 +801,6 @@ mCRMR<-function(X,Y,lambda=0.5,nmax=10,maxpert=FALSE){
   # to be maximized
 
 
-
-}
-
-
-cmim<-function(X,Y,nmax=5,first=NULL,init=TRUE,back=TRUE,inter=TRUE){
-
-  ## CMIM Fleuret filter
-  ## 25/10/11
-
-  X<-scale(X)
-  Y<-scale(Y)
-  m<-NCOL(Y) # number of outputs
-  n<-NCOL(X)
-  N<-NROW(X)
-
-  CY<-cor(X,Y[,1])
-
-  subset<-1:n
-
-
-
-  Iy<-array(NA,c(n,m))
-
-
-  Ixx<-array(NA,c(n,n))
-
-
-
-  for (i in 1:(n))
-    for (j in setdiff(1:n,i))
-      Ixx[i,j]<-cor2I2(pcor1(X[,i],Y,X[,j]))
-
-  for (i in 1:m){
-    Iy[,i]<-cor2I2(cor(X,Y[,i],use="pairwise.complete.obs"))
-
-  }
-
-  mrmr<-array(0,c(n,m))
-
-  subs<-which.max(Iy)
-  for (j in length(subs):min(n-2,nmax)){
-    mrmr<-numeric(n)-Inf
-    if (length(subs)<(n-1) & length(subs)>1){
-
-        mrmr[-subs]<- apply(Ixx[-subs,subs],1,min)
-
-    } else {
-
-        mrmr[-subs]<- Ixx[-subs,subs]
-
-    }
-    s<-which.max(mrmr)
-    subs<-c(subs,s)
-  }
-
-
-  if (back){
-    nsubs<-NULL
-    while (length(subs)>1){
-      pd<-numeric(length(subs))
-
-      for (ii in 1:length(subs))
-        pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.emp
-      nsubs<-c(subs[which.min(pd)],nsubs)
-      subs<-setdiff(subs,subs[which.min(pd)])
-
-
-    }
-    subs<-c(subs,nsubs)
-  }
-
-
-  subset[subs]
 
 }
 
@@ -709,7 +869,7 @@ bmimr<-function(X,Y,nmax=5,first=NULL,init=TRUE,lambda=0.95,back=TRUE){
     }
     subs<-c(subs,nsubs)
   }
-subs
+  subs
 
 }
 
@@ -768,10 +928,10 @@ disr<-function(X,Y,nmax=5,back=TRUE){
 
     pd<-numeric(n)-Inf
     if (m>1){
-         pd[-subs]<-apply(mrmr[-subs,],1,mean)
-     } else {
-       pd[-subs]<-mrmr[-subs,1]
-     }
+      pd[-subs]<-apply(mrmr[-subs,],1,mean)
+    } else {
+      pd[-subs]<-mrmr[-subs,1]
+    }
 
     s<-which.max(pd)
     subs<-c(subs,s)
@@ -779,21 +939,21 @@ disr<-function(X,Y,nmax=5,back=TRUE){
   }
 
 
- if (back){
-   nsubs<-NULL
-   while (length(subs)>1){
-     pd<-numeric(length(subs))
+  if (back){
+    nsubs<-NULL
+    while (length(subs)>1){
+      pd<-numeric(length(subs))
 
-     for (ii in 1:length(subs))
-       pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.emp
+      for (ii in 1:length(subs))
+        pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.emp
 
-     nsubs<-c(subs[which.min(pd)],nsubs)
-    subs<-setdiff(subs,subs[which.min(pd)])
+      nsubs<-c(subs[which.min(pd)],nsubs)
+      subs<-setdiff(subs,subs[which.min(pd)])
 
 
+    }
+    subs<-c(subs,nsubs)
   }
-   subs<-c(subs,nsubs)
- }
 
 
 
@@ -823,94 +983,39 @@ back<-function(X,Y,nmax){
   subs[1:nmax]
 
 }
-wrap<-function(X,Y,nmax=5,nmax2=NCOL(X),back=FALSE){
-
-
-  subset<-which(apply(X,2,sd)>0)
-
-  X<-X[,subset]
-
-  X<-scale(X)
-  Y<-as.numeric(Y)
-  Y<-scale(Y)
-  m<-NCOL(Y) # number of outputs
-  n<-NCOL(X)
-  N<-NROW(X)
-
-  NMAX<-min(nmax,nmax2)
-  if (back)
-    NMAX<-min(n,2*nmax)
-
-  CY<-corXY(X,Y)
-
-
-  subs<-which.max(abs(CY))
-
-  for (j in length(subs):NMAX){
-    subs<-subs[1:j]
-    pd<-numeric(n)+Inf
-    for (i in setdiff(1:n,subs)){
-
-      pd[i]<-regrlin(X[,c(subs,i)],Y)$MSE.emp
-    }
-    s<-which.min(pd)
-    subs<-c(subs,sort(pd,decr=FALSE,ind=TRUE)$ix[1:(n-length(subs))])
-
-  }
-
-
-
-  if (back){
-    nsubs<-NULL
-    while (length(subs)>1){
-      pd<-numeric(length(subs))
-
-      for (ii in 1:length(subs))
-        pd[ii]<-regrlin(X[,setdiff(subs,subs[ii])],Y)$MSE.emp
-
-      nsubs<-c(subs[which.min(pd)],nsubs)
-      subs<-setdiff(subs,subs[which.min(pd)])
-
-
-    }
-    subs<-c(subs,nsubs)
-  }
-  subset[subs[1:nmax]]
-
-}
 
 
 varbool<-function(X,Y){
-if (levels(factor(Y))>2)
-  stop("Error in varbool")
+  if (levels(factor(Y))>2)
+    stop("Error in varbool")
 
-n<-NCOL(X)
+  n<-NCOL(X)
 
-if (n==1){
-   p0<-which(Y==0)
-   return(p0*(1-p0))
- }
-N<-NROW(X)
-w<-NULL
-V<-NULL
-for (j in (0:(2^n-1))){
-  s<-unlist(strsplit(int2bit(j,n),""))
-  ind<-1:N
-  for (k in 1:n)
-    ind<-intersect(ind,which(X[,k]==as.integer(s[k])))
+  if (n==1){
+    p0<-which(Y==0)
+    return(p0*(1-p0))
+  }
+  N<-NROW(X)
+  w<-NULL
+  V<-NULL
+  for (j in (0:(2^n-1))){
+    s<-unlist(strsplit(int2bit(j,n),""))
+    ind<-1:N
+    for (k in 1:n)
+      ind<-intersect(ind,which(X[,k]==as.integer(s[k])))
 
-  w<-c(w,length(ind)/N)
-  p0<-which(Y[ind]==0)
-  V<-c(V,p0*(1-p0))
+    w<-c(w,length(ind)/N)
+    p0<-which(Y[ind]==0)
+    V<-c(V,p0*(1-p0))
+  }
+
+  as.numeric(V*w)
+
+
+
 }
 
-as.numeric(V*w)
-
-
-
-}
-
- wrapbool<-function(X,Y,nmax=5){
+wrapbool<-function(X,Y,nmax=5){
 
 
   m<-NCOL(Y) # number of outputs
@@ -941,11 +1046,11 @@ as.numeric(V*w)
 
 
 }
- sortrank2<-function(sx,rnk=FALSE){
+sortrank2<-function(sx,rnk=FALSE){
 
-   sx[which(is.nan(sx) | is.infinite(sx))]<-0
-   sx[which(sx<quantile(sx,0.99))]<-0
-   return(sx)
+  sx[which(is.nan(sx) | is.infinite(sx))]<-0
+  sx[which(sx<quantile(sx,0.99))]<-0
+  return(sx)
 }
 
 apply.thr<-function(x,rem=20){
@@ -964,42 +1069,42 @@ net.inf<-function(X,Y=NULL,whichnodes=1:NCOL(X),
   # Adj[i,j] strength link i->j
 
 
- require(corpcor)
- n<-NCOL(X)
- N<-NROW(X)
+  require(corpcor)
+  n<-NCOL(X)
+  N<-NROW(X)
 
- CX<-cor.shrink(X,lambda=thr,verbose=FALSE)
-## CX<-cor(X)
- if (meth=='rank'){
-   return(abs(CX))
- } ##  if (meth=='rank')
+  CX<-cor.shrink(X,lambda=thr,verbose=FALSE)
+  ## CX<-cor(X)
+  if (meth=='rank'){
+    return(abs(CX))
+  } ##  if (meth=='rank')
 
- C<-(cor2I2(CX))
+  C<-(cor2I2(CX))
 
- b<-C
- diag(b)<-0
- L<-min(nmax,n-1)
- W<-array(-Inf,c(n,n))
- AA<-C
+  b<-C
+  diag(b)<-0
+  L<-min(nmax,n-1)
+  W<-array(-Inf,c(n,n))
+  AA<-C
 
- diag(AA)<-Inf
- if (sparse){
-   for (i in 1:n){
+  diag(AA)<-Inf
+  if (sparse){
+    for (i in 1:n){
 
-     sA<-sort(abs(c(AA[,i])),decreasing=T,ind=T)$ix
-     AA[sA[min(n,10):length(sA)],i]<-0
+      sA<-sort(abs(c(AA[,i])),decreasing=T,ind=T)$ix
+      AA[sA[min(n,10):length(sA)],i]<-0
 
-   }
+    }
   }
- diag(AA)<-NA
- diag(AA)<-max(apply(abs(AA),1,sum,na.rm=T))
+  diag(AA)<-NA
+  diag(AA)<-max(apply(abs(AA),1,sum,na.rm=T))
 
- AA2<--AA
- diag(AA2)<-0
- if (sparse){
-   AA<-as.simple_triplet_matrix(AA[,])
-   AA2<-as.simple_triplet_matrix(AA2[,])
- }
+  AA2<--AA
+  diag(AA2)<-0
+  if (sparse){
+    AA<-as.simple_triplet_matrix(AA[,])
+    AA2<-as.simple_triplet_matrix(AA2[,])
+  }
 
 
   for (i in whichnodes){ ###  for (i
@@ -1011,7 +1116,7 @@ net.inf<-function(X,Y=NULL,whichnodes=1:NCOL(X),
     A<-AA[ind.i,ind.i]
     A2<-AA2[ind.i,ind.i]
     b<-C[ind.i,i]
-###### additional mimr code
+    ###### additional mimr code
     if (filt=="mimr"){
       cA<-CX[ind.i,ind.i]
       cB<-CX[ind.i,i]
@@ -1024,9 +1129,9 @@ net.inf<-function(X,Y=NULL,whichnodes=1:NCOL(X),
       A<- A-A3
 
     }
-######
+    ######
 
-     if (meth=="ln"){
+    if (meth=="ln"){
       ## Gradient method
 
       x<-numeric(L)+1/L
@@ -1046,9 +1151,9 @@ net.inf<-function(X,Y=NULL,whichnodes=1:NCOL(X),
 
         if (sparse)
           alpha<-alpha/(as.matrix(t(r)%*%tcrossprod_simple_triplet_matrix(A,t(r))))
-          else
-            alpha<-alpha/(as.matrix(t(r)%*%A%*%r))
-   ##     alpha[which(is.na(alpha))]<-0
+        else
+          alpha<-alpha/(as.matrix(t(r)%*%A%*%r))
+        ##     alpha[which(is.na(alpha))]<-0
         prevx<-x
 
         newx<- x+as.numeric(alpha)*r
@@ -1066,29 +1171,29 @@ net.inf<-function(X,Y=NULL,whichnodes=1:NCOL(X),
     }  ##  if (meth=="ln"){
 
 
-####################
-     if (meth=="ln2"){
-       ## Jacobi method
-       x<-numeric(length(b))+1/length(b)
-       oldx<-x*0
-       it<-1
+    ####################
+    if (meth=="ln2"){
+      ## Jacobi method
+      x<-numeric(length(b))+1/length(b)
+      oldx<-x*0
+      it<-1
 
-       while (mean(abs((x-oldx)))>1e-4 & it <nit ){
-         if (sparse)
+      while (mean(abs((x-oldx)))>1e-4 & it <nit ){
+        if (sparse)
           b2<-tcrossprod_simple_triplet_matrix(A2,t(x))
         else
           b2<-A2%*%x
-         oldx<-x
-         x<- (b2+ b)/10
-         if (sum(abs(x))>0)
-           x<-abs(x)/sum(abs(x))
+        oldx<-x
+        x<- (b2+ b)/10
+        if (sum(abs(x))>0)
+          x<-abs(x)/sum(abs(x))
 
 
-         it<-it+1
+        it<-it+1
 
-       }
+      }
 
-     W[ind.i,i]<-x
+      W[ind.i,i]<-x
 
     }
 
@@ -1103,7 +1208,7 @@ net.inf<-function(X,Y=NULL,whichnodes=1:NCOL(X),
           else
             selected<-c(selected,notselected[which.max(b[notselected]-A[selected,notselected])])
         } else
-        selected<-c(selected,notselected)
+          selected<-c(selected,notselected)
 
       }
 
@@ -1124,8 +1229,8 @@ net.inf<-function(X,Y=NULL,whichnodes=1:NCOL(X),
 
 
 net.inf.sup<-function(X,Y,
-                  nmax=NCOL(X),nit=15,nmax.fw=10,lambda=0.5,
-                  thr=0.5,filt="mrmr",meth="fw",verbose=FALSE,sparse=FALSE){
+                      nmax=NCOL(X),nit=15,nmax.fw=10,lambda=0.5,
+                      thr=0.5,filt="mrmr",meth="fw",verbose=FALSE,sparse=FALSE){
 
   n<-NCOL(X)
   N<-NROW(X)
@@ -1148,8 +1253,8 @@ net.inf.sup<-function(X,Y,
   diag(AA)<- 0
 
   if (sparse){
-      sA<-sort(abs(c(AA)),decreasing=T)
-      AA[which(abs(AA)<sA[1000*n],arr.ind=TRUE)]<-0
+    sA<-sort(abs(c(AA)),decreasing=T)
+    AA[which(abs(AA)<sA[1000*n],arr.ind=TRUE)]<-0
   }
 
   diag(AA)<-NA
@@ -1196,7 +1301,7 @@ net.inf.sup<-function(X,Y,
     b<-b[ind.i]
 
 
-###### additional mimr code
+    ###### additional mimr code
     if (filt=="mimr"){
       cA<-CX[ind.i,ind.i]
       cB<-cXY[ind.i,i]
@@ -1208,7 +1313,7 @@ net.inf.sup<-function(X,Y,
 
 
     }
-####################
+    ####################
 
     b<-(1-lambda)*b
     A<-lambda*A
@@ -1221,18 +1326,18 @@ net.inf.sup<-function(X,Y,
       ## gradient iteration
 
       while (mean(abs((x-prevx)))>1e-4 & it <nit ){
-         if (sparse)
+        if (sparse)
           b2<-tcrossprod_simple_triplet_matrix(A,t(x))
         else
           b2<-A%*%x
         r<-b-as.matrix(b2)
 
-         alpha<-(t(r)%*%r)
+        alpha<-(t(r)%*%r)
 
         if (sparse)
           alpha<-alpha/(as.matrix(t(r)%*%tcrossprod_simple_triplet_matrix(A,t(r))))
-          else
-            alpha<-alpha/(as.matrix(t(r)%*%A%*%r))
+        else
+          alpha<-alpha/(as.matrix(t(r)%*%A%*%r))
 
         prevx<-x
 
@@ -1256,20 +1361,20 @@ net.inf.sup<-function(X,Y,
       oldx<-x*0
       it<-1
       while (it<=10){
-         if (sparse)
+        if (sparse)
           b2<-tcrossprod_simple_triplet_matrix(A2,t(x))
         else
           b2<-A2%*%x
-         x<- (b2+ b)/10
+        x<- (b2+ b)/10
         if (mean(abs(oldx-x))<1e-4)
-           break
+          break
         if (sum(abs(x))>0)
           x<-abs(x)/sum(abs(x))
         oldx<-x
         it<-it+1
       }
 
-     W[ind.i,i]<-x
+      W[ind.i,i]<-x
 
     }
     if (meth=="fw"){
@@ -1283,7 +1388,7 @@ net.inf.sup<-function(X,Y,
           else
             selected<-c(selected,notselected[which.max(b[notselected]-A[selected,notselected])])
         } else
-        selected<-c(selected,notselected)
+          selected<-c(selected,notselected)
       }
       x<-seq(nmax.fw,1,by=-1)
       W[ind.i[selected],i]<-x
@@ -1293,396 +1398,6 @@ net.inf.sup<-function(X,Y,
   return(W)
 }
 
-
-net.inf.old<-function(X,Y=NULL,whichnodes=1:NCOL(X),
-                  nmax=round(NCOL(X)/2),nit=15,
-                  thr=0.9,filt="mrmr",meth="fw",verbose=FALSE,R=1){
-  # meth= fw forward
-  # meth= ln linear
-  require(corpcor)
-  n<-NCOL(X)
-  N<-NROW(X)
-##  CX<-cor.shrink(X,verbose=FALSE,lambda=0.5)
-  CX<-cor(X)
-
-  C<-(cor2I2(CX))
-#  S<-svd(C)
-  m<-min(30,round(n/3))
-#  C<-S$v[,1:m]%*%diag(S$d[1:m])%*%t(S$v[,1:m])
-
-  C2<-C
-  if (verbose)
-    print("cor done")
-
-
-
-  if (verbose)
-    print("cor2I2 done")
-
- if (verbose)
-    print("thr done")
-
-
-  if (is.null(Y)){
-    b<-C
-    diag(b)<-0
-    if (meth== "matrix" & filt=="mrmr"){
-      A<-C
-      x<-(S$v[,1:m]%*%diag(1/S$d[1:m])%*%t(S$v[,1:m]))%*%b
-          diag(x)<-0
-    #  browser()
-      return(x)
-
-      it<-1
-      r<-Inf
-
-      if (FALSE)
-        while (mean(abs(r))>1e-4 & it<=20){
-          if (verbose)
-            cat("it=",it,"\n")
-          r<-b-A%*%x
-          if (verbose)
-            print(mean(abs(r)))
-          alpha<-numeric(n)
-          for (ii in 1:n){
-            rr<-r[,ii]
-            alpha[ii]<-diag(t(rr)%*%rr)/diag(t(rr)%*%A%*%rr)
-          }
-          ##alpha<-diag(t(r)%*%r)/diag(t(r)%*%A%*%r)
-          alpha[which(is.na(alpha))]<-0
-          if (verbose)
-            cat("alpha computed \n")
-          x<- x+ t(alpha%*%array(1,c(1,n)))*r
-          diag(x)<-0
-          it<-it+1
-
-        } else {
-    #    D<-diag(A)
-        A2<--b
-        oldx<-x*0
-        diag(x)<-0
-        while (it<=100){
-          if (verbose)
-            cat("it=",it,"\n")
-
-          x<- (A2%*%x+ b)/10
-          diag(x)<-0
-       #   browser()
-      #    x<-x/D
-
-          if (mean(abs(oldx-x))<1e-4)
-            break
-
-          oldx<-x
-          it<-it+1
-
-        }
-      }
-
-      return(x)
-
-
-    }
-
-    if (meth=='rank'){
-      return(b)
-    } ##  if (meth=='rank')
-
-
-    L<-min(10*nmax,n-1)
-    W<-array(-Inf,c(n,n))
-
-
-
-
-    for (i in whichnodes){ ###  for (i
-      if (verbose)
-        print(i)
-      wh<-sort(C[i,],dec=T,ind=T)$ix
-
-      ind.i<-wh[2:(L+1)]
-      if (any(is.na(ind.i))){
-        cat("i=",i,"ind.i=",ind.i,"\n")
-        error()
-
-      }
-      A<-C[ind.i,ind.i]
-      b<-C2[ind.i,i]
-      cA<-CX[ind.i,ind.i]
-      cB<-CX[ind.i,i]
-
-      XX<-NULL
-      for (rr in 1:R){
-        if (rr>1){
-          ccB<-rpears(cB,10*N)
-          ccA<-rpears(cA,10*N)
-          A<-cor2I2(ccA)
-          b<-cor2I2(ccB)
-
-        }
-
-###### additional mimr code
-        if (filt=="mimr"){
-
-          if (rr>1){
-            D<-sqrt(1-ccB^2)%*%t(sqrt(1-ccB^2))
-            pC<-(ccA-ccB%*%t(ccB))/D
-          } else {
-            D<-sqrt(1-cB^2)%*%t(sqrt(1-cB^2))
-            pC<-(cA-cB%*%t(cB))/D
-          }
-
-          ##    if (rr>1)
-          ##     pC<-rpears(pC,N,1)
-
-          A2<-cor2I2(pC)
-          A<- A-A2
-
-        }
-
-        diag(A)<-NA
-        ##        A[which(abs(A)<quantile(c(abs(A)),thr,na.rm=T))]<-0
-        diag(A)<-max(apply(abs(A),1,sum,na.rm=T))
-
-        S<-svd(A)
-        if (meth=="ln"){
-
-
-          x<-numeric(length(b))+1/length(b)
-
-          prevx<-100+x
-          it<-1
-          ## gradient iteration
-
-
-          while (mean(abs((x-prevx)))>1e-4 & it <nit ){
-            r<-b-A%*%x
-            alpha<-(t(r)%*%r)/(t(r)%*%A%*%r)
-            alpha[which(is.na(alpha))]<-0
-            prevx<-x
-
-            newx<- x+as.numeric(alpha)*r
-            it<-it+1
-
-            newx[which(is.na(newx))]<-0
-            if (sum(abs(newx))>0)
-              x<-abs(newx)/sum(abs(newx))
-
-          }
-
-          s<-sort(x,ind=T,d=TRUE)$ix
-          if (FALSE){
-            newloo<-numeric(length(x))+Inf
-            for (jj in 1:min(50,length(x)))
-              newloo[s[jj]]<-min(c(newloo[s[1:jj]],regrlin(as.matrix(X[,ind.i[s[1:jj]]]),X[,i])$MSE.loo/var(X[,i])))
-
-            x<-pmax(0,1-newloo)
-          }
-          x[s[nmax:length(s)]]<-0
-          XX<-cbind(XX,x)
-          if (rr==1)
-            sx<-x
-          else
-            sx<-apply(XX,1,mean)
-          sx<-(sx-min(sx,na.rm=T))/(max(sx,na.rm=T)-min(sx,na.rm=T))
-          sx[which(is.nan(sx))]<-0
-          W[ind.i,i]<-sx
-
-        }  ##  if (meth=="ln"){
-
-####################
-        if (meth=="pinv"){
-
-
-          x<-(S$v[,1:m]%*%diag(1/S$d[1:m])%*%t(S$v[,1:m]))%*%b
-          s<-sort(x,ind=T,d=TRUE)$ix
-
-          x[s[nmax:length(s)]]<-0
-          XX<-cbind(XX,x)
-          if (rr==1)
-            sx<-x
-          else
-            sx<-apply(XX,1,mean)
-          sx<-(sx-min(sx,na.rm=T))/(max(sx,na.rm=T)-min(sx,na.rm=T))
-          sx[which(is.nan(sx))]<-0
-          W[ind.i,i]<-sx
-
-        }  ##  if (meth=="pinv"){
-
-
-
-
-        if (meth=="fw"){
-          selected<-which.max(b)
-          for (j in 2:nmax){
-            notselected<-setdiff(1:L,selected)
-
-            if (length(notselected)>1){
-              if (length(selected)>1)
-                selected<-c(selected,notselected[which.max(b[notselected]-apply(A[selected,notselected],2,mean))])
-              else
-                selected<-c(selected,notselected[which.max(b[notselected]-A[selected,notselected])])
-            } else
-            selected<-c(selected,notselected)
-
-          }
-
-
-          x<-seq(nmax,1,by=-1)
-          XX<-cbind(XX,x)
-          if (rr==1)
-            sx<-x
-          else
-            sx<-apply(XX,1,mean)
-
-          W[ind.i[selected],i]<-(sx-min(sx))/(max(sx)-min(sx))
-
-
-
-        } ##  if (meth=="fw"){
-
-
-      } ## for rr
-    } ## for i
-
-    return(W)
-
-  } else {   ####### SUPERVISED SETTING
-    XX<-NULL
-    L<-min(2*nmax,n)
-    S<-NULL
-    if (is.vector(Y)){
-      m<-1
-    } else {
-      m<-NCOL(Y)
-    }
-
-    W<-array(-Inf,c(n,m))
-
-    cXY<-array(NA,c(n,m))
-
-    for (i in 1:m){
-      if (verbose)
-        print(i)
-      if (m>1)
-        YY<-Y[,i]
-      else
-        YY<-Y
-
-      if (is.factor(YY)){
-        l<-levels(YY)
-        if (length(l)==2){
-          yy<-numeric(N)
-          ind1<-which(Y==l[1])
-          ind2<-setdiff(1:N,ind1)
-          yy[ind1]<-1
-          YY<-yy
-          cXY[,i]<-cor(X,yy)
-        }
-      } else {
-        cXY[,i]<-cor(X,YY)
-      }
-
-      b<-cor2I2(cXY[,i])
-
-      wh<-sort(b,dec=T,ind=T)$ix
-
-      ind.i<-wh[1:(L)]
-      A<-C[ind.i,ind.i]
-      b<-b[ind.i]
-      cA<-CX[ind.i,ind.i]
-      cB<-cXY[ind.i,i]
-      for (rr in 1:R){
-        if (rr>1){
-          ccB<-rpears(cB,2*N)
-          ccA<-rpears(cA,2*N)
-          A<-cor2I2(ccA)
-          b<-cor2I2(ccB)
-
-          diag(A)<-max(apply(abs(A),1,sum,na.rm=T))
-        }
-###### additional mimr code
-        if (filt=="mimr"){
-
-          if (rr>1){
-            D<-sqrt(1-ccB^2)%*%t(sqrt(1-ccB^2))
-            pC<-(ccA-ccB%*%t(ccB))/D
-          } else {
-            D<-sqrt(1-cB^2)%*%t(sqrt(1-cB^2))
-            pC<-(cA-cB%*%t(cB))/D
-          }
-          A2<-cor2I2(pC)
-          A<- A-A2
-        }
-####################
-
-
-        x<-numeric(length(b))+1/length(b)
-
-        if (meth=="ln"){
-          prevx<-100+x
-          it<-1
-
-          ## gradient iteration
-
-          while (mean(abs((x-prevx)))>1e-4 & it <nit ){
-            r<-b-A%*%x
-            alpha<-(t(r)%*%r)/(t(r)%*%A%*%r)
-            prevx<-x
-
-            x<- x+as.numeric(as.matrix(alpha))*r
-            it<-it+1
-            x<-abs(x)/sum(abs(x))
-          }
-
-
-          XX<-cbind(XX,x)
-          if (rr==1)
-            sx<-x
-          else
-            sx<-apply(XX,1,mean)
-
-
-          W[ind.i,i]<-(sx-min(sx))/(max(sx)-min(sx))
-
-        } ##  if (meth=="ln")
-
-
-        if (meth=="fw"){
-          selected<-which.max(b)
-          for (j in 2:nmax){
-            notselected<-setdiff(1:L,selected)
-
-            if (length(notselected)>1){
-              if (length(selected)>1)
-                selected<-c(selected,notselected[which.max(b[notselected]-apply(A[selected,notselected],2,mean))])
-              else
-                selected<-c(selected,notselected[which.max(b[notselected]-A[selected,notselected])])
-            } else
-            selected<-c(selected,notselected)
-
-          }
-
-          x<-seq(L,1,by=-1)
-          XX<-cbind(XX,x)
-          if (rr==1)
-            sx<-x
-          else
-            sx<-apply(XX,1,mean)
-
-          W[ind.i[selected],i]<-sx
-
-        } ## if (meth=="fw")
-      } ## for rr
-      S<-cbind(S,sort(W[,i],decr=T,ind=TRUE)$ix[1:nmax])
-
-
-
-    }
-
-    return(S)
-  }
-}
 
 netpred<-function(X,Y,Xts,filt,meth,thr=0,verbose=F){
 
@@ -1722,7 +1437,7 @@ netpred<-function(X,Y,Xts,filt,meth,thr=0,verbose=F){
       newqq0[,j]<-R$Y.hat.ts
       if (r>10)
         for (i in 1:Nts)
-        L0[i]<-L0[i]+dnorm(newqq0[i,j],q[i,j],log=TRUE,sd=sqrt(R$MSE.loo))
+          L0[i]<-L0[i]+dnorm(newqq0[i,j],q[i,j],log=TRUE,sd=sqrt(R$MSE.loo))
       pred1<-sort(n1[,j],d=T,ind=T)$ix
       for (jj in 3){
         R<-regrlin(X[ind1,pred1[1:jj]],X[ind1,j],qq1[,pred1[1:jj]])
@@ -1730,7 +1445,7 @@ netpred<-function(X,Y,Xts,filt,meth,thr=0,verbose=F){
       newqq1[,j]<-R$Y.hat.ts
       if (r>10)
         for (i in 1:Nts)
-        L1[i]<-L1[i]+dnorm(newqq1[i,j],q[i,j],log=TRUE,sd=sqrt(R$MSE.loo))
+          L1[i]<-L1[i]+dnorm(newqq1[i,j],q[i,j],log=TRUE,sd=sqrt(R$MSE.loo))
     }
     qq1<-newqq1
     qq0<-newqq0
@@ -1760,13 +1475,13 @@ hiton<-function(X,Y,algo=1){
   outp<-NCOL(XX)
   if (! file.exists(dir)) {
     dir.create(dir)
- } else {
-   dir=paste(getwd(),round(sum(abs(Y))+sample(1:100000,1)),sep="/")
-   dir.create(dir)
- }
+  } else {
+    dir=paste(getwd(),round(sum(abs(Y))+sample(1:100000,1)),sep="/")
+    dir.create(dir)
+  }
 
- ## print(dir)
- # write(dir,file="dir.txt")
+  ## print(dir)
+  # write(dir,file="dir.txt")
 
   filealgo<-paste(dir,"algo.txt",sep="/")
   write(algo,file=filealgo)
@@ -1804,7 +1519,7 @@ fastCI<-function(X,Y,i,coset,NC=20,L=max(5,min(20,NROW(X)/2))){
   X<-scale(X)
   Y<-as.numeric(Y)
   set.seed(sum(coset))
- ## COND<-array(rnorm(NC*n,sd=0.1),c(NC,n))
+  ## COND<-array(rnorm(NC*n,sd=0.1),c(NC,n))
   NC<-min(NC,N)
   COND<-X[sample(1:N,NC),]
   x<-i
@@ -1833,7 +1548,7 @@ fastCI<-function(X,Y,i,coset,NC=20,L=max(5,min(20,NROW(X)/2))){
       ##  e<-c(e,
       ##       pred("lazy",X[setdiff(Ic,ii),x],Y[setdiff(Ic,ii)],X[ii,x],conPar=c(3,10),linPar=NULL,class=FALSE)-Y[ii])
 
-     ## }
+      ## }
       ## e<-c(e,
       ##   pred("lin",X[setdiff(Ic,ii),x],Y[setdiff(Ic,ii)],X[ii,x],class=FALSE)-Y[ii])
 
@@ -1911,22 +1626,22 @@ filtdiff<-function(X,Y,nmax=5,nmax2=NCOL(X),back=FALSE){
 
           ie<-Y[Its]-1/2*(pred("lazy",X[Itr,subs],Y[Itr],X[Its,subs],
                                linPar=NULL,class=FALSE)+pred("lazy",X[Itr,i],Y[Itr],X[Its,i],
-                                             linPar=NULL,class=FALSE))
+                                                             linPar=NULL,class=FALSE))
           d<-c(d,mean(ed^2)/var(Y[Its])+abs(mean(ed^2)/var(Y[Its])- mean(ie^2)/var(Y[Its])))
 
         }
       } else {
-         for (r in 1:10){
-           Itr<-sample(1:N,round(2*N/3))
-           Its<-setdiff(1:N,Itr)
-           ed<- Y[Its]-pred("lin",X[Itr,c(subs,i)],Y[Itr],X[Its,c(subs,i)],
-                            class=FALSE)
+        for (r in 1:10){
+          Itr<-sample(1:N,round(2*N/3))
+          Its<-setdiff(1:N,Itr)
+          ed<- Y[Its]-pred("lin",X[Itr,c(subs,i)],Y[Itr],X[Its,c(subs,i)],
+                           class=FALSE)
 
-           ie<-Y[Its]-1/2*(pred("lin",X[Itr,subs],Y[Itr],X[Its,subs],
-                                class=FALSE)+pred("lin",X[Itr,i],Y[Itr],X[Its,i],
-                                  class=FALSE))
-           d<-c(d,mean(ed^2)/var(Y[Its])- 0.5*mean(ie^2)/var(Y[Its]))
-         }
+          ie<-Y[Its]-1/2*(pred("lin",X[Itr,subs],Y[Itr],X[Its,subs],
+                               class=FALSE)+pred("lin",X[Itr,i],Y[Itr],X[Its,i],
+                                                 class=FALSE))
+          d<-c(d,mean(ed^2)/var(Y[Its])- 0.5*mean(ie^2)/var(Y[Its]))
+        }
 
       }
 
