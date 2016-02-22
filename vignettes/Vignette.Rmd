@@ -13,16 +13,204 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+```{r}
+install_github("gbonte/gbcode")
+install_github('ramhiser/datamicroarray')
+library(randomForest)
+library(e1071)
+
+AUC0<-NULL
+AUC1<-NULL
+AUCrf<-NULL
+AUCrf2<-NULL
+AUC3<-NULL
+
+library(datamicroarray)
+
+De<-describe_data()
+
+w<-which(De[,"n"]>50)
+
+
+
+for (f in w[(length(AUC0)+1):length(w)]) {
+  set.seed(f+1)
+  author<-as.character(De[f,"author"])
+  print(author)
+  
+  data(list=author,package="datamicroarray")
+  D<-get(author)
+  X<-array(as.numeric(as.matrix(D$x)),dim(D$x)) ##D$x
+  Y<-D$y
+  N<-NROW(X)
+  Y<-factor(Y)
+  if (length(levels(Y))>2){
+    
+    Ta<-table(Y)
+    wta<-which.max(Ta)
+    Yn<-numeric(length(Y))
+    Yn[which(Y==names(Ta)[wta])]<-1
+    Y<-factor(Yn)
+
+
+  }
+    
+  X<-impute(X)$impX
+  wconst<-which(apply(X,2,sd)<1e-2)
+  if (length(wconst)>0)
+    X<-X[,-wconst]
+  X<-scale(X)
+  n<-NCOL(X)
+ 
+  levels(Y)<-c("0","1")
+  
+  Yhat0<-NULL
+  Yhat<-NULL
+  Yhatrf<-NULL
+  Yhatrf2<-NULL
+  Yhat3<-NULL
+  auc<-NULL
+  aucrf<-NULL
+  aucrf2<-NULL 
+  Ytrue<-NULL
+  NMAX<-25
+  Is<-sample(N)
+  X<-X[Is,]
+  Y<-Y[Is]
+  CV<-5
+  Nv<-round(N/CV)
+  for (cv in 1:CV){
+    set.seed(cv)
+    Its<-((cv-1)*Nv+1):min(N,cv*Nv) ##sample(1:N,round(N/3)) ##((cv-1)*Nv+1):min(N,cv*Nv)
+    Itr<-setdiff(1:N,Its)
+    Xtr<-X[Itr,]
+    Ytr<-Y[Itr]
+    Xts<-X[Its,]
+    wconst<-which(apply(Xtr,2,sd)<1e-2)
+    if (length(wconst)>0){
+      Xtr<-Xtr[,-wconst]
+      Xts<-Xts[,-wconst]
+    }
+    n<-NCOL(Xtr)
+    print(NROW(Xtr))    
+    Yts<-Y[Its]
+    
+    subsrank<-rankrho(Xtr,Ytr,nmax=min(n-5,1000))
+    subs<-subsrank[mrmr(Xtr[,subsrank],Ytr,
+                        nmax=NMAX)]
+    
+    Irf<-1:NROW(Xtr)
+    if (NROW(Xtr)>500)
+      Irf<-sample(1:NROW(Xtr),500)
+    RF<-randomForest(Xtr[Irf,subsrank],factor(Ytr[Irf]),importance=TRUE)
+    subsrf<-subsrank[sort(importance(RF)[,3],
+                          decr=TRUE,
+                          index=TRUE)$ix[1:NMAX]]
+    subsrf2<-subsrank[sort(importance(RF)[,4],
+                           decr=TRUE,
+                           index=TRUE)$ix[1:NMAX]]
+    
+    subs0<-subsrank[1:NMAX]
+    
+    print(".")
+
+
+  
+  
+    subs3<-subs0
+
+    
+    print("Computed fs")
+    
+    for (ns in (2:NMAX)){
+       Ytrue<-c(Ytrue,as(Yts,"character"))
+        Yhat0<-c(Yhat0,pred("rf",Xtr[,subs0[1:ns]],
+                       factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
+        Yhat<-c(Yhat,pred("rf",Xtr[,subs[1:ns]],factor(Ytr),
+                        Xts[,subs[1:ns]],class=TRUE)$prob[,"1"])
+        Yhatrf<-c(Yhatrf,pred("rf",Xtr[,subsrf[1:ns]],factor(Ytr),
+                            Xts[,subsrf[1:ns]],class=TRUE)$prob[,"1"]) 
+        Yhatrf2<-c(Yhatrf2,pred("rf",Xtr[,subsrf2[1:ns]],factor(Ytr),
+                              Xts[,subsrf2[1:ns]],class=TRUE)$prob[,"1"])   
+       Yhat3<-c(Yhat3,pred("rf",Xtr[,subs3[1:ns]],factor(Ytr),
+                         Xts[,subs3[1:ns]],class=TRUE)$prob[,"1"])
+      
+      Ytrue<-c(Ytrue,as(Yts,"character"))
+      Yhat0<-c(Yhat0,pred("svm",Xtr[,subs0[1:ns]],
+                          factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
+      Yhat<-c(Yhat,pred("svm",Xtr[,subs[1:ns]],factor(Ytr),
+                        Xts[,subs[1:ns]],class=TRUE)$prob[,"1"])
+      Yhatrf<-c(Yhatrf,pred("svm",Xtr[,subsrf[1:ns]],factor(Ytr),
+                            Xts[,subsrf[1:ns]],class=TRUE)$prob[,"1"]) 
+      
+      Yhatrf2<-c(Yhatrf2,pred("svm",Xtr[,subsrf2[1:ns]],factor(Ytr),
+                              Xts[,subsrf2[1:ns]],class=TRUE)$prob[,"1"])
+      
+      Yhat3<-c(Yhat3,pred("svm",Xtr[,subs3[1:ns]],factor(Ytr),
+                          Xts[,subs3[1:ns]],class=TRUE)$prob[,"1"])
+      
+      
+      Ytrue<-c(Ytrue,as(Yts,"character"))
+      Yhat0<-c(Yhat0,pred("lda",Xtr[,subs0[1:ns]],
+                          factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
+      Yhat<-c(Yhat,pred("lda",Xtr[,subs[1:ns]],factor(Ytr),
+                        Xts[,subs[1:ns]],class=TRUE)$prob[,"1"])
+      
+      Yhatrf<-c(Yhatrf,pred("lda",Xtr[,subsrf[1:ns]],factor(Ytr),
+                            Xts[,subsrf[1:ns]],class=TRUE)$prob[,"1"])
+      
+      Yhatrf2<-c(Yhatrf2,pred("lda",Xtr[,subsrf2[1:ns]],factor(Ytr),
+                              Xts[,subsrf2[1:ns]],class=TRUE)$prob[,"1"]) 
+      Yhat3<-c(Yhat3,pred("lda",Xtr[,subs3[1:ns]],factor(Ytr),
+                          Xts[,subs3[1:ns]],class=TRUE)$prob[,"1"])
+      
+      Ytrue<-c(Ytrue,as(Yts,"character"))
+      Yhat0<-c(Yhat0,pred("nb",Xtr[,subs0[1:ns]],
+                          factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
+      Yhat<-c(Yhat,pred("nb",Xtr[,subs[1:ns]],factor(Ytr),
+                        Xts[,subs[1:ns]],class=TRUE)$prob[,"1"])
+      Yhatrf<-c(Yhatrf,pred("nb",Xtr[,subsrf[1:ns]],factor(Ytr),
+                            Xts[,subsrf[1:ns]],class=TRUE)$prob[,"1"])
+      
+      Yhatrf2<-c(Yhatrf2,pred("nb",Xtr[,subsrf2[1:ns]],factor(Ytr),
+                              Xts[,subsrf2[1:ns]],class=TRUE)$prob[,"1"]) 
+      Yhat3<-c(Yhat3,pred("nb",Xtr[,subs3[1:ns]],factor(Ytr),
+                          Xts[,subs3[1:ns]],class=TRUE)$prob[,"1"])
+      
+    }
+    
+    auc0<-AUC(factor(Ytrue),Yhat0)
+    auc<-AUC(factor(Ytrue),Yhat)
+    aucrf<-AUC(factor(Ytrue),Yhatrf)
+    
+    aucrf2<-AUC(factor(Ytrue),Yhatrf2)
+    auc3<-AUC(factor(Ytrue),Yhat3)
+    cat("\n f=",author ,"N=",N,"n=",n,
+        "cv=",cv,"AUC.rank=",mean(auc0),"AUC.mrmr=",
+        mean(auc),"AUC.rf=",mean(aucrf),
+        "AUC.rf2=",mean(aucrf2),"AUC.block=",mean(auc3),"\n")
+    
+    
+  } ## for cv
+  
+  
+  AUC0<-c(AUC0,auc0)
+  AUC1<-c(AUC1,auc)
+  AUCrf<-c(AUCrf,aucrf)
+  AUCrf2<-c(AUCrf2,aucrf2)
+  
+  AUC3<-c(AUC3,auc3)
+  
+  cat("\n AAUC.rank=",mean(AUC0),"AAUC.mrmr=",
+      mean(AUC1),"AAUC.rf=",mean(AUCrf),
+      "AAUC.rf2=",mean(AUCrf2),
+      "AAUC.block=",mean(AUC3),"\n")
+  
+
+}
+
+
+  
+
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
