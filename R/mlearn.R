@@ -6,7 +6,7 @@
 #' @title Wrapper on learning algoritmhs for regression and classification
 #' @name pred
 #' @export
-#'@param algo: learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}
+#'@param algo: learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}, \code{"nb"}: \pkg{e1071}, \code{"lasso"}: \pkg{lars}
 #'@param X: training input
 #'@param Y: training output
 #'@param X.ts: test input
@@ -355,6 +355,26 @@ lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,return.more=F){
   return(prob)
 }
 
+#### lazy.pred ####
+#' Wrapper on lazy learning algoritmhs
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{mlg.ulb.ac.be}
+#' @title Wrapper on lazy learning algoritmhs for regression and classification
+#' @name lazy.pred
+#' @export
+#'@param X: training input
+#'@param Y: training output
+#'@param X.ts: test input
+#'@param conPar: constant modeling parameters
+#'@param linPar: linear modeling parameters
+#'@param cmbPar: combination parameters
+#'@param classi: TRUE for classification, FALSE for regression
+#'@param return.more: TRUE for returning additional \pkg{lazy} parameter
+#'@return if \code{classi=FALSE} predicted test output; if \code{classi=TRUE} a list with
+#' \itemize{
+#' \item{\code{pred}:}  predicted class
+#' \item{ \code{prob}:} posteriori probability
+#'}
 lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
                      conPar=3,linPar=5,cmbPar=10){
   n<-NCOL(X)
