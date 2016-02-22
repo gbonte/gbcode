@@ -1,23 +1,11 @@
-library(FNN)
-library(nnet)
-library(lazy)
-library(e1071)
-library(MASS)
-library(gam)
-library(tree)
-library(randomForest)
-library(rpart)
-library(gbm)
-library(mboost)
-library(kernlab)
-
 
 #### pred ####
 #' Wrapper on learning algoritmhs
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{mlg.ulb.ac.be}
 #' @title Wrapper on learning algoritmhs for regression and classification
-#'
+#' @name pred
+#' @export
 #'@param algo: learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}
 #'@param X: training input
 #'@param Y: training output

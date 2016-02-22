@@ -1,10 +1,6 @@
-nnetExample<-function(){
-  rm(list=ls())
-  source("dopler.R")
+nnetExample<-function(N=2000){
   library(nnet)
-
-
-  D<-dataset.dopler(2000)
+  D<-dataset.dopler(N)
   plot(D$x,D$y,type="l")
 
   d<-data.frame(D$y,D$x)

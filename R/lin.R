@@ -1,12 +1,9 @@
-
-library(MASS)
-
 #### regrlin ####
 #' Linear regression
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{mlg.ulb.ac.be}
-#' @title Linear regression
-#'
+#' @title Linear regression with PRESS leave one out estimate
+#'@name regrlin
 #'@param X: training input
 #'@param Y: training output
 #'@param X.ts: test input

@@ -1,3 +1,37 @@
+#' Rankrho function
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{mlg.ulb.ac.be}
+#' @description value
+#' @details aa
+#' @title rankrho
+#' @name rankrho
+#' @keywords internal
+#' @export
+
+
+rankrho<-function(X,Y,nmax=5,regr=FALSE,first=NULL){
+  n<-NCOL(X)
+  N<-NROW(X)
+  m<-NCOL(Y)
+  X<-scale(X)
+
+  Iy<-numeric(n)
+  if (!regr){
+    Iy<-cor2I2(corXY(X,Y))
+  } else {
+    for (i in 1:n)
+      Iy[i]<-abs(regrlin(X[,i],Y)$beta.hat[2])
+  }
+
+  if (m>1)
+    Iy<-apply(Iy,1,mean)
+
+
+  return(sort(c(Iy), decreasing=T, index.return=T)$ix[1:nmax])
+
+
+}
+
 
 
 errfunction<-function(X,Y,algo,cv=10, classi=TRUE,...){
@@ -268,37 +302,7 @@ gsloo<-function(X,
 }
 
 
-#### mrmr ####
-#' Ranking
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references \url{mlg.ulb.ac.be}
-#' @title Ranking filter
-#'
-#'
-rankrho<-function(X,Y,nmax=5,regr=FALSE,first=NULL){
-  ## mutual information ranking
-  ## 17/10/11
-  n<-NCOL(X)
-  N<-NROW(X)
-  m<-NCOL(Y)
-  X<-scale(X)
 
-  Iy<-numeric(n)
-  if (!regr){
-    Iy<-cor2I2(corXY(X,Y))
-  } else {
-    for (i in 1:n)
-      Iy[i]<-abs(regrlin(X[,i],Y)$beta.hat[2])
-  }
-
-  if (m>1)
-    Iy<-apply(Iy,1,mean)
-
-
-  return(sort(c(Iy), decreasing=T, index.return=T)$ix[1:nmax])
-
-
-}
 
 
 rankregr<-function(X,Y,nmax=5){
@@ -314,11 +318,7 @@ rankregr<-function(X,Y,nmax=5){
 }
 
 
-#### mrmr ####
-#' minimum redundancy Maximum Relevance
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references \url{mlg.ulb.ac.be}
-#' @title mRMR filter
+
 
 mrmr<-function(X,Y,nmax=5,first=NULL,back=FALSE){
   ## mRMR filter
@@ -409,13 +409,7 @@ strimmer.rank<-function(X,Y,nmax){
 }
 
 
-#### mimr ####
-#' minimum interaction Maximum Relevance
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references \url{mlg.ulb.ac.be}
-#' @title mIMR filter
-#'
-#'
+
 mimr<-function(X,Y,nmax=5,first=NULL,
                init=FALSE,lambda=0.5,
                fast.inter=0,back=FALSE,
@@ -577,12 +571,7 @@ mCRMR<-function(X,Y,lambda=0.5,nmax=10,maxpert=FALSE){
 
 }
 
-#### cmim ####
-#' CMIM Fleuret filter
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references \url{mlg.ulb.ac.be}
-#' @title cmim
-#'
+
 cmim<-function(X,Y,nmax=5,first=NULL,init=TRUE,back=TRUE,inter=TRUE){
 
   ## CMIM Fleuret filter

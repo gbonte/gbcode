@@ -1,6 +1,4 @@
-rm(list=ls())
 
-library(nnet)
 
 
 dopler<-function(x){
@@ -18,16 +16,16 @@ dataset.dopler<-function(N,sigma=1){
 }
 
 
-D<-dataset.dopler(2000)
+#D<-dataset.dopler(2000)
 
-d<-data.frame(D$y,D$x)
-names(d)<-c("Y","X")
-mod.nn<-nnet(Y~.,data=d,size=30,skip=FALSE,trace=FALSE, maxit=300,linout=TRUE)
-d.ts<-data.frame(D$y.ts,D$x.ts)
-names(d.ts)<-c("Y","X")
-p<-predict(mod.nn,d.ts)
+#d<-data.frame(D$y,D$x)
+#names(d)<-c("Y","X")
+#mod.nn<-nnet(Y~.,data=d,size=30,skip=FALSE,trace=FALSE, maxit=300,linout=TRUE)
+#d.ts<-data.frame(D$y.ts,D$x.ts)
+#names(d.ts)<-c("Y","X")
+#p<-predict(mod.nn,d.ts)
 
 
-plot(D$x,D$y,type="l")
-plot(D$x.ts,D$y.ts,type="l")
-lines(D$x.ts,p,col="red")
+#plot(D$x,D$y,type="l")
+#plot(D$x.ts,D$y.ts,type="l")
+#lines(D$x.ts,p,col="red")
