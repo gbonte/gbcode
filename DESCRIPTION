@@ -10,3 +10,6 @@ Description: Code from the handbook "Statistical foundations of machine
 License: Common Sense
 LazyData: TRUE
 RoxygenNote: 5.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

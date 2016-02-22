@@ -676,15 +676,36 @@ strimmer.rank<-function(X,Y,nmax){
 }
 
 
-
+#' mimr
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description mimr filter based on mutual information
+#' @details mimr (minimum interaction maximum relevance) filter based on mutual information
+#' @title mimr (minimum interaction maximum relevance)
+#' @name mimr (minimum interaction maximum relevance)
+#' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param nmax: number of top returned features
+#' @param back: if TRUE, backward reordering based on linear regression
+#' @param caus: if caus =1 it searches for causes otherwise if caus=-1 it searches for effects
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-mimr(X,Y,nmax=3)
 mimr<-function(X,Y,nmax=5,first=NULL,
                init=FALSE,lambda=0.5,
                fast.inter=0,back=FALSE,
                spouse.removal=TRUE,
                caus=1){
-  ## mimr filter
-  # if caus =1 it searches for causes otherwise if caus=-1 it searches for effects
-
 
   NMAX<-nmax
   if (back)
