@@ -4,7 +4,7 @@
 \alias{regrDataset}
 \title{Generator of nonlinear regression dataset}
 \usage{
-regrDataset(N, n, neff, sdn)
+regrDataset(N, n, neff, sdn, seed = 0)
 }
 \arguments{
 \item{N:}{number of observations}
@@ -14,6 +14,8 @@ regrDataset(N, n, neff, sdn)
 \item{neff:}{number of effective features}
 
 \item{sdn:}{standard deviation of Gaussian noise}
+
+\item{seed:}{seed random generator}
 }
 \examples{
 
