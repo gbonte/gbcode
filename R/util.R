@@ -85,7 +85,27 @@ which.min.mat<-function(W,diag=TRUE){
   I<-which(W==min(W),arr.ind=TRUE)
   I[1,]
 }
-impute<-function(X){
+
+
+
+#' imputeDataset
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description Impute data set by removing constant columns and replacing NA samples with the mean
+#' @details Impute data set by removing constant columns and replacing NA samples with the mean
+#' @title impute
+#' @name impute
+#' @export
+#'
+#' @param  X: dataset
+#' @return A list with:
+#' \itemize{
+#' \item{impX:} imputed dataset
+#' \item{remcol:} indices of remaining columns
+#' }
+#' @export
+
+imputeDataset<-function(X){
   remcol<-NULL
   N<-NROW(X)
   for (i in 1:NCOL(X)){
@@ -107,6 +127,9 @@ impute<-function(X){
   list(impX=X,remcol=remcol)
 
 }
+
+
+
 
 
 normalize<-function(x){

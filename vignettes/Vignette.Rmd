@@ -1,21 +1,20 @@
 ---
 title: "Vignette"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Feature ranking and classification of microarray data
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Let us import the data from the package datamicroarray
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r}
-install_github("gbonte/gbcode")
-install_github('ramhiser/datamicroarray')
+```{echo=FALSE}
+library(devtools)
+library(gbcode) ## install_github("gbonte/gbcode)
+library(datamicroarray) ## install_github('ramhiser/datamicroarray')
 library(randomForest)
 library(e1071)
 
@@ -25,19 +24,13 @@ AUCrf<-NULL
 AUCrf2<-NULL
 AUC3<-NULL
 
-library(datamicroarray)
-
 De<-describe_data()
-
 w<-which(De[,"n"]>50)
 
-
-
-for (f in w[(length(AUC0)+1):length(w)]) {
+for (f in 1) {
   set.seed(f+1)
   author<-as.character(De[f,"author"])
   print(author)
-  
   data(list=author,package="datamicroarray")
   D<-get(author)
   X<-array(as.numeric(as.matrix(D$x)),dim(D$x)) ##D$x
@@ -45,23 +38,20 @@ for (f in w[(length(AUC0)+1):length(w)]) {
   N<-NROW(X)
   Y<-factor(Y)
   if (length(levels(Y))>2){
-    
     Ta<-table(Y)
     wta<-which.max(Ta)
     Yn<-numeric(length(Y))
     Yn[which(Y==names(Ta)[wta])]<-1
     Y<-factor(Yn)
-
-
   }
-    
-  X<-impute(X)$impX
+  
+  X<-imputeDataset(X)$impX
   wconst<-which(apply(X,2,sd)<1e-2)
   if (length(wconst)>0)
     X<-X[,-wconst]
   X<-scale(X)
   n<-NCOL(X)
- 
+  
   levels(Y)<-c("0","1")
   
   Yhat0<-NULL
@@ -73,10 +63,24 @@ for (f in w[(length(AUC0)+1):length(w)]) {
   aucrf<-NULL
   aucrf2<-NULL 
   Ytrue<-NULL
-  NMAX<-25
+  
+  
+  ## randomizaion of order 
   Is<-sample(N)
   X<-X[Is,]
   Y<-Y[Is]
+
+
+
+```
+
+
+Let us now perform a cross-validation where for each of the CV folds: we rank the features, we select the top NMAX
+and assess by classification with a Random Forest
+
+
+```{echo=TRUE}
+  NMAX<-25
   CV<-5
   Nv<-round(N/CV)
   for (cv in 1:CV){
@@ -92,91 +96,30 @@ for (f in w[(length(AUC0)+1):length(w)]) {
       Xts<-Xts[,-wconst]
     }
     n<-NCOL(Xtr)
-    print(NROW(Xtr))    
     Yts<-Y[Its]
     
     subsrank<-rankrho(Xtr,Ytr,nmax=min(n-5,1000))
-    subs<-subsrank[mrmr(Xtr[,subsrank],Ytr,
-                        nmax=NMAX)]
+    subs<-subsrank[mrmr(Xtr[,subsrank],Ytr,nmax=NMAX)]
     
     Irf<-1:NROW(Xtr)
     if (NROW(Xtr)>500)
       Irf<-sample(1:NROW(Xtr),500)
-    RF<-randomForest(Xtr[Irf,subsrank],factor(Ytr[Irf]),importance=TRUE)
-    subsrf<-subsrank[sort(importance(RF)[,3],
-                          decr=TRUE,
-                          index=TRUE)$ix[1:NMAX]]
-    subsrf2<-subsrank[sort(importance(RF)[,4],
-                           decr=TRUE,
-                           index=TRUE)$ix[1:NMAX]]
+    
+    subsrf<-subsrank[rfrank(Xtr[Irf,subsrank],factor(Ytr[Irf]),nmax=NMAX,type=1)]
+    subsrf2<-subsrank[rfrank(Xtr[Irf,subsrank],factor(Ytr[Irf]),nmax=NMAX,type=2)]
     
     subs0<-subsrank[1:NMAX]
     
-    print(".")
-
-
-  
-  
-    subs3<-subs0
-
-    
-    print("Computed fs")
-    
     for (ns in (2:NMAX)){
-       Ytrue<-c(Ytrue,as(Yts,"character"))
-        Yhat0<-c(Yhat0,pred("rf",Xtr[,subs0[1:ns]],
-                       factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
-        Yhat<-c(Yhat,pred("rf",Xtr[,subs[1:ns]],factor(Ytr),
+      Ytrue<-c(Ytrue,as(Yts,"character"))
+      Yhat0<-c(Yhat0,pred("rf",Xtr[,subs0[1:ns]],
+                          factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
+      Yhat<-c(Yhat,pred("rf",Xtr[,subs[1:ns]],factor(Ytr),
                         Xts[,subs[1:ns]],class=TRUE)$prob[,"1"])
-        Yhatrf<-c(Yhatrf,pred("rf",Xtr[,subsrf[1:ns]],factor(Ytr),
+      Yhatrf<-c(Yhatrf,pred("rf",Xtr[,subsrf[1:ns]],factor(Ytr),
                             Xts[,subsrf[1:ns]],class=TRUE)$prob[,"1"]) 
-        Yhatrf2<-c(Yhatrf2,pred("rf",Xtr[,subsrf2[1:ns]],factor(Ytr),
+      Yhatrf2<-c(Yhatrf2,pred("rf",Xtr[,subsrf2[1:ns]],factor(Ytr),
                               Xts[,subsrf2[1:ns]],class=TRUE)$prob[,"1"])   
-       Yhat3<-c(Yhat3,pred("rf",Xtr[,subs3[1:ns]],factor(Ytr),
-                         Xts[,subs3[1:ns]],class=TRUE)$prob[,"1"])
-      
-      Ytrue<-c(Ytrue,as(Yts,"character"))
-      Yhat0<-c(Yhat0,pred("svm",Xtr[,subs0[1:ns]],
-                          factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
-      Yhat<-c(Yhat,pred("svm",Xtr[,subs[1:ns]],factor(Ytr),
-                        Xts[,subs[1:ns]],class=TRUE)$prob[,"1"])
-      Yhatrf<-c(Yhatrf,pred("svm",Xtr[,subsrf[1:ns]],factor(Ytr),
-                            Xts[,subsrf[1:ns]],class=TRUE)$prob[,"1"]) 
-      
-      Yhatrf2<-c(Yhatrf2,pred("svm",Xtr[,subsrf2[1:ns]],factor(Ytr),
-                              Xts[,subsrf2[1:ns]],class=TRUE)$prob[,"1"])
-      
-      Yhat3<-c(Yhat3,pred("svm",Xtr[,subs3[1:ns]],factor(Ytr),
-                          Xts[,subs3[1:ns]],class=TRUE)$prob[,"1"])
-      
-      
-      Ytrue<-c(Ytrue,as(Yts,"character"))
-      Yhat0<-c(Yhat0,pred("lda",Xtr[,subs0[1:ns]],
-                          factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
-      Yhat<-c(Yhat,pred("lda",Xtr[,subs[1:ns]],factor(Ytr),
-                        Xts[,subs[1:ns]],class=TRUE)$prob[,"1"])
-      
-      Yhatrf<-c(Yhatrf,pred("lda",Xtr[,subsrf[1:ns]],factor(Ytr),
-                            Xts[,subsrf[1:ns]],class=TRUE)$prob[,"1"])
-      
-      Yhatrf2<-c(Yhatrf2,pred("lda",Xtr[,subsrf2[1:ns]],factor(Ytr),
-                              Xts[,subsrf2[1:ns]],class=TRUE)$prob[,"1"]) 
-      Yhat3<-c(Yhat3,pred("lda",Xtr[,subs3[1:ns]],factor(Ytr),
-                          Xts[,subs3[1:ns]],class=TRUE)$prob[,"1"])
-      
-      Ytrue<-c(Ytrue,as(Yts,"character"))
-      Yhat0<-c(Yhat0,pred("nb",Xtr[,subs0[1:ns]],
-                          factor(Ytr),Xts[,subs0[1:ns]],class=TRUE)$prob[,"1"])     
-      Yhat<-c(Yhat,pred("nb",Xtr[,subs[1:ns]],factor(Ytr),
-                        Xts[,subs[1:ns]],class=TRUE)$prob[,"1"])
-      Yhatrf<-c(Yhatrf,pred("nb",Xtr[,subsrf[1:ns]],factor(Ytr),
-                            Xts[,subsrf[1:ns]],class=TRUE)$prob[,"1"])
-      
-      Yhatrf2<-c(Yhatrf2,pred("nb",Xtr[,subsrf2[1:ns]],factor(Ytr),
-                              Xts[,subsrf2[1:ns]],class=TRUE)$prob[,"1"]) 
-      Yhat3<-c(Yhat3,pred("nb",Xtr[,subs3[1:ns]],factor(Ytr),
-                          Xts[,subs3[1:ns]],class=TRUE)$prob[,"1"])
-      
     }
     
     auc0<-AUC(factor(Ytrue),Yhat0)
@@ -184,11 +127,10 @@ for (f in w[(length(AUC0)+1):length(w)]) {
     aucrf<-AUC(factor(Ytrue),Yhatrf)
     
     aucrf2<-AUC(factor(Ytrue),Yhatrf2)
-    auc3<-AUC(factor(Ytrue),Yhat3)
     cat("\n f=",author ,"N=",N,"n=",n,
         "cv=",cv,"AUC.rank=",mean(auc0),"AUC.mrmr=",
         mean(auc),"AUC.rf=",mean(aucrf),
-        "AUC.rf2=",mean(aucrf2),"AUC.block=",mean(auc3),"\n")
+        "AUC.rf2=",mean(aucrf2),"\n")
     
     
   } ## for cv
@@ -206,11 +148,8 @@ for (f in w[(length(AUC0)+1):length(w)]) {
       "AAUC.rf2=",mean(AUCrf2),
       "AAUC.block=",mean(AUC3),"\n")
   
-
-}
-
-
   
-
+}
 ```
+
 

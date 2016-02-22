@@ -23,7 +23,8 @@ AUC
 AUC
 }
 \examples{
-AUC(round(rnorm(100)),rnorm(100))
+## random prediction
+AUC(round(runif(100)),rnorm(100))
 
 }
 \author{

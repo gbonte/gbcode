@@ -42,6 +42,40 @@ rankrho<-function(X,Y,nmax=5,regr=FALSE){
 }
 
 
+#' rfrank
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description rfrank filter based on importance of Random Forest
+#' @details rfrank based on importance of Random Forest
+#' @title rfrank
+#' @name rfrank
+#' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param nmax: number of top returned features
+#' @param back: if TRUE, backward reordering based on linear regression
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-rfrank(X,Y,nmax=3)
+rfrank<-function(X,Y,nmax=5,type=1){
+  if (is.factor(Y)){
+    RF<-randomForest(X,Y,importance=TRUE)
+    if (type==1)
+      return(sort(importance(RF)[,3],decr=TRUE,index=TRUE)$ix[1:nmax])
+    return(sort(importance(RF)[,4],decr=TRUE,index=TRUE)$ix[1:nmax])
+  }
+  RF<-randomForest(X,Y,importance=TRUE)
+  return(sort(importance(RF),decr=TRUE,index=TRUE)$ix[1:nmax])
+}
 
 #' mrmr
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
