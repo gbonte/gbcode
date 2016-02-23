@@ -367,6 +367,9 @@ preprochip<-function(X,fact=F){ ## X[no.genes,no.conditions]
   DN2
 }
 
+ana<-function(x){
+  any(is.na(x))
+}
 
 which.na<-function(x){
   which(is.na(x))

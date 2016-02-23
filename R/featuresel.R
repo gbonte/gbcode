@@ -416,7 +416,8 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
 
 #' forwardSel
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}. For
+#' blocking see \emph{Bontempi G. A blocking strategy to improve gene selection for classification of gene expression data. IEEE/ACM Trans Comput Biol Bioinform. 2007 Apr-Jun;4(2):293-300.}
 #' @description Wrapper feature selection based on forward selection and a generic predictor
 #' @details Wrapper feature selection based on forward selection and a generic predictor
 #' @title forwardSel
@@ -425,7 +426,7 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
 #'
 #' @param  X: input dataset
 #' @param Y: output dataset
-#' @param algo: see the options of \link{pred}
+#' @param algo: see the options of \link{pred}. If more than one algorithm is mentioned, a blocking selection is carried out
 #' @param nmax: number of top returned features
 #' @param nmax2: number of forward selection steps
 #' @param classi: if TRUE, classification problem else regression
@@ -455,6 +456,16 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
 #' real.features<-R$feat
 #' ranked.features<-forwardSel(X,Y,nmax=3,classi=TRUE,cv=3)
 #'
+#'
+#'## classification example with blocking
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=1)
+#' X<-R$X
+#' Y<-factor(round(R$Y))
+#' real.features<-R$feat
+#' ranked.features<-forwardSel(algo=c("rf","lda"), X,Y,nmax=3,classi=TRUE,cv=3)
 forwardSel<-function(X,Y,algo="rf",nmax=5,nmax2=nmax,cv=1,classi=FALSE,verbose=FALSE,...){
 
   n<-NCOL(X)
@@ -681,7 +692,7 @@ strimmer.rank<-function(X,Y,nmax){
 #' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
 #' @description mimr filter based on mutual information
 #' @details mimr (minimum interaction maximum relevance) filter based on mutual information
-#' @title mimr (minimum interaction maximum relevance)
+#' @title mimr
 #' @name mimr (minimum interaction maximum relevance)
 #' @export
 #'

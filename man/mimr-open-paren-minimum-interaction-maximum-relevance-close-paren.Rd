@@ -3,7 +3,7 @@
 \name{mimr (minimum interaction maximum relevance)}
 \alias{mimr}
 \alias{mimr (minimum interaction maximum relevance)}
-\title{mimr (minimum interaction maximum relevance)}
+\title{mimr}
 \usage{
 mimr(X, Y, nmax = 5, first = NULL, init = FALSE, lambda = 0.5,
   fast.inter = 0, back = FALSE, spouse.removal = TRUE, caus = 1)

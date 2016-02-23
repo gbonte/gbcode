@@ -1,3 +1,26 @@
+#' Dataset A
+#'@title A Santa Fe time series
+#'@description chaotic time series from Santa Fe time series competition
+#' @name A
+#' @docType data
+#' @keywords data
+#' @export
+#' @examples
+#' data(A)
+#' plot(A[,1],type="l")
+NULL
+
+#' Dataset NN5
+#'@title NN5 time series
+#'@description  time series from NN5 time series competition
+#' @name NN5
+#' @docType data
+#' @keywords data
+#' @export
+#' @examples
+#' data(NN5)
+#' plot(NN5[,1],type="l")
+NULL
 
 smape<-function(ts1,ts2,Cent,Sc){
   ts1<-Cent+ts1*Sc
@@ -6,6 +29,23 @@ smape<-function(ts1,ts2,Cent,Sc){
 
 }
 
+#### MakeEmbedded ####
+#' Mean Absolute scaled error
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{https://en.wikipedia.org/wiki/Mean_absolute_scaled_error}
+#' @title Mean Absolute scaled error
+MASE<-function(y,yhat){
+  n<-length(y)
+  e<-y-yhat
+  q<-e/(mean(abs(diff(y))))
+
+  mean(abs(q))
+
+}
+
+remNA<-function(TS){
+    return(approx(seq(TS),TS,seq(TS))$y)
+}
 
 nlcor<-function(x,y){
   require(lazy)
@@ -20,48 +60,69 @@ nlcor<-function(x,y){
   cor(y[-I], yh)
 }
 
+#### remNA ####
+#' Remove NA from a time series by interpolation
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{mlg.ulb.ac.be}
+#' @title Remove NA from a time series by interpolation
+#' @param TS: univariate time series
+#' @export
+#'
 remNA<-function(TS){
-
   return(approx(seq(TS),TS,seq(TS))$y)
-
 }
 
+#### dist2 ####
+#' Returns matrix of distances between two matrices with same number of columns
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{mlg.ulb.ac.be}
+#' @title Returns matrix of distances between two matrices with same number of columns
+#' @param X1: matrix [N1,n]
+#' @param X2: matrix [N2,n]
+#' @return: matrix of euclidean distances [N1,N2]
+#' @export
+#'
+dist2<-function(X1,X2){
+  if (is.vector(X2))
+    X2<-array(X2,c(1,length(X2)))
+  N1<-NROW(X1)
+  n<-NCOL(X1)
+  n2<-NCOL(X2)
+  N2<-NROW(X2)
+  if (n != n2){
+    cat("\n n=",n)
+    cat("\n n2=",n2)
+    stop('dist2 function: matrix sizes do not match.')
+  }
+  y<-array(0,c(N1,N2))
 
-MakeInput<-function(ts, n, delay,hor=1,w=1){
+  if (n==1){
+    for (i in 1:N1){
+      x <- array(1,c(N2,1))%*%as.numeric(X1[i,])
+      y[i,] <- abs(x-X2)
+    }
+  }else {
+    if (N1<N2){
+      for (i in 1:N1){
+        x <- array(1,c(N2,1))%*%as.numeric(X1[i,])
+        y[i,] <-apply(((x-X2)^2),1,sum)
 
-no.data<-NROW(ts)
-no.var<-NCOL(ts)
-a<-NROW(n)
-b<-NCOL(n)
-if (a!=no.var)
-	stop('Error in the size of n')
+      }
+    }else {
 
+      for (j in 1:N2){
 
-N<-no.data-max(n)-max(delay)
+        x <- array(1,c(N1,1))%*%as.numeric(X2[j,])
+        y[,j] <-apply(((x-X1)^2),1,sum)
 
-Input<-array(0,c(N,sum(n)))
-Output<-array(0,c(N,hor))
+      }
 
-for (i in 1:N) {
-  for (j in 1:no.var) {
-##    for (k in 1:n[j]) {
-##      Input[i,sum(n[1:j-1])+k]<-ts[i+n[j]-k+max(n)-n[j]+max(delay)-delay[j],j]
-
-##    }
-    k<-1:n[j]
-    Input[i,sum(n[1:j-1])+k]<-ts[i+n[j]-k+max(n)-n[j]+max(delay)-delay[j],j]
-
-    Output[i,1:hor]<-numeric(hor)+NA
-    M<-min(no.data,(i+max(n+delay)+hor-1))
-
-    Output[i,1:(M-(i+max(n+delay))+1)]<-ts[(i+max(n+delay)):M,w]
+    }
   }
 
-}
+  sqrt(y)
 
-list(inp=Input,out=Output)
 }
-
 
 #### MakeEmbedded ####
 #' Embed a multivariate time series in input output form
@@ -124,4 +185,27 @@ for (i in 1:N) {
 }
 
 list(inp=Input,out=Output)
+}
+
+
+
+#### constloo ####
+#' Leave-one-out Mean Squared Error of a weighted mean estimator
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @title Embedding of multivariate time series
+#' @param x: observation vector
+#' @param w: weight vector
+#' @return: leave-one-out Mean Squared Error
+#' @export
+constloo<-function(x,w=rep(1,length(x))){
+  if (length(x)!=length(w))
+    stop("constloo function: lengths of vectors do not match")
+  I<-which(!(is.na(x)))
+  x<-x[I]
+  w<-w[I]
+  m<-sum(x*w)
+  n<-length(x)
+  eloo<-n*(x-m)/(n-1)
+  max(1e-4,mean(eloo^2))
 }

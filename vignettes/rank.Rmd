@@ -27,20 +27,31 @@ vignette: >
   AUC.rf<-NULL
   AUC.rf2<-NULL
   AUC.mimr<-NULL
+  AUC.wrap<-NULL
   
   De<-describe_data()
   w<-which(De[,"n"]>50)
 ```
   
   
-  Let us now perform a cross-validation where for each of the CV folds: we rank the features, we select the top NMAX
+  Let us now perform a cross-validation where for each of the CV folds: we rank the features by using a set of techniques from the gbcode package
+  ("rankrho","mrmr","mimr","rfrank","linearFsel"), we select the top NMAX
   and assess by classification with a Random Forest
   
 ```{echo=TRUE}
   NMAX<-25
-  CV<-5
+  CV<-10
   
-  for (f in 1:10) {
+  Yhat.rank<-NULL
+  Yhat.mrmr<-NULL
+  Yhat.rf<-NULL
+  Yhat.rf2<-NULL
+  Yhat.mimr<-NULL
+  Yhat.wrap<-NULL
+  
+  Ytrue<-NULL
+  
+  for (f in 1:NROW(De)) {
   set.seed(f+1)
   author<-as.character(De[f,"author"])
   print(author)
@@ -67,18 +78,7 @@ vignette: >
   
   levels(Y)<-c("0","1")
   
-  Yhat.rank<-NULL
-  Yhat.mrmr<-NULL
-  Yhat.rf<-NULL
-  Yhat.rf2<-NULL
-  Yhat.mimr<-NULL
-  auc.rank<-NULL
-  auc.mrmr<-NULL
-  auc.mimr<-NULL
-  auc.rf<-NULL
-  auc.rf2<-NULL 
-  Ytrue<-NULL
-  
+ 
   
   ## randomizaion of order 
   Is<-sample(N)
@@ -105,7 +105,7 @@ vignette: >
   subs.rank<-rankrho(Xtr,Ytr,nmax=min(n-5,1000))
   subs.mrmr<-subs.rank[mrmr(Xtr[,subs.rank],Ytr,nmax=NMAX)]
   subs.mimr<-subs.rank[mimr(Xtr[,subs.rank],Ytr,nmax=NMAX)]
-  
+  subs.wrap<-subs.rank[linearFsel(Xtr[,subs.rank],Ytr,nmax=NMAX)]
   
   
   subs.rf<-subs.rank[rfrank(Xtr[,subs.rank],factor(Ytr),nmax=NMAX,type=1)]
@@ -114,17 +114,13 @@ vignette: >
   subs.rank<-subs.rank[1:NMAX]
   
   for (ns in (2:NMAX)){
-  Ytrue<-c(Ytrue,as(Yts,"character"))
-  Yhat.rank<-c(Yhat.rank,pred("rf",Xtr[,subs.rank[1:ns]],
-  factor(Ytr),Xts[,subs.rank[1:ns]],class=TRUE)$prob[,"1"])     
-  Yhat.mrmr<-c(Yhat.mrmr,pred("rf",Xtr[,subs.mrmr[1:ns]],factor(Ytr),
-  Xts[,subs.mrmr[1:ns]],class=TRUE)$prob[,"1"])
-  Yhat.mimr<-c(Yhat.mimr,pred("rf",Xtr[,subs.mimr[1:ns]],factor(Ytr),
-  Xts[,subs.mimr[1:ns]],class=TRUE)$prob[,"1"])                 
-  Yhat.rf<-c(Yhat.rf,pred("rf",Xtr[,subs.rf[1:ns]],factor(Ytr),
-  Xts[,subs.rf[1:ns]],class=TRUE)$prob[,"1"]) 
-  Yhat.rf2<-c(Yhat.rf2,pred("rf",Xtr[,subs.rf2[1:ns]],factor(Ytr),
-  Xts[,subs.rf2[1:ns]],class=TRUE)$prob[,"1"])   
+    Ytrue<-c(Ytrue,as(Yts,"character"))
+    Yhat.rank<-c(Yhat.rank,pred("rf",Xtr[,subs.rank[1:ns]], factor(Ytr),Xts[,subs.rank[1:ns]],class=TRUE)$prob[,"1"])     
+    Yhat.mrmr<-c(Yhat.mrmr,pred("rf",Xtr[,subs.mrmr[1:ns]],factor(Ytr),  Xts[,subs.mrmr[1:ns]],class=TRUE)$prob[,"1"])
+    Yhat.mimr<-c(Yhat.mimr,pred("rf",Xtr[,subs.mimr[1:ns]],factor(Ytr),   Xts[,subs.mimr[1:ns]],class=TRUE)$prob[,"1"])                 
+    Yhat.rf<-c(Yhat.rf,pred("rf",Xtr[,subs.rf[1:ns]],factor(Ytr),   Xts[,subs.rf[1:ns]],class=TRUE)$prob[,"1"]) 
+    Yhat.rf2<-c(Yhat.rf2,pred("rf",Xtr[,subs.rf2[1:ns]],factor(Ytr),   Xts[,subs.rf2[1:ns]],class=TRUE)$prob[,"1"])   
+    Yhat.wrap<-c(Yhat.wrap,pred("rf",Xtr[,subs.wrap[1:ns]],factor(Ytr),   Xts[,subs.wrap[1:ns]],class=TRUE)$prob[,"1"]) 
   }
   
   auc.rank<-AUC(factor(Ytrue),Yhat.rank)
@@ -132,25 +128,18 @@ vignette: >
   auc.mimr<-AUC(factor(Ytrue),Yhat.mimr)
   auc.rf<-AUC(factor(Ytrue),Yhat.rf)
   auc.rf2<-AUC(factor(Ytrue),Yhat.rf2)
+  auc.wrap<-AUC(factor(Ytrue),Yhat.wrap)
+  
   
   cat("\n f=",author ,"N=",N,"n=",n,
-  "cv=",cv,"AUC.rank=",mean(auc.rank),"AUC.mrmr=",
-  mean(auc.mrmr),"AUC.mimr=",
-  mean(auc.mimr), "AUC.rf=",mean(auc.rf),
-  "AUC.rf2=",mean(auc.rf2),"\n")
+  "cv=",cv,"AUC.rank=",auc.rank,"AUC.mrmr=",  auc.mrmr,"AUC.mimr=",   auc.mimr, "AUC.rf=",auc.rf,
+  "AUC.rf2=",auc.rf,"AUC.wrap=",auc.wrap,"\n")
   
   
   } ## for cv
   
   
-  AUC.rank<-c(AUC.rank,auc.rank)
-  AUC.mrmr<-c(AUC.mrmr,auc.mrmr)
-  AUC.mimr<-c(AUC.mimr,auc.mimr)
-  AUC.rf<-c(AUC.rf,auc.rf)
-  AUC.rf2<-c(AUC.rf2,auc.rf2)
-  
-  cat("\n AAUC.rank=",mean(AUC.rank),"AAUC.mrmr=",  mean(AUC.mrmr),"AAUC.mimr=",  mean(AUC.mimr),
-  "AAUC.rf=",mean(AUC.rf),   "AAUC.rf2=",mean(AUC.rf2), "\n")
+ 
   
   
   }

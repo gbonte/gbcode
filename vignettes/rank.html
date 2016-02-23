@@ -103,14 +103,24 @@ img {
   AUC.rf&lt;-NULL
   AUC.rf2&lt;-NULL
   AUC.mimr&lt;-NULL
+  AUC.wrap&lt;-NULL
   
   De&lt;-describe_data()
   w&lt;-which(De[,&quot;n&quot;]&gt;50)</code></pre>
-<p>Let us now perform a cross-validation where for each of the CV folds: we rank the features, we select the top NMAX and assess by classification with a Random Forest</p>
+<p>Let us now perform a cross-validation where for each of the CV folds: we rank the features by using a set of techniques from the gbcode package (“rankrho”,“mrmr”,“mimr”,“rfrank”,“linearFsel”), we select the top NMAX and assess by classification with a Random Forest</p>
 <pre class="echo"><code>  NMAX&lt;-25
-  CV&lt;-5
+  CV&lt;-10
   
-  for (f in 1:10) {
+  Yhat.rank&lt;-NULL
+  Yhat.mrmr&lt;-NULL
+  Yhat.rf&lt;-NULL
+  Yhat.rf2&lt;-NULL
+  Yhat.mimr&lt;-NULL
+  Yhat.wrap&lt;-NULL
+  
+  Ytrue&lt;-NULL
+  
+  for (f in 1:NROW(De)) {
   set.seed(f+1)
   author&lt;-as.character(De[f,&quot;author&quot;])
   print(author)
@@ -137,18 +147,7 @@ img {
   
   levels(Y)&lt;-c(&quot;0&quot;,&quot;1&quot;)
   
-  Yhat.rank&lt;-NULL
-  Yhat.mrmr&lt;-NULL
-  Yhat.rf&lt;-NULL
-  Yhat.rf2&lt;-NULL
-  Yhat.mimr&lt;-NULL
-  auc.rank&lt;-NULL
-  auc.mrmr&lt;-NULL
-  auc.mimr&lt;-NULL
-  auc.rf&lt;-NULL
-  auc.rf2&lt;-NULL 
-  Ytrue&lt;-NULL
-  
+ 
   
   ## randomizaion of order 
   Is&lt;-sample(N)
@@ -175,7 +174,7 @@ img {
   subs.rank&lt;-rankrho(Xtr,Ytr,nmax=min(n-5,1000))
   subs.mrmr&lt;-subs.rank[mrmr(Xtr[,subs.rank],Ytr,nmax=NMAX)]
   subs.mimr&lt;-subs.rank[mimr(Xtr[,subs.rank],Ytr,nmax=NMAX)]
-  
+  subs.wrap&lt;-subs.rank[linearFsel(Xtr[,subs.rank],Ytr,nmax=NMAX)]
   
   
   subs.rf&lt;-subs.rank[rfrank(Xtr[,subs.rank],factor(Ytr),nmax=NMAX,type=1)]
@@ -184,17 +183,13 @@ img {
   subs.rank&lt;-subs.rank[1:NMAX]
   
   for (ns in (2:NMAX)){
-  Ytrue&lt;-c(Ytrue,as(Yts,&quot;character&quot;))
-  Yhat.rank&lt;-c(Yhat.rank,pred(&quot;rf&quot;,Xtr[,subs.rank[1:ns]],
-  factor(Ytr),Xts[,subs.rank[1:ns]],class=TRUE)$prob[,&quot;1&quot;])     
-  Yhat.mrmr&lt;-c(Yhat.mrmr,pred(&quot;rf&quot;,Xtr[,subs.mrmr[1:ns]],factor(Ytr),
-  Xts[,subs.mrmr[1:ns]],class=TRUE)$prob[,&quot;1&quot;])
-  Yhat.mimr&lt;-c(Yhat.mimr,pred(&quot;rf&quot;,Xtr[,subs.mimr[1:ns]],factor(Ytr),
-  Xts[,subs.mimr[1:ns]],class=TRUE)$prob[,&quot;1&quot;])                 
-  Yhat.rf&lt;-c(Yhat.rf,pred(&quot;rf&quot;,Xtr[,subs.rf[1:ns]],factor(Ytr),
-  Xts[,subs.rf[1:ns]],class=TRUE)$prob[,&quot;1&quot;]) 
-  Yhat.rf2&lt;-c(Yhat.rf2,pred(&quot;rf&quot;,Xtr[,subs.rf2[1:ns]],factor(Ytr),
-  Xts[,subs.rf2[1:ns]],class=TRUE)$prob[,&quot;1&quot;])   
+    Ytrue&lt;-c(Ytrue,as(Yts,&quot;character&quot;))
+    Yhat.rank&lt;-c(Yhat.rank,pred(&quot;rf&quot;,Xtr[,subs.rank[1:ns]], factor(Ytr),Xts[,subs.rank[1:ns]],class=TRUE)$prob[,&quot;1&quot;])     
+    Yhat.mrmr&lt;-c(Yhat.mrmr,pred(&quot;rf&quot;,Xtr[,subs.mrmr[1:ns]],factor(Ytr),  Xts[,subs.mrmr[1:ns]],class=TRUE)$prob[,&quot;1&quot;])
+    Yhat.mimr&lt;-c(Yhat.mimr,pred(&quot;rf&quot;,Xtr[,subs.mimr[1:ns]],factor(Ytr),   Xts[,subs.mimr[1:ns]],class=TRUE)$prob[,&quot;1&quot;])                 
+    Yhat.rf&lt;-c(Yhat.rf,pred(&quot;rf&quot;,Xtr[,subs.rf[1:ns]],factor(Ytr),   Xts[,subs.rf[1:ns]],class=TRUE)$prob[,&quot;1&quot;]) 
+    Yhat.rf2&lt;-c(Yhat.rf2,pred(&quot;rf&quot;,Xtr[,subs.rf2[1:ns]],factor(Ytr),   Xts[,subs.rf2[1:ns]],class=TRUE)$prob[,&quot;1&quot;])   
+    Yhat.wrap&lt;-c(Yhat.wrap,pred(&quot;rf&quot;,Xtr[,subs.wrap[1:ns]],factor(Ytr),   Xts[,subs.wrap[1:ns]],class=TRUE)$prob[,&quot;1&quot;]) 
   }
   
   auc.rank&lt;-AUC(factor(Ytrue),Yhat.rank)
@@ -202,25 +197,18 @@ img {
   auc.mimr&lt;-AUC(factor(Ytrue),Yhat.mimr)
   auc.rf&lt;-AUC(factor(Ytrue),Yhat.rf)
   auc.rf2&lt;-AUC(factor(Ytrue),Yhat.rf2)
+  auc.wrap&lt;-AUC(factor(Ytrue),Yhat.wrap)
+  
   
   cat(&quot;\n f=&quot;,author ,&quot;N=&quot;,N,&quot;n=&quot;,n,
-  &quot;cv=&quot;,cv,&quot;AUC.rank=&quot;,mean(auc.rank),&quot;AUC.mrmr=&quot;,
-  mean(auc.mrmr),&quot;AUC.mimr=&quot;,
-  mean(auc.mimr), &quot;AUC.rf=&quot;,mean(auc.rf),
-  &quot;AUC.rf2=&quot;,mean(auc.rf2),&quot;\n&quot;)
+  &quot;cv=&quot;,cv,&quot;AUC.rank=&quot;,auc.rank,&quot;AUC.mrmr=&quot;,  auc.mrmr,&quot;AUC.mimr=&quot;,   auc.mimr, &quot;AUC.rf=&quot;,auc.rf,
+  &quot;AUC.rf2=&quot;,auc.rf,&quot;AUC.wrap=&quot;,auc.wrap,&quot;\n&quot;)
   
   
   } ## for cv
   
   
-  AUC.rank&lt;-c(AUC.rank,auc.rank)
-  AUC.mrmr&lt;-c(AUC.mrmr,auc.mrmr)
-  AUC.mimr&lt;-c(AUC.mimr,auc.mimr)
-  AUC.rf&lt;-c(AUC.rf,auc.rf)
-  AUC.rf2&lt;-c(AUC.rf2,auc.rf2)
-  
-  cat(&quot;\n AAUC.rank=&quot;,mean(AUC.rank),&quot;AAUC.mrmr=&quot;,  mean(AUC.mrmr),&quot;AAUC.mimr=&quot;,  mean(AUC.mimr),
-  &quot;AAUC.rf=&quot;,mean(AUC.rf),   &quot;AAUC.rf2=&quot;,mean(AUC.rf2), &quot;\n&quot;)
+ 
   
   
   }</code></pre>

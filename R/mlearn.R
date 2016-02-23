@@ -64,49 +64,49 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
   if (algo=="svm")
     P<-svm.pred(X,Y,X.ts,class=classi,...)
 
-   if (algo=="ksvm")
+  if (algo=="ksvm")
     P<-ksvm.pred(X,Y,X.ts,class=classi,...)
 
   if (algo=="lda")
-      P<-lda.pred(X,Y,X.ts,class=classi)
+    P<-lda.pred(X,Y,X.ts,class=classi)
 
   if (algo=="qda")
-      P<-qda.pred(X,Y,X.ts,class=classi)
+    P<-qda.pred(X,Y,X.ts,class=classi)
 
   if (algo=="nb"){
     if (!classi)
       stop("Naive Bayes only for classification")
-      P<-nb.pred(X,Y,X.ts,class=classi)
+    P<-nb.pred(X,Y,X.ts,class=classi)
   }
 
   if (algo=="tree")
-      P<-tree.pred(X,Y,X.ts,class=classi,...)
-   if (algo=="glm")
-      P<-glm.pred(X,Y,X.ts,class=classi,...)
-   if (algo=="gam")
-      P<-gam.pred(X,Y,X.ts,class=classi,...)
+    P<-tree.pred(X,Y,X.ts,class=classi,...)
+  if (algo=="glm")
+    P<-glm.pred(X,Y,X.ts,class=classi,...)
+  if (algo=="gam")
+    P<-gam.pred(X,Y,X.ts,class=classi,...)
 
   if (algo=="lazy")
-      P<-lazy.pred(X,Y,X.ts,class=classi,...)
+    P<-lazy.pred(X,Y,X.ts,class=classi,...)
 
   if (algo=="knn")
-      P<-KNN.pred(X,Y,X.ts,class=classi,...)
+    P<-KNN.pred(X,Y,X.ts,class=classi,...)
 
-   if (algo=="gbm")
-      P<-gbm.pred(X,Y,X.ts,class=classi,...)
-if (algo=="gp")
-      P<-gp.pred(X,Y,X.ts,class=classi,...)
+  if (algo=="gbm")
+    P<-gbm.pred(X,Y,X.ts,class=classi,...)
+  if (algo=="gp")
+    P<-gp.pred(X,Y,X.ts,class=classi,...)
 
-    if (algo=="mboost")
-      P<-mboost.pred(X,Y,X.ts,class=classi,...)
+  if (algo=="mboost")
+    P<-mboost.pred(X,Y,X.ts,class=classi,...)
 
   if (algo=="stacked")
-      P<-stacked.pred(X,Y,X.ts,class=classi,...)
+    P<-stacked.pred(X,Y,X.ts,class=classi,...)
 
   if (algo=="FNN")
-      P<-FNN.pred(X,Y,X.ts,class=classi,...)
+    P<-FNN.pred(X,Y,X.ts,class=classi,...)
   if (algo=="nnet")
-   P<-nn.pred(X,Y,X.ts,class=classi,k=algoptions.i)
+    P<-nn.pred(X,Y,X.ts,class=classi,k=algoptions.i)
 
   if (algo=="rocchio")
     P<-rocchio.pred(X,Y,X.ts,class=classi)
@@ -117,10 +117,10 @@ if (algo=="gp")
 
 
   if (algo=="logistic")
-      P<-logistic.pred(X,Y,X.ts,class=classi)
+    P<-logistic.pred(X,Y,X.ts,class=classi)
 
   if (algo=="multinom")
-   P<-multinom.pred(X,Y,X.ts,class=classi)
+    P<-multinom.pred(X,Y,X.ts,class=classi)
 
   if (algo=="lin")
     P<-lin.pred(X,Y,X.ts,class=classi,...)
@@ -129,8 +129,8 @@ if (algo=="gp")
     P<-boosting.pred(X,Y,X.ts,class=classi,...)
   if (algo=="arc")
     P<-arcing.pred(X,Y,X.ts,class=classi,...)
-if (is.null(P))
-  stop("Error in mlearn: learner not available")
+  if (is.null(P))
+    stop("Error in mlearn: learner not available")
 
   return (P)
 
@@ -322,7 +322,7 @@ ksvm.pred<- function(X,Y,X.ts,proba=TRUE,class=TRUE,degree=1,...){
     d.ts<-data.frame(X.ts)
     names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
     mod.svm<-ksvm(Y~.,data=d,
-                 kernel=kernel,...)
+                  kernel=kernel,...)
 
     return(predict(mod.svm,d.ts))
   }
@@ -377,8 +377,13 @@ lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,return.more=F){
 #'}
 lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
                      conPar=3,linPar=5,cmbPar=10){
-  n<-NCOL(X)
-  N<-NROW(X)
+  if (is.vector(X)){
+    n<-1
+    N<-length(X)
+  }else{
+    n<-NCOL(X)
+    N<-NROW(X)
+  }
 
   if (class){ ## classification
     l.Y<-levels(Y)
@@ -422,16 +427,19 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
                                          cmbPar=cmbPar))
     if (is.vector(X.ts) & n>1)
       X.ts<-array(X.ts,c(1,n))
+    if (is.vector(X.ts) & n==1)
+      X.ts<-array(X.ts,c(length(X.ts),1))
     d.ts<-data.frame(X.ts)
 
     names(d.ts)<-names(d)[2:(n+1)]
 
+
     if (!return.more){
-      ll<- predict(mod,d.ts)
+      ll<- predict.lazy(mod,d.ts)
       return(ll$h)
 
     } else {
-      ll<- predict(mod,d.ts,S.out=T,k.out=F)
+      ll<- predict.lazy(mod,d.ts,S.out=T,k.out=F)
       return(ll)
     }
   }
@@ -885,7 +893,7 @@ lda.pred.bin<- function(X,Y,X.ts,class=TRUE,...) {
 
       if (N.ts==1)
         X.ts<-array(X.ts[ind.Sd],c(N.ts,length(ind.Sd)))
-        else
+      else
         X.ts<-array(X.ts[,ind.Sd],c(N.ts,length(ind.Sd)))
       if (length(ind.Sd)<1)
         return (array(most.freq(Y),c(N.ts,1)))
@@ -1187,7 +1195,7 @@ multiclass<-function(X.tr,Y.tr,X.ts,algo,strategy="ex",...){
                                        classi=T,...)$pred) )
 
       }
-     probpost<-NULL
+    probpost<-NULL
     ## posterior probability  proportional to the frequence of the class code
     for (yy in 1:NROW(YY.ts)){
       poster<-which.freq(YY.ts[yy,],u=L)
@@ -1250,21 +1258,21 @@ bagging.pred<-function(algo,X,Y,X.ts,B=10,maxN=Inf,classi=TRUE,balanced=FALSE,ba
 
 
       for (l in 1:length(L))
-         P[[l]]<-cbind(P[[l]],PR$prob[,L[l]])
+        P[[l]]<-cbind(P[[l]],PR$prob[,L[l]])
 
     }
 
     out<-factor(apply(C,1,most.freq),levels=levels(Y))
     Pr<-NULL
     for (l in 1:length(L))
-       Pr<-cbind(Pr,apply(P[[l]],1,mean))
+      Pr<-cbind(Pr,apply(P[[l]],1,mean))
     colnames(Pr)<-L
 
 
     out<-L[apply(Pr,1,which.max)]
 
 
-  return(list(pred=out,prob=Pr))
+    return(list(pred=out,prob=Pr))
   }
 }
 
@@ -1309,18 +1317,18 @@ boosting.pred<-function(X,Y,X.ts,B2=1,algo2="tree",classi=TRUE,...){
       PR<-pred(algo2,X[Ib,],Y[Ib],X.ts,classi=classi,...)
 
       for (l in 1:length(L))
-         P[[l]]<-cbind(P[[l]],alpha[b]*PR$prob[,L[l]])
+        P[[l]]<-cbind(P[[l]],alpha[b]*PR$prob[,L[l]])
     } ## for b
 
     Pr<-NULL
     for (l in 1:length(L))
-       Pr<-cbind(Pr,apply(P[[l]],1,sum)/sum(alpha))
+      Pr<-cbind(Pr,apply(P[[l]],1,sum)/sum(alpha))
     colnames(Pr)<-L
 
     out<-L[apply(Pr,1,which.max)]
 
 
-  return(list(pred=out,prob=Pr))
+    return(list(pred=out,prob=Pr))
   }
 }
 
@@ -1350,24 +1358,24 @@ arcing.pred<-function(X,Y,X.ts,B2=1,algo2="tree",classi=TRUE,...){
     for ( b in 1:B2){
 
       Ib<-sample(seq(1,N),prob=w,replace=TRUE)
-     ## If<-sample(1:n,sample(2:(n-2),1),prob=wf,replace=FALSE)
+      ## If<-sample(1:n,sample(2:(n-2),1),prob=wf,replace=FALSE)
       p<-pred(algo2,X[Ib,],Y[Ib],X[,],...)$pred
 
       misc[b] <- sum(w*as.integer(Y != p))/sum(w)
       alpha[b]<-1 ##log((1-misc[b])/misc[b])
 
       mi<-mi+as.integer(Y != p)
-     ## mif[b,If]<-(1-misc[b])
+      ## mif[b,If]<-(1-misc[b])
 
-     ## smif<-apply(mif,2,mean,na.rm=T)
-     ## wf<-smif/sum(smif)
+      ## smif<-apply(mif,2,mean,na.rm=T)
+      ## wf<-smif/sum(smif)
       w<- (1+mi^4)/(sum(1+mi^4))
 
 
       PR<-pred(algo2,X[Ib,],Y[Ib],X.ts,classi=classi,...)
 
       for (l in 1:length(L))
-         P[[l]]<-cbind(P[[l]],alpha[b]*PR$prob[,L[l]])
+        P[[l]]<-cbind(P[[l]],alpha[b]*PR$prob[,L[l]])
     } ## for b
 
 
@@ -1375,19 +1383,19 @@ arcing.pred<-function(X,Y,X.ts,B2=1,algo2="tree",classi=TRUE,...){
 
     Pr<-NULL
     for (l in 1:length(L))
-       Pr<-cbind(Pr,apply(P[[l]],1,sum)/sum(alpha))
+      Pr<-cbind(Pr,apply(P[[l]],1,sum)/sum(alpha))
     colnames(Pr)<-L
 
 
     out<-L[apply(Pr,1,which.max)]
 
 
-  return(list(pred=out,prob=Pr))
+    return(list(pred=out,prob=Pr))
   }
 
 
 
-   if (!classi){
+  if (!classi){
 
     C<-NULL
     PR<-NULL
@@ -1403,17 +1411,17 @@ arcing.pred<-function(X,Y,X.ts,B2=1,algo2="tree",classi=TRUE,...){
     for ( b in 1:B2){
 
       Ib<-sample(seq(1,N),N,prob=w,replace=TRUE)
-     ## If<-sample(1:n,sample(2:(n-2),1),prob=wf,replace=FALSE)
+      ## If<-sample(1:n,sample(2:(n-2),1),prob=wf,replace=FALSE)
 
       p<-pred(algo2,X[Ib,],Y[Ib],X[,],classi=classi,...)
 
       e<-abs(Y-p)
       e<-e/sum(e)
       mi<-mi+e
-     ## mif[b,If]<-(1-misc[b])
+      ## mif[b,If]<-(1-misc[b])
 
-     ## smif<-apply(mif,2,mean,na.rm=T)
-     ## wf<-smif/sum(smif)
+      ## smif<-apply(mif,2,mean,na.rm=T)
+      ## wf<-smif/sum(smif)
       w<- (1+mi^4)/(sum(1+mi^4))
 
       PR<-cbind(PR,pred(algo2,X[Ib,],Y[Ib],X.ts,classi=classi,...))
@@ -1426,7 +1434,7 @@ arcing.pred<-function(X,Y,X.ts,B2=1,algo2="tree",classi=TRUE,...){
 
     Pr<-apply(PR,1,mean)
 
-  return(Pr)
+    return(Pr)
   }
 }
 boost.pred<-function(X,Y,X.ts,classi,...){
@@ -1461,30 +1469,30 @@ gp.pred<-function(X,Y,X.ts,classi,ntrees=1000,...){
   n<-NCOL(X)
   if (classi){
 
-   l.Y<-levels(Y)
-  Y<-as.numeric(Y)-1
-  X<-as.matrix(X)
-  X.ts<-as.matrix(X.ts)
-  colnames(X.ts)<-paste("x",1:NCOL(X.ts),sep="")
-  colnames(X)<-colnames(X.ts)
-  d<-data.frame(Y,X)
-  names(d)[1]<-"Y"
+    l.Y<-levels(Y)
+    Y<-as.numeric(Y)-1
+    X<-as.matrix(X)
+    X.ts<-as.matrix(X.ts)
+    colnames(X.ts)<-paste("x",1:NCOL(X.ts),sep="")
+    colnames(X)<-colnames(X.ts)
+    d<-data.frame(Y,X)
+    names(d)[1]<-"Y"
 
-  gbmodel<-gbm(Y~.,data=d,n.trees=ntrees,verbose=FALSE,...)
+    gbmodel<-gbm(Y~.,data=d,n.trees=ntrees,verbose=FALSE,...)
 
-  d.ts<-data.frame(X.ts)
-
-
-  names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
-  pred<-predict(gbmodel,d.ts,n.trees=ntrees,type="response")
+    d.ts<-data.frame(X.ts)
 
 
+    names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
+    pred<-predict(gbmodel,d.ts,n.trees=ntrees,type="response")
 
-  prob<-cbind(1-pred,pred)
-  colnames(prob)<-l.Y
-  pred<-l.Y[apply(prob,1,which.max)]
 
-  list(prob=prob,pred=pred)
+
+    prob<-cbind(1-pred,pred)
+    colnames(prob)<-l.Y
+    pred<-l.Y[apply(prob,1,which.max)]
+
+    list(prob=prob,pred=pred)
   } else {
 
 
@@ -1513,29 +1521,29 @@ gbm.pred<-function(X,Y,X.ts,classi,ntrees=1000,...){
   if (classi){
 
 
-  Y<-as.numeric(Y)-1
-  X<-as.matrix(X)
-  X.ts<-as.matrix(X.ts)
-  colnames(X.ts)<-paste("x",1:NCOL(X.ts),sep="")
-  colnames(X)<-colnames(X.ts)
-  d<-data.frame(Y,X)
-  names(d)[1]<-"Y"
+    Y<-as.numeric(Y)-1
+    X<-as.matrix(X)
+    X.ts<-as.matrix(X.ts)
+    colnames(X.ts)<-paste("x",1:NCOL(X.ts),sep="")
+    colnames(X)<-colnames(X.ts)
+    d<-data.frame(Y,X)
+    names(d)[1]<-"Y"
 
-  gbmodel<-gbm(Y~.,data=d,n.trees=ntrees,verbose=FALSE,...)
+    gbmodel<-gbm(Y~.,data=d,n.trees=ntrees,verbose=FALSE,...)
 
-  d.ts<-data.frame(X.ts)
-
-
-  names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
-  pred<-predict(gbmodel,d.ts,n.trees=ntrees,type="response")
+    d.ts<-data.frame(X.ts)
 
 
+    names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
+    pred<-predict(gbmodel,d.ts,n.trees=ntrees,type="response")
 
-  prob<-cbind(1-pred,pred)
-  colnames(prob)<-l.Y
-  pred<-l.Y[apply(prob,1,which.max)]
 
-  list(prob=prob,pred=pred)
+
+    prob<-cbind(1-pred,pred)
+    colnames(prob)<-l.Y
+    pred<-l.Y[apply(prob,1,which.max)]
+
+    list(prob=prob,pred=pred)
   } else {
 
 
@@ -1561,8 +1569,8 @@ mboost.pred<-function(X,Y,X.ts,classi,ntrees=1000,...){
 
 
   n<-NCOL(X)
-##  if (!classi || length(l.Y)!=2)
-##    stop("Ada boost can be used only for binary classification")
+  ##  if (!classi || length(l.Y)!=2)
+  ##    stop("Ada boost can be used only for binary classification")
 
   if (classi){
     l.Y<-levels(Y)
@@ -1648,21 +1656,21 @@ stacked.pred<-function(X,Y,X.ts,classi,M=20,R=Inf,algo2="lazy",...){
     if (algo2=="lazy")
       Yts[,m]<-pred(algo2,X,Y,X.ts,conPar=c(3,5+m),classi=FALSE)
     if (algo2=="tree")
-        Yts[,m]<-pred(algo2,X,Y,X.ts,
-                      mincut=1+m,classi=FALSE)
-     if (algo2=="rf")
-        Yts[,m]<-pred(algo2,X,Y,X.ts,
-                      mtry=m,classi=FALSE)
+      Yts[,m]<-pred(algo2,X,Y,X.ts,
+                    mincut=1+m,classi=FALSE)
+    if (algo2=="rf")
+      Yts[,m]<-pred(algo2,X,Y,X.ts,
+                    mtry=m,classi=FALSE)
   }
 
 
- ## W<-regrlin(Yp,Y[Ir],lambda=0.01)$beta.hat
+  ## W<-regrlin(Yp,Y[Ir],lambda=0.01)$beta.hat
   require(nnls)
   W<-nnls(cbind(numeric(NROW(Yp))+1,Yp),Y[Ir])$x
 
 
   if (is.na(sum(W)))
-     W<-c(0,rep(1/M,M)) ##regrlin(Yp,Y[Ir],lambda=0.01)$beta.hat
+    W<-c(0,rep(1/M,M)) ##regrlin(Yp,Y[Ir],lambda=0.01)$beta.hat
   pred<-W[1]
 
   for (i in 1:m)
