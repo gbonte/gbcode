@@ -33,13 +33,6 @@ vignette: >
   
 ```{echo=TRUE}
   
-FF<-0  ## forgetting factor
-n<-10  ##  embedding order
-C<-5
-D<-0
-Kmin<-5  ## minimum number of neighbors
-S<-1 ## initial position of the training set
-
 
 M.arima<-NULL
 M.direct<-NULL
@@ -68,8 +61,6 @@ for (f in 1:(NCOL(NN5)-1)){
       TimeSer<-TS[S:(i-1),1]
       TimeSer<-array(TimeSer,c(length(TimeSer),1))
 
-      select.var<-(1):NCOL(X)
-
       fut<-TS[i:(i+H-1),1]  ## test set
 
       ## ARIMA
@@ -96,7 +87,6 @@ for (f in 1:(NCOL(NN5)-1)){
       ##  MULTIPLE ACF LIN
       p.mimo.acf.lin<-multiplestepAhead(TimeSer,n,H,D,"mimo.acf.lin",Kmin,C,FF)
       M.mimo.acf.lin<-c(M.mimo.acf.lin,MASE(fut,p.mimo.acf.lin))
-      S.mimo.acf.lin<-c(S.mimo.acf.lin,SMAPE(fut,p.mimo.acf.lin,Cent,Sc))
 
       ##  MULTIPLE PLS
       p.mimo.pls<-multiplestepAhead(TimeSer,n,H,D,"mimo.pls",Kmin,C,FF)
