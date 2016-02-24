@@ -14,5 +14,10 @@ Dataset A
 data(A)
 plot(A[,1],type="l")
 }
+\references{
+\url{http://www-psych.stanford.edu/~andreas/Time-Series/SantaFe.html}
+
+\url{http://www.amazon.com/Time-Series-Prediction-Forecasting-Understanding/dp/0201626020}
+}
 \keyword{data}
 

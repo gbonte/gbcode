@@ -46,23 +46,39 @@ Wrapper over a set of methods for multiple step ahead time series prediction
 }
 \examples{
 ## Multi-step ahead time series forecasting
-library(pls)
+
 t=seq(0,400,by=0.1)
 N<-length(t)
-H<-1500 ## horizon prediction
+H<-500 ## horizon prediction
 TS<-sin(t)+rnorm(N,sd=0.1)
 TS.tr=TS[1:(N-H)]
 N.tr<-length(TS.tr)
 TS.ts<-TS[(N-H+1):N]
 TS.tr=array(TS.tr,c(length(TS.tr),1))
-E=MakeEmbedded(TS.tr,n=3,delay=0,hor=H,1)
-X<-E$inp
-Y<-E$out
-N<-NROW(X)
-ACF.lag<-5
-Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-H):N.tr]))
+Y.cont=multiplestepAhead(TS.tr,n=3, H=H,method="mimo")
+
 plot(t[(N-H+1):N],TS.ts)
 lines(t[(N-H+1):N],Y.cont)
+
+
+
+
+## Multi-step ahead time series forecasting Santa Fe  chaotic time series A
+rm(list=ls()
+data(A)
+TS=A
+N<-1000
+H<-200
+TS.tr=TS[1:N,1]
+TS.ts<-TS[(N+1):(N+H),1]
+TS.tr=array(TS.tr,c(length(TS.tr),1))
+Y.mimo=multiplestepAhead(TS.tr,n=12, H=H,method="mimo")
+Y.mimo.comb=multiplestepAhead(TS.tr,n=12, H=H,method="mimo.comb")
+plot(t[(N-H+1):N],TS.ts)
+lines(t[(N-H+1):N],Y.mimo,col="red")
+lines(t[(N-H+1):N],Y.mimo.comb,col="green")
+
+
 }
 \author{
 Gianluca Bontempi  \email{gbonte@ulb.ac.be}

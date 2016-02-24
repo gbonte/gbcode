@@ -14,5 +14,10 @@ Dataset NN5
 data(NN5)
 plot(NN5[,1],type="l")
 }
+\references{
+\url{http://www.neural-forecasting-competition.com/NN5/}
+
+\url{https://www.researchgate.net/publication/222828050_Conditionally_dependent_strategies_for_multiple-step-ahead_prediction_in_local_learning}
+}
 \keyword{data}
 

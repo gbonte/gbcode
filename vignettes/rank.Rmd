@@ -7,10 +7,10 @@ vignette: >
   %\VignetteIndexEntry{Ranking features}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  ---
+---
   
   
-  ## Feature ranking and classification of microarray data
+## Feature ranking and classification of microarray data
   
   Let us import the data from the package datamicroarray
   
