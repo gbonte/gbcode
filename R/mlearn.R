@@ -1213,7 +1213,23 @@ multiclass<-function(X.tr,Y.tr,X.ts,algo,strategy="ex",...){
 
 
 
-
+#### bagging.pred ####
+#' Bagging wrapper on algoritmhs
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{mlg.ulb.ac.be}
+#' @title Wrapper on lazy learning algoritmhs for regression and classification
+#' @name bagging.pred
+#' @export
+#'@param X: training input
+#'@param Y: training output
+#'@param X.ts: test input
+#'@param classi: TRUE for classification, FALSE for regression
+#'@param return.more: TRUE for returning additional \pkg{lazy} parameter
+#'@return if \code{classi=FALSE} predicted test output; if \code{classi=TRUE} a list with
+#' \itemize{
+#' \item{\code{pred}:}  predicted class
+#' \item{ \code{prob}:} posteriori probability
+#'}
 bagging.pred<-function(algo,X,Y,X.ts,B=10,maxN=Inf,classi=TRUE,balanced=FALSE,bagvar=0,...){
   N<-NROW(X)
   n<-NCOL(X)
@@ -1247,13 +1263,7 @@ bagging.pred<-function(algo,X,Y,X.ts,B=10,maxN=Inf,classi=TRUE,balanced=FALSE,ba
       if (bagvar>0)
         sel<-sample(sel,sample(3:min(n,max(3,bagvar)),1))
 
-
-
-
       PR<-pred(algo,X[Ib,sel],Y[Ib],X.ts[,sel],classi=classi,...)
-
-
-
       C<-cbind(C,as.character(PR$pred))
 
 

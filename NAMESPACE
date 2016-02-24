@@ -32,6 +32,9 @@ export(KNN.acf)
 export(KNN.acf.lin)
 export(KNN.pls)
 export(MASE)
+export(SMAPE)
+export(multiplestepAhead)
+
 
 import(MASS)
 import(mvtnorm)

@@ -12,7 +12,7 @@ forwardSel(X, Y, algo = "rf", nmax = 5, nmax2 = nmax, cv = 1,
 
 \item{Y:}{output dataset}
 
-\item{algo:}{see the options of \link{pred}}
+\item{algo:}{see the options of \link{pred}. If more than one algorithm is mentioned, a blocking selection is carried out}
 
 \item{nmax:}{number of top returned features}
 
@@ -58,11 +58,22 @@ Y<-factor(round(R$Y))
 real.features<-R$feat
 ranked.features<-forwardSel(X,Y,nmax=3,classi=TRUE,cv=3)
 
+
+## classification example with blocking
+N<-100
+n<-5
+neff<-3
+R<-regrDataset(N,n,neff,0.1,seed=1)
+X<-R$X
+Y<-factor(round(R$Y))
+real.features<-R$feat
+ranked.features<-forwardSel(algo=c("rf","lda"), X,Y,nmax=3,classi=TRUE,cv=3)
 }
 \author{
 Gianluca Bontempi  \email{gbonte@ulb.ac.be}
 }
 \references{
-Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}. For
+blocking see \emph{Bontempi G. A blocking strategy to improve gene selection for classification of gene expression data. IEEE/ACM Trans Comput Biol Bioinform. 2007 Apr-Jun;4(2):293-300.}
 }
 

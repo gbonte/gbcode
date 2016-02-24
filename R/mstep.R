@@ -527,3 +527,191 @@ KNN.pls<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,del=0){
 }
 
 
+#' multiplestepAhead
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#'
+#' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
+#' @description multiplestepAhead
+#' @details Wrapper over a set of methods for multiple step ahead time series prediction
+#' @title multiplestepAhead
+#' @name multiplestepAhead
+#' @param TS: time series
+#' @param n: embedding order
+#' @param H: horizon
+#' @param  Kmin: min number of neighbours
+#' @param  dist: type of distance: \code{euclidean, cosine}
+#' @param  F: forgetting factor
+#' @param  C: integer parameter which sets the maximum number of neighbours (Ck)
+#' @param  method:
+#' \itemize{
+#' \item{arima}: prediction based on the \pkg{forecast} package
+#' \item{direct}: direct prediction based on \link{KNN.multioutput} function
+#' #' \item{iter}: recursive prediction based on \link{KNN.multioutput} function
+#' \item{mimo}: MIMO prediction based on \link{KNN.multioutput} function
+#' \item{mimo.comb}: MIMO prediction based on \link{KNN.multioutput} function which combines a set of predictors based on different horizons and different starting points
+#' \item{mimo.acf}: MIMO prediction based on \link{KNN.acf} function which combines a set of predictors based on different horizons and different starting points
+#' \item{mimo.acf.lin}: MIMO prediction based on \link{KNN.acf.lin} function which combines a set of predictors based on different horizons and different starting points
+#' \item{mimo.pls}: MIMO prediction based on \link{KNN.pls} function which combines a set of predictors based on different horizons and different starting points
+#' }
+#' @return H step ahead predictions
+#' @export
+#' @examples
+#' ## Multi-step ahead time series forecasting
+#' library(pls)
+#' t=seq(0,400,by=0.1)
+#' N<-length(t)
+#' H<-1500 ## horizon prediction
+#' TS<-sin(t)+rnorm(N,sd=0.1)
+#' TS.tr=TS[1:(N-H)]
+#' N.tr<-length(TS.tr)
+#' TS.ts<-TS[(N-H+1):N]
+#' TS.tr=array(TS.tr,c(length(TS.tr),1))
+#' E=MakeEmbedded(TS.tr,n=3,delay=0,hor=H,1)
+#' X<-E$inp
+#' Y<-E$out
+#' N<-NROW(X)
+#' ACF.lag<-5
+#' Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-H):N.tr]))
+#' plot(t[(N-H+1):N],TS.ts)
+#' lines(t[(N-H+1):N],Y.cont)
+multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0){
+  N<-length(TS)
+  TS<-array(TS,c(length(TS),1))
+
+  M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
+  X<-M$inp
+  Y<-M$out
+  NX=NROW(X)
+  select.var=1:NCOL(X)
+  q<-TS[seq(N-D,N-n+1-D,by=-1),1]
+
+  switch(method,
+         arima={
+           fit <- arima(TS,c(n,D,1))
+           p<-forecast(fit,h=H)$mean
+         },
+         direct={
+           p<-numeric(H)
+           for (h  in 1:H){
+             I<-1:(NROW(X))
+             p[h]<-KNN.multioutput(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],k=Kmin,C=C,F=FF)
+           }
+         },
+         mimo={
+           p<-KNN.multioutput(X[,select.var],Y,q[select.var],k=Kmin,C=C,F=FF)
+         },
+         mimo.comb={
+           pdirect2<-NULL
+
+           for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+             KK<-KNN.multioutput(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF)
+             p2[1:h]<-KK[(H-h+1):H]
+             pdirect2<-rbind(pdirect2,p2)
+           }
+
+           for (h  in round(H/2):(H)){ ## start at the end of the series with different horizons h=[H/2,...H]
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             KK<-KNN.multioutput(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF)
+             p2[1:h]<-KK
+             pdirect2<-rbind(pdirect2,p2)
+           }
+
+           ## combination of different predictions
+           p<-apply(pdirect2,2,mean,na.rm=T)
+         },
+         mimo.acf={
+           pdirect3<-NULL
+           TS.acf<-TS[,1]
+
+           for (h  in round(H/2):(H)){
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+             KK<-KNN.acf(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
+                         TS=TS.acf,D)
+             p2[1:h]<-KK[(H-h+1):H]
+             pdirect3<-rbind(pdirect3,p2)
+
+
+           }
+
+
+           for (h  in round(H/2):(H)){
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             KK<-KNN.acf(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
+                         TS=TS.acf,D)
+             p2[1:h]<-KK
+             pdirect3<-rbind(pdirect3,p2)
+
+
+           }
+           p<-apply(pdirect3,2,mean,na.rm=T)
+
+         },
+         mimo.acf.lin={
+           ACF.lag<-5
+           pdirect4<-NULL
+           TS.acf<-TS ##i-1=N
+
+           for (h  in round(H/2):(H)){
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+             KK<-KNN.acf.lin(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
+                             Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
+                             Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
+             p2[1:h]<-KK[(H-h+1):H]
+             pdirect4<-rbind(pdirect4,p2)
+
+
+           }
+
+
+           for (h  in round(H/2):(H)){
+
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             KK<-KNN.acf.lin(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
+                             Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
+                             Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
+             p2[1:h]<-KK
+             pdirect4<-rbind(pdirect4,p2)
+
+
+           }
+           p<-apply(pdirect4,2,mean,na.rm=T)
+         },
+         mimo.pls={
+           pdirect4<-NULL
+           TS.acf<-TS[1:(i-1),1]
+
+           for (h  in round(H/2):(H)){
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+             KK<-KNN.pls(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,D)
+             p2[1:h]<-KK[(H-h+1):H]
+             pdirect4<-rbind(pdirect4,p2)
+           }
+           for (h  in round(H/2):(H)){
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             KK<-KNN.pls(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,D)
+             p2[1:h]<-KK
+             pdirect4<-rbind(pdirect4,p2)
+           }
+           p<-apply(pdirect4,2,mean,na.rm=T)
+         },
+         iter={
+           piter<-numeric(H)
+           for (h  in 1:H){
+             piter[h]<-KNN.multioutput(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],k=Kmin,C=C,F=FF)
+             q<-c(piter[h],q[1:(length(q)-1)])
+           }
+           p<-piter
+         }
+  )
+  p
+
+}

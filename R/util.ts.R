@@ -22,14 +22,19 @@ NULL
 #' plot(NN5[,1],type="l")
 NULL
 
-smape<-function(ts1,ts2,Cent,Sc){
+#### SMAPE ####
+#' Symmetric mean absolute percentage error
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{https://en.wikipedia.org/wiki/Symmetric_mean_absolute_percentage_error}
+#' @title Symmetric mean absolute percentage error
+SMAPE<-function(ts1,ts2,Cent=0,Sc=1){
   ts1<-Cent+ts1*Sc
   ts2<-Cent+ts2*Sc
   mean(abs(ts1-ts2)/(ts1+ts2)/2)*100
 
 }
 
-#### MakeEmbedded ####
+#### MASE ####
 #' Mean Absolute scaled error
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{https://en.wikipedia.org/wiki/Mean_absolute_scaled_error}
