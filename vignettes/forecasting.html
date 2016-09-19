@@ -47,13 +47,6 @@
   data(NN5)</code></pre>
 <p>Let us now compare several forecasting techniques for different prediction horizons <span class="math inline">\(H\)</span></p>
 <pre class="echo"><code>  
-FF&lt;-0  ## forgetting factor
-n&lt;-10  ##  embedding order
-C&lt;-5
-D&lt;-0
-Kmin&lt;-5  ## minimum number of neighbors
-S&lt;-1 ## initial position of the training set
-
 
 M.arima&lt;-NULL
 M.direct&lt;-NULL
@@ -82,8 +75,6 @@ for (f in 1:(NCOL(NN5)-1)){
       TimeSer&lt;-TS[S:(i-1),1]
       TimeSer&lt;-array(TimeSer,c(length(TimeSer),1))
 
-      select.var&lt;-(1):NCOL(X)
-
       fut&lt;-TS[i:(i+H-1),1]  ## test set
 
       ## ARIMA
@@ -109,7 +100,6 @@ for (f in 1:(NCOL(NN5)-1)){
       ##  MULTIPLE ACF LIN
       p.mimo.acf.lin&lt;-multiplestepAhead(TimeSer,n,H,D,&quot;mimo.acf.lin&quot;,Kmin,C,FF)
       M.mimo.acf.lin&lt;-c(M.mimo.acf.lin,MASE(fut,p.mimo.acf.lin))
-      S.mimo.acf.lin&lt;-c(S.mimo.acf.lin,SMAPE(fut,p.mimo.acf.lin,Cent,Sc))
 
       ##  MULTIPLE PLS
       p.mimo.pls&lt;-multiplestepAhead(TimeSer,n,H,D,&quot;mimo.pls&quot;,Kmin,C,FF)

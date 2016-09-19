@@ -34,7 +34,7 @@ NULL
 SMAPE<-function(ts1,ts2,Cent=0,Sc=1){
   ts1<-Cent+ts1*Sc
   ts2<-Cent+ts2*Sc
-  mean(abs(ts1-ts2)/(ts1+ts2)/2)*100
+  mean(abs(ts1-ts2)/((ts1+ts2)/2))*100
 
 }
 

@@ -452,7 +452,8 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
 #' neff<-3
 #' R<-regrDataset(N,n,neff,0.1,seed=1)
 #' X<-R$X
-#' Y<-factor(round(R$Y))
+#' Y<-factor(R$Y>mean(R$Y))
+#' ## it creates a binary class output
 #' real.features<-R$feat
 #' ranked.features<-forwardSel(X,Y,nmax=3,classi=TRUE,cv=3)
 #'
@@ -463,7 +464,8 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
 #' neff<-3
 #' R<-regrDataset(N,n,neff,0.1,seed=1)
 #' X<-R$X
-#' Y<-factor(round(R$Y))
+#' Y<-factor(R$Y>mean(R$Y))
+#' ## it creates a binary class output
 #' real.features<-R$feat
 #' ranked.features<-forwardSel(algo=c("rf","lda"), X,Y,nmax=3,classi=TRUE,cv=3)
 forwardSel<-function(X,Y,algo="rf",nmax=5,nmax2=nmax,cv=1,classi=FALSE,verbose=FALSE,...){
