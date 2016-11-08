@@ -54,7 +54,8 @@ n<-5
 neff<-3
 R<-regrDataset(N,n,neff,0.1,seed=1)
 X<-R$X
-Y<-factor(round(R$Y))
+Y<-factor(R$Y>mean(R$Y))
+## it creates a binary class output
 real.features<-R$feat
 ranked.features<-forwardSel(X,Y,nmax=3,classi=TRUE,cv=3)
 
@@ -65,7 +66,8 @@ n<-5
 neff<-3
 R<-regrDataset(N,n,neff,0.1,seed=1)
 X<-R$X
-Y<-factor(round(R$Y))
+Y<-factor(R$Y>mean(R$Y))
+## it creates a binary class output
 real.features<-R$feat
 ranked.features<-forwardSel(algo=c("rf","lda"), X,Y,nmax=3,classi=TRUE,cv=3)
 }

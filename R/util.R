@@ -1609,6 +1609,31 @@ rpears<-function(r,N,S=0){
 
 }
 
+nl.minf<-function(x,y, R=10){
+  ## nonlinear mutual information
+  N<-length(x)
+  V=var(y)
+  is<-sort(x,decr=FALSE,index=TRUE)$ix
+  x<-x[is]
+  y<-y[is]
+
+  R=min(R,N)
+  D=max(5,round(N/R))
+  m<-NULL
+  v<-NULL
+  for (r in 1:R){
+    ir<-max(1,((r-1)*D)):min(N,r*D-1)
+
+    m<-c(m,mean(y[ir]))  ## E[y|x]
+    v<-c(v,var(y[ir]))  ## V[y|x]
+
+  }
+  ## V[y]=E_x[V[y|x]]+V_x[E[y[x]]] => E_x[V[y|x]] = V[y] - V_x[E[y[x]]]
+  Vc=mean(c(mean(v,na.rm=TRUE),max(0,V-var(m,na.rm=TRUE))))
+
+  return(var2H(V)-var2H(Vc))
+}
+
 normv<-function(x,p=2){
   sum(x^p)^(1/p)
 

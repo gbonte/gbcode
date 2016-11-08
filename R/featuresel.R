@@ -138,6 +138,7 @@ mrmr<-function(X,Y,nmax=5,back=FALSE){
     }
 
     s<-which.max(mrmr)
+
     subs<-c(subs,s)
   }
 
