@@ -1,4 +1,9 @@
-Patch<-function(){
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi 
+
+
+
 set.seed(0)
 
 placebo<-c(9243,9671,11792,13357,9055,6290,12412,18806)
@@ -25,9 +30,9 @@ for (b in 1:B){
 
 hist(thetaB,
      main=paste("Bias=", round(abs(theta.hat-mean(thetaB)),2),
-       "; Stdev=", round(sd(thetaB),2)))
+                "; Stdev=", round(sd(thetaB),2)))
 abline(v=theta.hat,col="red")
 abline(v=0.2,col="green")
 
 print(paste("Probability that theta.hat >0.2=",sum(thetaB>0.2)/B))
-}
+

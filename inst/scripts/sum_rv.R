@@ -1,4 +1,7 @@
-# TP Modeles stochastiques II
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
 # sum_rv.R
 # Script: shows the relation between the variance
 # of z and the variance of z.bar=(sum of N i.i.d. random variables)
