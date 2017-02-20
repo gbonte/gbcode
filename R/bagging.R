@@ -1,5 +1,5 @@
 
-BaggingDemo<-function(N=200,n=3){
+
 
   set.seed(555)
   X <- rnorm(N*n)
@@ -55,4 +55,4 @@ BaggingDemo<-function(N=200,n=3){
 
   hist(MSE.nn,main='')
   abline(v=MSE.bag)
-}
+
