@@ -13,3 +13,8 @@ To use it in your R code
 - install_github("gbonte/gbcode")
 
 - require(gbcode)
+
+
+To change the directory to the one containing scripts 
+
+- setwd(find.package("gbcode"))

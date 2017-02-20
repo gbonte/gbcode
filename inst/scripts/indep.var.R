@@ -1,5 +1,5 @@
 
-IndepVar<-function(){
+
 N<-1000
 
 
@@ -19,4 +19,4 @@ plot(x,2*x^2+y2-1,xlim=c(-4,4),ylim=c(-4,4))
 
 
 plot(x,sin(2*pi*x)+y2/2,xlim=c(-4,4),ylim=c(-4,4))
-}
+
