@@ -1,4 +1,6 @@
-# TP Modeles stochastiques II
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
 # sam_dis.R
 # Script: visualizes the distribution of the estimator
 # of the mean of a gaussian random variable

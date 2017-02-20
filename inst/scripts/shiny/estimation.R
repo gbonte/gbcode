@@ -6,7 +6,7 @@ library(scatterplot3d)
 library(ellipse)
 library(plot3D)
 
-BOUND1<-5
+BOUND1<-4
 BOUND2<-2
 ui <- dashboardPage(
   dashboardHeader(title="InfoF422: Estimation: Bias-variance analysis"),
@@ -56,7 +56,7 @@ ui <- dashboardPage(
               fluidRow(
                 box(width=4,sliderInput("mean","Mean:",min = -BOUND1, max = BOUND1 ,
                                         value = 0),
-                    sliderInput("sdev","St Dev:",min = 0.001,max = 2, value = 0.1)),
+                    sliderInput("sdev","St Dev:",min = 0.001,max = 2, value = 0.5)),
                 box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotP", height = 300))),
               
               fluidRow(   
@@ -170,7 +170,7 @@ server<-function(input, output,session) {
       meanD<-c(meanD,mean(rnorm(input$N,input$mean,input$sdev)))
       
     }
-    hist(meanD,xlim=c(-BOUND1,BOUND1))
+    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Avg sampling estimation=",round(mean(meanD),2)))
     
     
   })
@@ -181,7 +181,7 @@ server<-function(input, output,session) {
       varD<-c(varD,var(rnorm(input$N,input$mean,input$sdev)))
       
     }
-    hist(varD,xlim=c(-BOUND1,BOUND1))
+    hist(varD,xlim=c(0,BOUND1),main=paste("Avg sampling estimation=",round(mean(sqrt(varD)),2)))
     
     
   })

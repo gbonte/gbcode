@@ -1,11 +1,9 @@
-######################################################
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
 # bayes_gau.R
-# Estimation param?trique Bayesienne de la moyenne d'une
-# variable normale de variance conue, avec une estimation
-# a priori normale de cette moyenne.
+# Bayesian parametric estimation of the mean of a normal variable with known variance 
 ######################################################
-
-
 
 
 par(ask=TRUE)

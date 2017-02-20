@@ -1,4 +1,7 @@
-# Statistical foundations of machine learning
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
 # chisq.R
 # Script: plot the chi-squared density and cumulative distribution
 

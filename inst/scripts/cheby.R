@@ -1,4 +1,7 @@
-# Statistical foundations of machine learning
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
 # cheby.R
 # Script: shows the Chebyshev relation by means of simulation
 

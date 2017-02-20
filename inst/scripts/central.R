@@ -1,4 +1,7 @@
-# INFOF422
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
 # central.R
 # Script: visualizes the distribution of the estimator
 # of the variance of a non gaussian random variableshows the central limit theorem

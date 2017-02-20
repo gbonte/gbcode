@@ -1,10 +1,14 @@
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
 #################################################################
 # bv.R					     		        #
 #################################################################
-## Dataset D_N={x_i,y_i} o˘:			#
+## Dataset D_N={x_i,y_i} :			
 #	  y_i = beta_0 + beta_1x_i + w_i			#
 #   with known  beta_0  and beta_1 and known w=Normal(0, sigma) 	#
-#   							#
+#   						
 ## Experimental analysis of bias and variance of the least sqaure estimate 	#
 #   and comparison with theoretical results
 #################################################################
