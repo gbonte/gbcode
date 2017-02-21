@@ -1,7 +1,9 @@
 ## "INFOF422 Statistical foundations of machine learning" course
 ## R package gbcode 
 ## Author: G. Bontempi
-
+##  Fair coin tossing random experiment
+## Evolution of the relative frequency (left) 
+## and of the absolute difference between the number of heads and tails 
 
 set.seed(1)
 R<-600000
