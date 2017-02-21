@@ -170,7 +170,8 @@ server<-function(input, output,session) {
       meanD<-c(meanD,mean(rnorm(input$N,input$mean,input$sdev)))
       
     }
-    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Avg sampling estimation=",round(mean(meanD),2)))
+    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Avg=",round(mean(meanD),2),
+                                                 "Var=",round(var(meanD),2) ))
     
     
   })
