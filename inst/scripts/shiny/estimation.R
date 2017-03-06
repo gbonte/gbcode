@@ -6,7 +6,7 @@ library(scatterplot3d)
 library(ellipse)
 library(plot3D)
 
-BOUND1<-4
+BOUND1<-2
 BOUND2<-2
 ui <- dashboardPage(
   dashboardHeader(title="InfoF422: Estimation: Bias-variance analysis"),
@@ -14,14 +14,14 @@ ui <- dashboardPage(
     sidebarMenu(
       sliderInput("N",
                   "Number of samples:",
-                  min = 2,
+                  min = 5,
                   max = 200,
                   value = 50,step=2),
       sliderInput("R",
-                  "Number of trials:",
+                  "Number of simulation trials:",
                   min = 100,
                   max = 5000,
-                  value = 500,step=2),
+                  value = 1000,step=2),
       sliderInput("tdt",
                   "3D theta:",
                   min = -60,
@@ -55,13 +55,14 @@ ui <- dashboardPage(
       tabItem(tabName = "Univariate",
               fluidRow(
                 box(width=4,sliderInput("mean","Mean:",min = -BOUND1, max = BOUND1 ,
-                                        value = 0),
-                    sliderInput("sdev","St Dev:",min = 0.001,max = 2, value = 0.5)),
+                                        value = 0,step=0.05),
+                    sliderInput("sdev","St Dev:",min = 0.25,max = 1.5, value = 0.5),
+                    uiOutput('EVar')),
                 box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotP", height = 300))),
               
               fluidRow(   
-                box(width=5,title = "Sampling Distribution Mean",plotOutput("uniSamplingM", height = 300)),
-                box(width=5,title = "Sampling Distribution Variance",plotOutput("uniSamplingV", height = 300))
+                box(width=5,title = "Estimator Mean: Sampling Distribution ",plotOutput("uniSamplingM", height = 300)),
+                box(width=5,title = "Estimator Variance: Sampling Distribution ",plotOutput("uniSamplingV", height = 300))
               )
       ), # tabItem
       tabItem(tabName = "Bivariate",
@@ -73,8 +74,8 @@ ui <- dashboardPage(
                 ),
                 box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("biPlotP", height = 300))),
               fluidRow(   
-                box(width=5,title = "Sampling Distribution Mean",plotOutput("biSamplingM"), height = 300),
-                box(width=5,title = "Sampling Distribution Covariance",plotOutput("biSamplingV", height = 300))
+                box(width=5,title = "Estimator Mean: Sampling Distribution",plotOutput("biSamplingM"), height = 300),
+                box(width=5,title = "Estimator Covariance: Sampling Distribution",plotOutput("biSamplingV", height = 300))
               )
       ), ## tabItem
       tabItem(tabName = "Linear",
@@ -158,7 +159,7 @@ server<-function(input, output,session) {
   
   output$uniPlotP <- renderPlot( {
     
-    xaxis=seq(input$mean-BOUND1,input$mean+BOUND1,by=0.01)
+    xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
     plot(xaxis,dnorm(xaxis,input$mean,input$sdev),
          ylab="density",type="l",lwd=2)
     
@@ -171,7 +172,7 @@ server<-function(input, output,session) {
       
     }
     hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Avg=",round(mean(meanD),2),
-                                                 "Var=",round(var(meanD),2) ))
+                                                 "Var=",round(var(meanD),5) ))
     
     
   })
@@ -182,11 +183,14 @@ server<-function(input, output,session) {
       varD<-c(varD,var(rnorm(input$N,input$mean,input$sdev)))
       
     }
-    hist(varD,xlim=c(0,BOUND1),main=paste("Avg sampling estimation=",round(mean(sqrt(varD)),2)))
+    hist(varD,xlim=c(0,2*BOUND1),main=paste("Avg=",round(mean(sqrt(varD)),2)))
     
     
   })
   
+  output$EVar <- renderUI({
+    withMathJax(sprintf('Estimator mean: variance   $$\\frac{\\sigma^2}{N}= %.04f$$',input$sdev^2/input$N))
+  })
   
   
   
@@ -247,7 +251,7 @@ server<-function(input, output,session) {
     }
     
     plot(allmeanD[,1],allmeanD[,2],xlim=c(-BOUND1/2,BOUND1/2), ylim=c(-BOUND1/2,BOUND1/2))
-    lines(ellipse(cov(allmeanD)))
+    lines(ellipse(cov(allmeanD)),col="red",lwd=2)
     
     
   })
@@ -263,7 +267,7 @@ server<-function(input, output,session) {
     for (r in 1:input$R){
       D=rmvnorm(input$N,sigma=Sigma)
       if (r==1)
-        plot(ellipse(cov(D)),type="l",xlim=c(-BOUND1,BOUND1), ylim=c(-BOUND1,BOUND1))
+        plot(ellipse(cov(D)),type="l",xlim=c(-2*BOUND1,2*BOUND1), ylim=c(-2*BOUND1,2*BOUND1))
       else
         lines(ellipse(cov(D)))
       
