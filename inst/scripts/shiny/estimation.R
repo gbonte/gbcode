@@ -9,7 +9,7 @@ library(plot3D)
 BOUND1<-2
 BOUND2<-2
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: Estimation: Bias-variance analysis"),
+  dashboardHeader(title="Bias-variance analysis"),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",

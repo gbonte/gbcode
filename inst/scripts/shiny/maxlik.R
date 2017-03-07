@@ -9,7 +9,7 @@ library(plot3D)
 BOUND1<-0.8
 BOUND2<-2
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: Maximum likelihood"),
+  dashboardHeader(title="Maximum likelihood"),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
@@ -20,7 +20,7 @@ ui <- dashboardPage(
       sliderInput("mean","Mean:",min = -BOUND1, max = BOUND1 ,
                   value = 0,step=0.05),
       sliderInput("sdev","St Dev:",min = 0.5,max = 1, value = 0.6),
-      sliderInput("par","Estimate:",min = -BOUND1, max = BOUND1 ,
+      sliderInput("par","Estimate of theta (mean):",min = -BOUND1, max = BOUND1 ,
                   value = 0,step=0.01),
       menuItem("Data", tabName = "Data", icon = icon("th")),
       menuItem("Likelihood gaussian", tabName = "Likelihood", icon = icon("th")),
@@ -71,7 +71,7 @@ server<-function(input, output,session) {
     D<<-rnorm(input$N,input$mean,input$sdev)
     xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
     plot(xaxis,dnorm(xaxis,input$mean,input$sdev),
-         ylab="density",type="l",lwd=2)
+         ylab="density",type="l",lwd=2,xlab="z")
     
   })
   
@@ -81,7 +81,7 @@ server<-function(input, output,session) {
     xaxis=seq(-2*BOUND1,2*BOUND1,by=0.01)
     
     
-    plot(xaxis,dnorm(xaxis,input$par,input$sdev),xlim=c(-2*BOUND1,2*BOUND1),type="l",main=paste("Avg=",round(mean(D),2)))
+    plot(xaxis,dnorm(xaxis,input$par,input$sdev),xlim=c(-2*BOUND1,2*BOUND1),type="l",main=paste("Avg=",round(mean(D),2)),lty=2,xlab="z",ylab="density")
     points(D,D*0)
     
   })
@@ -90,7 +90,7 @@ server<-function(input, output,session) {
     D<<-rnorm(input$N,input$mean,input$sdev)
     xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
     plot(xaxis,dnorm(xaxis,input$mean,input$sdev),
-         ylab="density",type="l",lwd=2,xlim=c(-2*BOUND1,2*BOUND1))
+         ylab="density",type="l",xlab="z",lwd=2,xlim=c(-2*BOUND1,2*BOUND1))
     
   })
   
@@ -98,7 +98,7 @@ server<-function(input, output,session) {
     D<<-rnorm(input$N,input$mean,input$sdev)
     xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
     plot(xaxis,dnorm(xaxis,input$mean,input$sdev),
-         ylab="density",type="l",lwd=2,xlim=c(-2*BOUND1,2*BOUND1))
+         ylab="density",xlab="z",type="l",lwd=2,xlim=c(-2*BOUND1,2*BOUND1))
     
   })
   
@@ -107,7 +107,7 @@ server<-function(input, output,session) {
     input$N
     input$mean
     xaxis=seq(-2*BOUND1,2*BOUND1,by=0.01)
-    plot(xaxis,dnorm(xaxis,input$par,input$sdev),xlim=c(-2*BOUND1,2*BOUND1),type="l")
+    plot(xaxis,dnorm(xaxis,input$par,input$sdev),xlim=c(-2*BOUND1,2*BOUND1),type="l",lty=2,xlab="z",ylab="density")
     points(D,D*0)
     
   })
@@ -115,8 +115,8 @@ server<-function(input, output,session) {
   output$BFit <- renderPlot( {
     input$N
     input$mean
-    xaxis=seq(-BOUND1,BOUND1,by=0.01)
-    plot(xaxis,dcauchy(xaxis,location=input$par,scale=0.4),xlim=c(-BOUND1,BOUND1),ylim=c(0,1),type="l")
+    xaxis=seq(-2*BOUND1,2*BOUND1,by=0.01)
+    plot(xaxis,dcauchy(xaxis,location=input$par,scale=0.4),xlim=c(-BOUND1,BOUND1),ylim=c(0,1),type="l",xlab="z",ylab="density",lty=2)
     points(D,D*0)
     
   })
@@ -135,7 +135,7 @@ server<-function(input, output,session) {
         lik[i]<-lik[i]*dnorm(D[j],xaxis[i],input$sdev)
       }
     }
-    plot(xaxis,lik,type="l",lwd=2)
+    plot(xaxis,lik,type="l",lwd=2,xlab="theta")
     
     abline(v=input$par,col="red")
     
@@ -153,7 +153,7 @@ server<-function(input, output,session) {
       }
     }
     likpar=lik[which.min(abs(xaxis-input$par))]
-    plot(xaxis,-log(lik),type="l",main=paste("-Log Lik=",round(-log(likpar),2)),lwd=2)
+    plot(xaxis,-log(lik),type="l",main=paste("-Log Lik=",round(-log(likpar),2)),lwd=2,xlab="theta")
     abline(v=input$par,col="red")
     
   })
@@ -170,7 +170,7 @@ server<-function(input, output,session) {
         lik[i]<-lik[i]*dcauchy(D[j],location=xaxis[i],scale=0.4)
       }
     }
-    plot(xaxis,lik,type="l",lwd=2)
+    plot(xaxis,lik,type="l",lwd=2,xlab="theta")
     
     abline(v=input$par,col="red")
     
@@ -188,7 +188,7 @@ server<-function(input, output,session) {
       }
     }
     likpar=lik[which.min(abs(xaxis-input$par))]
-    plot(xaxis,-log(lik),type="l",main=paste("-Log Lik=",round(-log(likpar),2)),lwd=2)
+    plot(xaxis,-log(lik),type="l",main=paste("-Log Lik=",round(-log(likpar),2)),lwd=2,xlab="theta")
     abline(v=input$par,col="red")
     
   })
