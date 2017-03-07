@@ -43,7 +43,8 @@ ui <- dashboardPage(
                   max = 0.3,
                   value = 0.15,step=0.01),
       
-      menuItem("Univariate", tabName = "Univariate", icon = icon("th")),
+      menuItem("Univariate normal", tabName = "Univariate", icon = icon("th")),
+      menuItem("Univariate uniform", tabName = "UUnivariate", icon = icon("th")),
       menuItem("Bivariate", tabName = "Bivariate", icon = icon("th")),
       menuItem("Linear Regression", tabName = "Linear", icon = icon("th")),
       menuItem("Nonlinear Regression", tabName = "Nonlinear", icon = icon("th"))
@@ -56,13 +57,26 @@ ui <- dashboardPage(
               fluidRow(
                 box(width=4,sliderInput("mean","Mean:",min = -BOUND1, max = BOUND1 ,
                                         value = 0,step=0.05),
-                    sliderInput("sdev","St Dev:",min = 0.25,max = 1.5, value = 0.5),
+                    sliderInput("var","Var:",min = 0.25,max = 1.5, value = 0.5),
                     uiOutput('EVar')),
                 box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotP", height = 300))),
               
               fluidRow(   
                 box(width=5,title = "Estimator Mean: Sampling Distribution ",plotOutput("uniSamplingM", height = 300)),
                 box(width=5,title = "Estimator Variance: Sampling Distribution ",plotOutput("uniSamplingV", height = 300))
+              )
+      ), # tabItem
+      tabItem(tabName = "UUnivariate",
+              fluidRow(
+                box(width=4,sliderInput("bound","Uniform:",min = -BOUND1, max = BOUND1 ,
+                                        value = c(-0.5,0.5),step=0.05),
+                    uiOutput('Uinfo')
+                    ),
+                box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("UuniPlotP", height = 300))),
+              
+              fluidRow(   
+                box(width=5,title = "Estimator Mean: Sampling Distribution ",plotOutput("UuniSamplingM", height = 300)),
+                box(width=5,title = "Estimator Variance: Sampling Distribution ",plotOutput("UuniSamplingV", height = 300))
               )
       ), # tabItem
       tabItem(tabName = "Bivariate",
@@ -160,7 +174,7 @@ server<-function(input, output,session) {
   output$uniPlotP <- renderPlot( {
     
     xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
-    plot(xaxis,dnorm(xaxis,input$mean,input$sdev),
+    plot(xaxis,dnorm(xaxis,input$mean,sqrt(input$var)),
          ylab="density",type="l",lwd=2)
     
   })
@@ -168,7 +182,7 @@ server<-function(input, output,session) {
   output$uniSamplingM <- renderPlot( {
     meanD<-NULL
     for (r in 1:input$R){
-      meanD<-c(meanD,mean(rnorm(input$N,input$mean,input$sdev)))
+      meanD<-c(meanD,mean(rnorm(input$N,input$mean,sqrt(input$var))))
       
     }
     hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Avg=",round(mean(meanD),2),
@@ -180,19 +194,54 @@ server<-function(input, output,session) {
   output$uniSamplingV <- renderPlot( {
     varD<-NULL
     for (r in 1:input$R){
-      varD<-c(varD,var(rnorm(input$N,input$mean,input$sdev)))
+      varD<-c(varD,var(rnorm(input$N,input$mean,sqrt(input$var))))
       
     }
-    hist(varD,xlim=c(0,2*BOUND1),main=paste("Avg=",round(mean(sqrt(varD)),2)))
+    hist(varD,xlim=c(0,2*BOUND1),main=paste("Avg=",round(mean((varD)),3)))
     
     
   })
   
   output$EVar <- renderUI({
-    withMathJax(sprintf('Estimator mean: variance   $$\\frac{\\sigma^2}{N}= %.04f$$',input$sdev^2/input$N))
+    withMathJax(sprintf('Estimator mean: variance   $$\\frac{\\sigma^2}{N}= %.04f$$',input$var/input$N))
   })
   
+  output$UuniPlotP <- renderPlot( {
+    
+    xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
+    plot(xaxis,dunif(xaxis,input$bound[1],input$bound[2]),
+         ylab="density",type="l",lwd=2)
+    
+  })
   
+  output$UuniSamplingM <- renderPlot( {
+    meanD<-NULL
+    for (r in 1:input$R){
+      meanD<-c(meanD,mean(runif(input$N,input$bound[1],input$bound[2])))
+      
+    }
+    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Avg=",round(mean(meanD),2),
+                                                 "Var=",round(var(meanD),5) ))
+    
+    
+  })
+  
+  output$UuniSamplingV <- renderPlot( {
+    varD<-NULL
+    for (r in 1:input$R){
+      varD<-c(varD,var(runif(input$N,input$bound[1],input$bound[2])))
+      
+    }
+    hist(varD,xlim=c(0,2*BOUND1),main=paste("Avg=",round(mean((varD)),3)))
+    
+    
+  })
+  
+  output$Uinfo<- renderUI({
+    withMathJax(sprintf('$$\\mu= %.04f,  \\sigma^2= %.04f$$ \n $$\\frac{\\sigma^2}{N}= %.04f $$',mean(input$bound), (1/12*(input$bound[2]-input$bound[1])^2),
+                        (1/12*(input$bound[2]-input$bound[1])^2)/input$N))
+   
+  })
   
   output$biPlotP <- renderPlot({
     
