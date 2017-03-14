@@ -17,7 +17,7 @@ ui <- dashboardPage(
                   min = 5,
                   max = 200,
                   value = 50,step=2),
-      actionButton("action", label = "Test"),
+      actionButton("action", label = "Generate Dataset"),
       sliderInput("mean","Mean:",min = -BOUND1, max = BOUND1 ,
                   value = 0,step=0.05),
       sliderInput("var","Var:",min = 0.25,max = 1.5, value = 0.5),
@@ -31,9 +31,11 @@ ui <- dashboardPage(
       #
       tabItem(tabName = "Univariate",
               fluidRow(
-                box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotP")))
+                box(width=8,title = "Variance known",collapsible = TRUE,plotOutput("uniPlotP"))),
+              fluidRow(
+                box(width=8,title = "Variance unknown",collapsible = TRUE,plotOutput("uniPlotT")))
       )
-    )
+  )
   )
 ) # ui
 
@@ -81,6 +83,30 @@ server<-function(input, output,session) {
   })
   
   
+  
+  output$uniPlotT <- renderPlot( {
+    input$action
+    sigma<-sqrt(input$var)
+    xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
+    
+    t.alpha<-qt(input$alpha/2, lower=FALSE,df=input$N-1)
+    sigma.hat=sd(D)
+    R<<-R+1
+    if ((input$mean>(mean(D)-t.alpha*sigma.hat/sqrt(input$N)))
+        & (input$mean<(mean(D)+t.alpha*sigma.hat/sqrt(input$N))))
+      cnt<<-cnt+1
+    
+    
+    plot(xaxis,dnorm(xaxis,input$mean,sqrt(input$var)),
+         ylab="density",type="l",lwd=2,xlim=c(-BOUND1,BOUND1))
+    if (cnt>2)
+      title(paste("success rate=",round(cnt/(R),3),"; 1-alpha=", 1-input$alpha))
+    points(D,D*0)
+    abline(v=input$mean,lwd=3,col="black")
+    abline(v=mean(D)-t.alpha*sigma.hat/sqrt(input$N),col="red")
+    abline(v=mean(D)+t.alpha*sigma.hat/sqrt(input$N),col="red")
+    
+  })
   
   
   

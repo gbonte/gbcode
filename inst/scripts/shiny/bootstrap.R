@@ -40,8 +40,8 @@ ui <- dashboardPage(
                 box(width=6,title = "Estimator Variance: Sampling Distribution ",plotOutput("uniSamplingV", height = 300))
               ),
               fluidRow(   
-                box(width=6,title = "Bootstrap Estimator Mean: Sampling Distribution ",plotOutput("BSamplingM", height = 300)),
-                box(width=6,title = "Bootstrap Estimator Variance: Sampling Distribution ",plotOutput("BSamplingV", height = 300))
+                box(width=6,title = " Estimator Mean: Bootstrap Distribution ",plotOutput("BSamplingM", height = 300)),
+                box(width=6,title = " Estimator Variance: Bootstrap Distribution ",plotOutput("BSamplingV", height = 300))
               )
       )
   )
@@ -64,7 +64,7 @@ server<-function(input, output,session) {
     xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
     D<<-rnorm(input$N,input$mean,sqrt(input$var))
     plot(xaxis,dnorm(xaxis,input$mean,sqrt(input$var)),
-         ylab="density",type="l",lwd=2)
+         ylab="density",type="l",lwd=2,xlim=c(-2*BOUND1,2*BOUND1))
     points(D,D*0)
     
   })
@@ -102,6 +102,7 @@ server<-function(input, output,session) {
     input$N
     input$mean
     input$var
+    input$R
     meanD<-NULL
     for (r in 1:input$R){
       Db<-D[sample(1:input$N,input$N,replace =TRUE)]
@@ -120,6 +121,7 @@ server<-function(input, output,session) {
     input$N
     input$mean
     input$var
+    input$R
     varD<-NULL
     for (r in 1:input$R){
       Db<-D[sample(1:input$N,input$N,replace =TRUE)]
