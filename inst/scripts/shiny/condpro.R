@@ -61,19 +61,24 @@ ui <- dashboardPage(
                     sliderInput("x","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05),
                     textOutput("textB")),
                 box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("biPlotP"))),
-              fluidRow(   box(width=8,collapsible = TRUE,title = "Data",plotOutput("biPlotD"))),
-              fluidRow(   box(width=8,collapsible = TRUE,title = "Conditional distribution",plotOutput("biCond")))
+              fluidRow(   box(width=6,collapsible = TRUE,title = "Data",plotOutput("biPlotD")),
+                          box(width=6,collapsible = TRUE,title = "Conditional distribution",plotOutput("biCond")))
       ), ## tabItem
       tabItem(tabName = "Regression",
               fluidRow(box(width=4,collapsible = TRUE,
-                           sliderInput("ord","Functions:", min = -2,max = 3, 
-                                                           value = 1,step=1),
+                           selectInput("ord", label = h3("Functions"), 
+                                       choices = list("Pol 0" = 0, "Pol 1" = 1, "Pol 2" = 2, "Pol 3" = 3, "sin x" = -1, "cos(2x)"=-2,"3/(1+x^2)"=4), 
+                                       selected = 1),
+                           #sliderInput("ord","Functions:", min = -2,max = 3, 
+                            #                               value = 1,step=1),
                            sliderInput("sdw","Cond sdev:", min = 0.5,max = 2.5, 
                                        value = 1,step=0.1),
+                           sliderInput("hetero","Heteroskedasticity:", min = 0,max = 1, 
+                                       value = 0,step=0.1),
                     sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
                 box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("regrPlotP"))),## fluidRow
-              fluidRow(   box(width=8,collapsible = TRUE,title = "Data",plotOutput("regrPlotD"))),
-              fluidRow(   box(width=8,collapsible = TRUE,title = "Conditional distribution",plotOutput("regrCond")))
+              fluidRow(   box(width=6,collapsible = TRUE,title = "Data",plotOutput("regrPlotD")),
+                          box(width=6,collapsible = TRUE,title = "Conditional distribution",plotOutput("regrCond")))
               
       ) ## tabItem
   )
@@ -88,7 +93,8 @@ server<-function(input, output,session) {
  
   
   f<-function(x,ord){
-    f<-numeric(length(x))
+    N<-length(x)
+    f<-numeric(N)
     if (ord==-1)
       f<-sin(x)
     if (ord==-2)
@@ -99,8 +105,10 @@ server<-function(input, output,session) {
       f<-x^2-2
     if (ord==3)
       f<--x^2+1
-     
+    if (ord==4){
+      f<- 3/(1+x^2)
       
+    }
       f
   }
   
@@ -205,7 +213,7 @@ server<-function(input, output,session) {
    
     for (i in 1:length(x)){
       for (j in 1:length(y)){
-        z[i,j]<-dnorm(y[j],mean=muy[i],sd=input$sdw)
+        z[i,j]<-dnorm(y[j],mean=muy[i],sd=input$sdw+input$hetero*abs(x[i]))
       }
     }
     z[is.na(z)] <- 1
@@ -225,6 +233,8 @@ server<-function(input, output,session) {
     X=seq(-BOUND2, BOUND2,length.out=input$N)
     muy=f(X,ord=input$ord)
     Y=muy+rnorm(input$N,sd=input$sdw)
+    for (i in 1:input$N)
+      Y[i]<-Y[i]+rnorm(1,0,sd=input$hetero*abs(X[i]))
     
     D<<-cbind(X,Y)
     
@@ -242,7 +252,7 @@ server<-function(input, output,session) {
    
     muy=f(input$rx,input$ord)
     x=seq(-1.5*BOUND2, 1.5*BOUND2, by= .02)
-    plot(x,dnorm(x,mean=muy,sd=input$sdw),type="l",col="red",lwd=2,ylab="Conditional density")
+    plot(x,dnorm(x,mean=muy,sd=input$sdw+input$hetero*abs(input$rx)),type="l",col="red",lwd=2,ylab="Conditional density")
      
   })
   
