@@ -71,7 +71,7 @@ ui <- dashboardPage(
                                        selected = 1),
                            #sliderInput("ord","Functions:", min = -2,max = 3, 
                             #                               value = 1,step=1),
-                           sliderInput("sdw","Cond sdev:", min = 0.5,max = 2.5, 
+                           sliderInput("sdw","Cond sdev:", min = 0.15,max = 2.5, 
                                        value = 1,step=0.1),
                            sliderInput("hetero","Heteroskedasticity:", min = 0,max = 1, 
                                        value = 0,step=0.1),
@@ -104,7 +104,7 @@ server<-function(input, output,session) {
     if (ord==2)
       f<-x^2-2
     if (ord==3)
-      f<--x^2+1
+      f<- (x/2)^3
     if (ord==4){
       f<- 3/(1+x^2)
       

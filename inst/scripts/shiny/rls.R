@@ -14,9 +14,9 @@ ui <- dashboardPage(
     sidebarMenu(
       sliderInput("N",
                   "Number of samples:",
-                  min = 5,
-                  max = 200,
-                  value = 50,step=2),
+                  min = 50,
+                  max = 2000,
+                  value = 100,step=2),
       sliderInput("sd",
                   "Cond sd:",
                   min = 0.01,
@@ -39,8 +39,8 @@ ui <- dashboardPage(
                            selectInput("ord", label = h3("Functions"), 
                                        choices = list("Pol 0" = 0, "Pol 1" = 1, "Pol 2" = 2, "Pol 3" = 3, "sin x" = -1, "cos(2x)"=-2,"3/(1+x^2)"=-3), 
                                        selected = 2), 
-                           sliderInput("mu","Forgetting factor:", min = 0.6,max = 1, 
-                                       value = 0.8,step=0.01))),## fluidRow
+                           sliderInput("mu","Forgetting factor:", min = 0.9,max = 1, 
+                                       value = 0.8,step=0.001))),## fluidRow
               fluidRow(   box(width=10,collapsible = TRUE,title = "Linear fitting",plotOutput("linearFit", height = 300)))
               
       )
@@ -117,12 +117,13 @@ server<-function(input, output,session) {
       n<-1
     #  Y.hat<-hyp(X,Y,X,1)
       
-     lines(X,muy)
+     lines(X,muy,col="green")
     
      t<-numeric(2)
      P<-500*diag(n+1)
-     mu<-0.9
-     for (i in 1:round(input$N*input$P)){
+     
+     Nr=round(input$N*input$P)
+     for (i in 1:Nr){
        rls.step<-rls(c(1, X[i]),Y[i],t,P,input$mu)
        t<-rls.step[[1]]
        P<-rls.step[[2]]
@@ -130,14 +131,10 @@ server<-function(input, output,session) {
        #     xlim=c(-4,4),
         #    ylim=c(-2,2),
          #   main=paste("Forgetting factor mu<-",mu))
-       
-       
-       
-       
+  
      }
-     lines(X[1:i],cbind(array(1,c(i,1)), X[1:i])%*%t,
-           col="red",lwd=3
-     )
+     lines(X[1:Nr],cbind(array(1,c(Nr,1)), X[1:Nr])%*%t,
+           col="red",lwd=3)
     
   })
   

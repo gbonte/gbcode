@@ -16,7 +16,7 @@ ui <- dashboardPage(
                   "Number of samples:",
                   min = 5,
                   max = 200,
-                  value = 50,step=2),
+                  value = 30,step=2),
       sliderInput("R",
                   "Number of simulation trials:",
                   min = 100,
@@ -71,7 +71,7 @@ ui <- dashboardPage(
                 box(width=4,sliderInput("bound","Uniform:",min = -BOUND1, max = BOUND1 ,
                                         value = c(-0.5,0.5),step=0.05),
                     uiOutput('Uinfo')
-                    ),
+                ),
                 box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("UuniPlotP", height = 300))),
               
               fluidRow(   
@@ -93,13 +93,13 @@ ui <- dashboardPage(
               )
       ), ## tabItem
       tabItem(tabName = "Linear",
-              fluidRow(box(width=4,collapsible = TRUE,
+              fluidRow(box(width=7,collapsible = TRUE,
                            sliderInput("q","Intercept:", min = -0.5,max = 0.5, 
                                        value = 0,step=0.1),
                            sliderInput("m","Slope:", min = -3,max = 3, 
                                        value = 1,step=0.1),height=200), 
-                       box(width=4,sliderInput("sdw","Cond sdev:", min = 0.1,max = 1.5, 
-                                               value = 0.2,step=0.1),
+                       box(width=7,sliderInput("sdw","Cond sdev:", min = 0.2,max = 1, 
+                                               value = 0.3,step=0.05),
                            sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05),height=200)),## fluidRow
               fluidRow(   box(width=8,collapsible = TRUE,title = "Sampling distribution",plotOutput("linearBV"),height=400)),
               fluidRow(  box(width=8,collapsible = TRUE,title = "Sampling distribution estimator conditional mean",
@@ -112,14 +112,18 @@ ui <- dashboardPage(
                                        choices = list("Pol 0" = 0, "Pol 1" = 1, "Pol 2" = 2, "Pol 3" = 3, "sin x" = -1, "cos(2x)"=-2,"3/(1+x^2)"=-3), 
                                        selected = 1),
                            #sliderInput("ord","Function:", min = 0,max = 3,  value = 1,step=1),
-                           sliderInput("h","Order polynomial model:", min = 0,max = 10, 
-                                       value = 1,step=1), height = 300), 
+                           sliderInput("h","Order polynomial model:", min = 0,max = 20, 
+                                       value = 0,step=1), height = 300), 
                        box(width=4,
-                           sliderInput("nsdw","Cond sdev:", min = 0.1,max = 0.5, 
+                           sliderInput("nsdw","Cond sdev:", min = 0.1,max = 1.5, 
                                        value = 0.25,step=0.1),
-                           sliderInput("nrx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05), height = 300)),## fluidRow
+                           sliderInput("nrx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05), height = 300),
+                       actionButton("do", "Reset BV diagrams")),## fluidRow
               fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("nlinearBV", height = 300)),
-                box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("nlinearCond", height = 300)))
+                          box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("nlinearCond", height = 300))),
+              fluidRow(            box(width=4,collapsible = TRUE,title = "Bias^2 vs p",plotOutput("B", height = 300)),
+                                   box(width=4,collapsible = TRUE,title = "Variance vs p",plotOutput("V", height = 300)),
+                                   box(width=4,collapsible = TRUE,title = "MSE vs p",plotOutput("M", height = 300)))
               
       )
     )
@@ -128,6 +132,10 @@ ui <- dashboardPage(
 
 D<-NULL ## Univariate dataset
 E<-NULL ## Bivariate eigenvalue matrix
+O<-NULL
+B<-NULL
+V<-NULL
+M<-NULL
 server<-function(input, output,session) {
   
   set.seed(122)
@@ -139,6 +147,9 @@ server<-function(input, output,session) {
       f<-sin(x)
     if (ord==-2)
       f<-cos(2*x)
+    if (ord==-3)
+      f<-3/(1+x^2)
+    
     if (ord>=1)
       for (o in 1:ord)
         f<-f+x^o
@@ -156,11 +167,11 @@ server<-function(input, output,session) {
       
       return(numeric(N)+mean(Y))
     }
-      for (ord in 1:h){
-        X.tr<-cbind(X.tr,X^ord)
-        X.ts<-cbind(X.ts,Xts^ord)
-      }
-  
+    for (ord in 1:h){
+      X.tr<-cbind(X.tr,X^ord)
+      X.ts<-cbind(X.ts,Xts^ord)
+    }
+    
     p<-h+1
     
     DN<-data.frame(cbind(Y,X.tr))
@@ -242,7 +253,7 @@ server<-function(input, output,session) {
   output$Uinfo<- renderUI({
     withMathJax(sprintf('$$\\mu= %.04f,  \\sigma^2= %.04f$$ \n $$\\frac{\\sigma^2}{N}= %.04f $$',mean(input$bound), (1/12*(input$bound[2]-input$bound[1])^2),
                         (1/12*(input$bound[2]-input$bound[1])^2)/input$N))
-   
+    
   })
   
   output$biPlotP <- renderPlot({
@@ -422,10 +433,10 @@ server<-function(input, output,session) {
       beta.hat.0[r]<-y.hat-beta.hat.1[r]*x.hat
       
       Y.hat[r,]<-beta.hat.0[r]+beta.hat.1[r]*input$rx
-      var.hat.w[r]<-sum((Y-Y.hat[r,])^2)/(input$N-2)
+      var.hat.w[r]<-sum((Y-beta.hat.0[r]-beta.hat.1[r]*X)^2)/(input$N-2)
       
     }
-    par(mfrow=c(1, 3))
+    par(mfrow=c(1, 4))
     hist(Y.hat,main=paste("Avg=",round(mean(Y.hat),2), "Conditional mean=", round(input$q+input$m*input$rx,2)),xlim=c(-BOUND1/2,BOUND1/2))
     abline(v=input$q+input$m*input$rx,col="green",lwd=3)
     
@@ -434,7 +445,10 @@ server<-function(input, output,session) {
     
     hist(beta.hat.1,main=paste("Avg=",round(mean(beta.hat.1),2), "Slope=", round(input$m,2)),xlim=c(-BOUND1/2,BOUND1/2))
     abline(v=input$m,col="green",lwd=3)
-  
+    
+    hist(var.hat.w,main=paste("Avg=",round(mean(var.hat.w),2), "Cond var=", round(input$sdw^2,2)),xlim=c(0,BOUND1/2))
+    abline(v=input$sdw^2,col="green",lwd=3)
+    
   })
   
   output$nlinearPlotP <- renderPlot({
@@ -466,49 +480,115 @@ server<-function(input, output,session) {
     
     
   })
+  last<-0
+  
+  
+  reset <- eventReactive(input$do, {
+    
+  })
+  
+  
   
   output$nlinearBV <- renderPlot( {
-    
-    X=seq(-BOUND2, BOUND2,length.out=input$N)
-    muy=f(X,input$ord)
-    x.hat=mean(X)
-    Y.hat<-array(NA,c(input$R,input$N))
-    E.hat<-array(NA,c(input$R,input$N))
-    
-    beta.hat.1<-numeric(input$R)
-    beta.hat.0<-numeric(input$R)
-    var.hat.w<-numeric(input$R)
-    plot(X,muy,xlim=c(-BOUND2,BOUND2),type="n")
-    for (r in 1:input$R){
-      Xtr=rnorm(input$N)
-      muy.tr=f(Xtr,input$ord)
-      Y=muy.tr+rnorm(input$N,sd=input$nsdw)
-      
-      Y.hat[r,]<-hyp(Xtr,Y,X,input$h)
-      E.hat[r,]=muy-Y.hat[r,]
-      lines(X,Y.hat[r,])
-    }
-    Xtr=seq(-BOUND1,BOUND1,length=input$N)
-    muy.tr=f(Xtr,input$ord)
     set.seed(0)
-    Y=muy.tr+rnorm(input$N,sd=input$nsdw)
-    Remp=mean((Y-hyp(Xtr,Y,Xtr,input$h))^2)
+    if(input$h==0){
+      O<<-NULL
+      B<<-NULL
+      V<<-NULL
+      M<<-NULL
+    }
     
-    meanY.hat=apply(Y.hat,2,mean)
-    bias=muy- meanY.hat
+    Nts=100
+    Xts=seq(-BOUND2, BOUND2,length.out=Nts)
+    Xtr=seq(-BOUND2, BOUND2,length.out=input$N)
+    
+    
+    Y.hat.ts<-array(NA,c(input$R,Nts))
+    Y.hat.tr<-array(NA,c(input$R,input$N))
+    E.hat.tr<-array(NA,c(input$R,input$N))
+    E.hat.ts<-array(NA,c(input$R,Nts))
+    
+    
+    var.hat.w<-numeric(Nts)
+    muy.ts<-f(Xts,input$ord)
+    plot(Xts,muy.ts,xlim=c(-BOUND2,BOUND2),type="n")
+    muy.tr=f(Xtr,input$ord)
+    
+    for (r in 1:input$R){
+      
+      Ytr=muy.tr+rnorm(input$N,sd=input$nsdw)
+      Yts=muy.ts+rnorm(Nts,sd=input$nsdw)
+      
+      Y.hat.ts[r,]<-hyp(Xtr,Ytr,Xts,input$h)
+      Y.hat.tr[r,]<-hyp(Xtr,Ytr,Xtr,input$h)
+      E.hat.tr[r,]=Ytr-Y.hat.tr[r,]
+      E.hat.ts[r,]=Yts-Y.hat.ts[r,]
+      lines(Xts,Y.hat.ts[r,])
+    }
+    
+    meanY.hat.ts=apply(Y.hat.ts,2,mean)
+    bias=muy.ts- meanY.hat.ts
     avg.bias2=mean(bias^2)
-    varY.hat=apply(Y.hat,2,var)
+    varY.hat=apply(Y.hat.ts,2,var)
     avg.var=mean(varY.hat)
-    mseY.hat=apply(E.hat^2,2,mean)
-    avg.mse=mean(mseY.hat)
+    mseY.hat.ts=apply(E.hat.ts^2,2,mean)
+    avg.mse=mean(mseY.hat.ts)
     
-    bvtitle=paste("Bias^2=", round(avg.bias2,2), "Var=", round(avg.var,2), "MSE=", round(avg.mse,2) ,"MSE emp=",round(Remp,3))
+    
+    
+    e=E.hat.tr[1,]
+    sdw.hat=sum(e^2)/(input$N-input$h)
+    Remp=mean(e^2)
+    
+    
+    O<<-c(O,input$h)
+    B<<-c(B,avg.bias2)
+    V<<-c(V,avg.var)
+    M<<-c(M,avg.mse)
+    
+    
+    bvtitle=paste("B2=", round(avg.bias2,2), "V=", round(avg.var,2), "MSE=", round(avg.mse,2) ,
+                  "MSemp=",round(Remp,3),"FPE=",round(Remp+2*input$h/input$N*sdw.hat,3) )
     title(bvtitle)
-    lines(X,muy,lwd=4,col="yellow")
-    lines(X,meanY.hat,lwd=4,col="green")
+    lines(Xts,muy.ts,lwd=4,col="blue")
+    lines(Xts,meanY.hat.ts,lwd=4,col="green")
     abline(v=input$nrx,  col = "red",lwd=1)
     
   })
+  
+  output$B <- renderPlot( {
+    
+    if (length(B)>=2 & input$h>0){
+      sO<-sort(O,index.return=TRUE)
+      
+      plot(sO$x,B[sO$ix],col="blue",type="l",xlab="# parameters", ylab="BIAS^2", lwd=2)
+      
+    }
+    
+  }
+  
+  )
+  
+  output$V <- renderPlot( {
+    
+    if (length(B)>=2 & input$h>0){
+      sO<-sort(O,index.return=TRUE)
+      plot(sO$x,V[sO$ix],col="red",type="l",xlab="# parameters", ylab="VAR", lwd=2)
+    }
+    
+  }
+  )
+  
+  output$M <- renderPlot( {
+    if (length(B)>=2 & input$h>0){
+      sO<-sort(O,index.return=TRUE)
+      plot(sO$x,M[sO$ix],col="magenta",type="l",xlab="# parameters", ylab="MISE", lwd=2)
+    }
+    
+  }
+  )
+  
+  
   
   output$nlinearCond <- renderPlot( {
     Y.hat<-numeric(input$R)  
@@ -526,7 +606,8 @@ server<-function(input, output,session) {
     
     
     Yq=f(input$nrx,input$ord)
-    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,2), "Var=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2))
+    
+    bvtitle=paste("B2=", round((Yq-mean(Y.hat))^2,2), "V=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2))
     hist(Y.hat,xlim=c(min(c(-3*BOUND1,Yq)),max(c(3*BOUND1,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)
