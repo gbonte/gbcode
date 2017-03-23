@@ -14,9 +14,9 @@ ui <- dashboardPage(
     sidebarMenu(
       sliderInput("N",
                   "Number of samples:",
-                  min = 5,
+                  min = 15,
                   max = 200,
-                  value = 30,step=2),
+                  value = 100,step=2),
       sliderInput("R",
                   "Number of simulation trials:",
                   min = 100,
@@ -42,7 +42,7 @@ ui <- dashboardPage(
                        box(width=2,
                            sliderInput("nsdw","Cond sdev:", min = 0.1,max = 1.5, 
                                        value = 0.25,step=0.1),
-                           sliderInput("K","# folds:", min = 2, max = 10, value = 3,step=1), height = 300),
+                           sliderInput("K","# folds:", min = 2, max = 10, value = 10,step=1), height = 300),
                        box(width=8,collapsible = TRUE,title = "Sampling distribution",plotOutput("nlinearBV", height = 300))
                        ),## fluidRow
               fluidRow(    box(width=3,collapsible = TRUE,title = "Bias^2 vs p",plotOutput("B", height = 300)),
@@ -62,6 +62,11 @@ B<-NULL
 V<-NULL
 M<-NULL
 MCV<-NULL
+avg.var<-NULL
+avg.cv<-NULL
+avg.mse<-NULL
+avg.bias2<-NULL
+Remp<-NULL
 server<-function(input, output,session) {
   
   set.seed(122)
@@ -130,8 +135,8 @@ server<-function(input, output,session) {
   }
 
   
-  
-  output$nlinearBV <- renderPlot( {
+  computeBV<-function(){
+    
     set.seed(0)
     input$K
     if(input$h==0){
@@ -143,18 +148,18 @@ server<-function(input, output,session) {
     }
     
     Nts=100
-    Xts=seq(-BOUND2, BOUND2,length.out=Nts)
+    Xts<<-seq(-BOUND2, BOUND2,length.out=Nts)
     Xtr=seq(-BOUND2, BOUND2,length.out=input$N)
     
     
-    Y.hat.ts<-array(NA,c(input$R,Nts))
+    Y.hat.ts<<-array(NA,c(input$R,Nts))
     Y.hat.tr<-array(NA,c(input$R,input$N))
     E.hat.tr<-array(NA,c(input$R,input$N))
     E.hat.ts<-array(NA,c(input$R,Nts))
     CV<-numeric(input$R)
     
     var.hat.w<-numeric(Nts)
-    muy.ts<-f(Xts,input$ord)
+    muy.ts<<-f(Xts,input$ord)
     plot(Xts,muy.ts,xlim=c(-BOUND2,BOUND2),type="n")
     muy.tr=f(Xtr,input$ord)
     
@@ -163,27 +168,27 @@ server<-function(input, output,session) {
       Ytr=muy.tr+rnorm(input$N,sd=input$nsdw)
       Yts=muy.ts+rnorm(Nts,sd=input$nsdw)
       
-      Y.hat.ts[r,]<-hyp(Xtr,Ytr,Xts,input$h)
+      Y.hat.ts[r,]<<-hyp(Xtr,Ytr,Xts,input$h)
       Y.hat.tr[r,]<-hyp(Xtr,Ytr,Xtr,input$h)
       E.hat.tr[r,]=Ytr-Y.hat.tr[r,]
       E.hat.ts[r,]=Yts-Y.hat.ts[r,]
       CV[r]<-cv(Xtr,Ytr,input$h,input$K)
-      lines(Xts,Y.hat.ts[r,])
+      
     }
     
-    meanY.hat.ts=apply(Y.hat.ts,2,mean)
+    meanY.hat.ts<<-apply(Y.hat.ts,2,mean)
     bias=muy.ts- meanY.hat.ts
-    avg.bias2=mean(bias^2)
+    avg.bias2<<-mean(bias^2)
     varY.hat=apply(Y.hat.ts,2,var)
-    avg.var=mean(varY.hat)
+    avg.var<<-mean(varY.hat)
     mseY.hat.ts=apply(E.hat.ts^2,2,mean)
-    avg.mse=mean(mseY.hat.ts)
-    avg.cv=mean(CV)
+    avg.mse<<-mean(mseY.hat.ts)
+    avg.cv<<-mean(CV)
     
     
     e=E.hat.tr[1,]
     sdw.hat=sum(e^2)/(input$N-input$h)
-    Remp=mean(e^2)
+    Remp<<-mean(e^2)
     
     
     O<<-c(O,input$h)
@@ -192,18 +197,28 @@ server<-function(input, output,session) {
     M<<-c(M,avg.mse)
     MCV<<-c(MCV,avg.cv)
     
+  }
+  
+  cr<-reactive({computeBV()})
+  output$nlinearBV <- renderPlot( {
+    
+    
+    cr()
     
     bvtitle=paste("B2=", round(avg.bias2,2), "V=", round(avg.var,2), "MSE=", round(avg.mse,3) ,
                   "MSemp=",round(Remp,3),"MCV=",round(avg.cv,3) )
-    title(bvtitle)
-    lines(Xts,muy.ts,lwd=4,col="blue")
+   
+    plot(Xts,muy.ts,lwd=4,col="blue",type="l")
+    for (r in 1:input$R)
+      lines(Xts,Y.hat.ts[r,])
     lines(Xts,meanY.hat.ts,lwd=4,col="green")
-    abline(v=input$nrx,  col = "red",lwd=1)
+    title(bvtitle)
     
   })
   
   output$B <- renderPlot( {
     
+    cr()
     if (length(B)>=2 & input$h>0){
       sO<-sort(O,index.return=TRUE)
       
@@ -216,7 +231,8 @@ server<-function(input, output,session) {
   )
   
   output$V <- renderPlot( {
-    
+   
+    cr()
     if (length(B)>=2 & input$h>0){
       sO<-sort(O,index.return=TRUE)
       plot(sO$x,V[sO$ix],col="red",type="l",xlab="# parameters", ylab="VAR", lwd=2)
@@ -226,6 +242,8 @@ server<-function(input, output,session) {
   )
   
   output$M <- renderPlot( {
+    
+    cr()
     if (length(B)>=2 & input$h>0){
       sO<-sort(O,index.return=TRUE)
       plot(sO$x,M[sO$ix],col="magenta",type="l",xlab="# parameters", ylab="MISE", lwd=2,main=paste("arg min=",O[which.min(M)]))
@@ -236,6 +254,8 @@ server<-function(input, output,session) {
   
   
   output$MCV <- renderPlot( {
+    
+    cr()
     if (length(B)>=2 & input$h>0){
       sO<-sort(O,index.return=TRUE)
       plot(sO$x,MCV[sO$ix],col="cyan",type="l",xlab="# parameters", ylab="MISE", lwd=2,main=paste("arg min=",O[which.min(MCV)]))
