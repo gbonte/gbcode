@@ -212,6 +212,7 @@ server<-function(input, output,session) {
     for (r in 1:input$R)
       lines(Xts,Y.hat.ts[r,])
     lines(Xts,meanY.hat.ts,lwd=4,col="green")
+    lines(Xts,muy.ts,lwd=4,col="blue")
     title(bvtitle)
     
   })
