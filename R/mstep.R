@@ -5,12 +5,12 @@ nlcor<-function(x,y){
   require(lazy)
   N<-length(x)
   I<-sample(1:N,round(N/3))
-
+  
   data<-data.frame(x[I],y[I])
-
+  
   y.lazy <- lazy(y ~ x,data,control=lazy.control(linIdPar=c(round(N/2),N)))
   yh<-predict(y.lazy, newdata=x[-I])$h
-
+  
   cor(y[-I], yh)
 }
 
@@ -57,16 +57,16 @@ nlcor<-function(x,y){
 #' lines(t[(N-H+1):N],Y.cont)
 
 KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TRUE){
-
+  
   if (k<=0)
     stop("k must be positive")
-
-
+  
+  
   if (is.vector(X))
     X<-array(X,c(length(X),1))
   N<-NROW(X)
   n<-NCOL(X)
-
+  
   if (is.vector(X.ts) & n>1){
     N.ts<-1
     X.ts<-array(X.ts,c(1,n))
@@ -76,17 +76,17 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
     else
       N.ts<-nrow(X.ts)
   }
-
-
+  
+  
   if ( k >=NROW(X)){
     return (array(mean(Y),c(N.ts,1)))
   }
-
+  
   m<-NCOL(Y)
   if (n==1)
     X<-array(X,c(N,1))
   out.hat<-array(NA,c(N.ts,m))
-
+  
   if (is.null(Di)){
     if (dist=="euclidean")
       Ds<-dist2(X,X.ts)
@@ -94,20 +94,20 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
       Ds<-dist.cos(X,X.ts)
   } else
     Ds<-Di
-
+  
   w.na<-which(apply(Y,1,ana))
   if (length(w.na)>0)
     Ds[w.na,]<-Inf
-
+  
   if (F <1)
     Ds<-array(Ds*exp(-(F*(1:N))),c(N,N.ts)) ## forgetting factor
-
-
+  
+  
   for (i in 1:N.ts){
     index<-sort(Ds[,i],index.return=TRUE)
     err<-numeric(C*k)+Inf
     oo<-NULL
-
+    
     for (kk in k:(C*k)){
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
       ## tricube kernel
@@ -120,7 +120,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
         L<-L[which(is.finite(L))]
         err[kk]<-mean(L)
         oo<-rbind(oo,apply(wd*Y[index$ix[1:kk],],2,sum,na.rm=T))
-
+        
       } else {
         err[kk]<-constloo(Y[index$ix[1:kk],1],wd)
         oo<-rbind(oo,mean(Y[index$ix[1:kk],1],na.rm=T))
@@ -128,9 +128,9 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
       if (is.na(err[kk]))
         stop("KNN.multioutput error")
     }
-
-
-
+    
+    
+    
     if (wta) {
       out.hat[i,]<-oo[which.min(err)-k+1,]
     }else {
@@ -138,11 +138,11 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
       ## weights inversely proportional to loo errors
       out.hat[i,]<-apply(oo*w,2,sum,na.rm=T)
     }
-
-
+    
+    
   }
-
-
+  
+  
   out.hat
 }
 
@@ -187,12 +187,12 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
 KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0){
   if (k<=0)
     stop("k must be positive")
-
+  
   if (is.vector(X))
     X<-array(X,c(length(X),1))
   N<-NROW(X)
   n<-NCOL(X)
-
+  
   if (is.vector(X.ts) & n>1){
     N.ts<-1
     X.tsts<-array(X.ts,c(1,n))
@@ -202,24 +202,24 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0){
     else
       N.ts<-nrow(X.ts)
   }
-
+  
   if ( k >=NROW(X)){
     return (array(mean(Y),c(N.ts,1)))
   }
-
+  
   m<-NCOL(Y)
   if (n==1)
     X<-array(X,c(N,1))
   out.hat<-array(NA,c(N.ts,m))
-
-
+  
+  
   Ds<-dist2(X,X.ts)
-
+  
   Ds[which(apply(Y,1,ana))]<-Inf
   Ds<-array(Ds*exp(-(F*(1:N))),c(N,N.ts))
-
+  
   for (i in 1:N.ts){
-
+    
     index<-sort(Ds[,i],index.return=TRUE)
     err<-numeric(C*k)+Inf
     err2<-numeric(C*k)+Inf
@@ -233,39 +233,39 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0){
       wd<-wd/sum(wd)
       if (any(is.na(wd)))
         wd<-1/length(wd)+numeric(length(wd))
-
+      
       if (m>1){
         LP<-apply(Y[index$ix[1:kk],],2,mean,na.rm=T)
         oo<-rbind(oo,LP)
-
+        
         ets<-MakeEmbedded(array(c(LP),c(length(LP),1)),n=ord.emb,0)
         L<-apply(Y[index$ix[1:kk],],2,constloo,wd)
         L<-L[which(is.finite(L))]
-
+        
         err[kk]<-0
         for (jj in 1:ord.emb) {
-
+          
           err[kk]<-err[kk]+mean((ets$out-
                                    lazy.pred(X=ETS$inp[,1:jj],Y=ETS$out,
                                              X.ts=ets$inp[,1:jj],linPar=c(5,10),class=FALSE))^2)
         }
-
+        
         err2[kk]<-mean(L)
-
+        
       } else {
         stop("Only for multi step ahead prediction")
       }
       if (is.na(err[kk]))
         browser()
     }
-
+    
     w2<-(1/err2[k:(C*k)])/sum(1/err2[k:(C*k)])
-
+    
     out.hat[i,]<-oo[which.min(err)-k+1,]
-
+    
   }
-
-
+  
+  
   out.hat
 }
 
@@ -310,16 +310,16 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0){
 #' plot(t[(N-H+1):N],TS.ts)
 #' lines(t[(N-H+1):N],Y.cont)
 KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0){
-
+  
   if (k<=0)
     stop("k must be positive")
-
-
+  
+  
   if (is.vector(X))
     X<-array(X,c(length(X),1))
   N<-NROW(X)
   n<-NCOL(X)
-
+  
   if (is.vector(X.ts) & n>1){
     N.ts<-1
     X.ts<-array(X.ts,c(1,n))
@@ -329,30 +329,30 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0)
     else
       N.ts<-nrow(X.ts)
   }
-
-
+  
+  
   if ( k >=NROW(X)){
-
+    
     return (array(mean(Y),c(N.ts,1)))
   }
-
+  
   m<-NCOL(Y)
   if (n==1)
     X<-array(X,c(N,1))
   out.hat<-array(NA,c(N.ts,m))
-
-
+  
+  
   Ds<-dist2(X,X.ts)
-
+  
   Ds[which(apply(Y,1,ana))]<-Inf
   Ds<-array(Ds*exp(-(F*(1:N))),c(N,1))
-
+  
   for (i in 1:N.ts){
     index<-sort(Ds[,i],index.return=TRUE)
     err<-numeric(C*k)+Inf
     err2<-numeric(C*k)+Inf
     oo<-NULL
-
+    
     for (kk in k:(C*k)){
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
       ##d<-numeric(length(d))
@@ -361,16 +361,16 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0)
       wd<-wd/sum(wd)
       if (any(is.na(wd)))
         wd<-1/length(wd)+numeric(length(wd))
-
+      
       if (m>1){
-
+        
         LP<-apply(Y[index$ix[1:kk],],2,mean,na.rm=T)
         oo<-rbind(oo,LP)
         A<-acf(c(TS,LP),lag.max=length(Acf)-1,plot=FALSE)$acf
         PA<-pacf(c(TS,LP),lag.max=length(Pacf),plot=FALSE)$acf
-
+        
         err[kk]<- 1-abs(cor(c(PA),c(Pacf)))+1-abs(cor(c(A),c(Acf)))
-
+        
       } else {
         O<-mean(Y[index$ix[1:kk],1],na.rm=T)
         A<-acf(c(O),lag.max=length(Acf)-1,plot=FALSE)$acf
@@ -379,14 +379,14 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0)
         wwP<-exp(-0.5*(1:length(PA)))
         wwA<-exp(-0.5*(1:length(A)))
         err[kk]<-mean((wwP*(c(PA)-c(Pacf)))^2)+mean(wwA*((c(A)-c(Acf)))^2)
-
+        
         oo<-rbind(oo,0)
       }
       if (is.na(err[kk]))
         stop("Error")
     }
     out.hat[i,]<-oo[which.min(err)-k+1,]
-
+    
   }
   out.hat
 }
@@ -452,16 +452,16 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0)
 #' lines(t[(N-H+1):N],Y.cont)
 #'
 KNN.pls<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,del=0){
-
+  
   if (k<=0)
     stop("k must be positive")
-
-
+  
+  
   if (is.vector(X))
     X<-array(X,c(length(X),1))
   N<-NROW(X)
   n<-NCOL(X)
-
+  
   if (is.vector(X.ts) & n>1){
     N.ts<-1
     X.ts<-array(X.ts,c(1,n))
@@ -471,60 +471,112 @@ KNN.pls<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,del=0){
     else
       N.ts<-nrow(X.ts)
   }
-
-
+  
+  
   if ( k >=NROW(X)){
-
+    
     return (array(mean(Y),c(N.ts,1)))
   }
-
+  
   m<-NCOL(Y)
   if (n==1)
     X<-array(X,c(N,1))
   out.hat<-array(NA,c(N.ts,m))
-
+  
   init<-1
   Ds<-dist2(X[,init:n],X.ts[,init:n])
-
+  
   Ds[which(apply(Y,1,ana))]<-Inf
   Ds<-array(Ds*exp(-(F*(1:N))),c(N,1))
-
+  
   for (i in 1:N.ts){
-
+    
     index<-sort(Ds[,i],index.return=TRUE)
     err<-numeric(C*k)+Inf
     err2<-numeric(C*k)+Inf
     oo<-NULL
-
+    
     for (kk in k:(C*k)){
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
-     XX<-data.frame(X[index$ix[1:kk],])
+      XX<-data.frame(X[index$ix[1:kk],])
       names(XX)<-as.character(1:NCOL(XX))
-      XXTs<-data.frame(X.ts)
+      XXTs<-data.frame(array(X.ts[i,],c(1,n)))
       names(XXTs)<-as.character(1:NCOL(XX))
       YY<-Y[index$ix[1:kk],]
-
+      
       MV<-plsr(YY~.,data=XX,validation="LOO")
       LP<-predict(MV,newdata=XXTs)
-
+      
       nc<-which.min(apply(MV$validation$PRESS,2,mean,na.rm=T))
-
+      
       LP<-c(LP[,,nc])
-
+      
       oo<-rbind(oo,LP)
       err[kk]<-  mean(MV$validation$PRESS[,nc],na.rm=T)
-
+      
       if (is.na(err[kk]))
         stop("Error")
     }
-
+    
     w2<-(1/err[k:(C*k)])/sum(1/err[k:(C*k)])
-
+    
     out.hat[i,]<-apply(oo*w2,2,sum,na.rm=T)
-
+    
   }
- out.hat
+  out.hat
 }
+
+
+#' lin.pls
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#'
+#' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
+#' @description Multioutput KNN
+#' @details Multioutput PLS for multi-step-ahed prediction. It performs a  partial least-squares 
+#' @title lin.pls
+#' @name lin.pls
+lin.pls<- function(X,Y,X.ts){
+  
+  if (is.vector(X))
+    X<-array(X,c(length(X),1))
+  N<-NROW(X)
+  n<-NCOL(X)
+  
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-array(X.ts,c(1,n))
+  }  else {
+    if (n==1)
+      N.ts<-length(X.ts)
+    else
+      N.ts<-nrow(X.ts)
+  }
+  
+  
+  m<-NCOL(Y)
+  if (n==1)
+    X<-array(X,c(N,1))
+  out.hat<-array(NA,c(N.ts,m))
+  
+  
+  
+  XX<-data.frame(X)
+  names(XX)<-as.character(1:NCOL(XX))
+  XXTs<-data.frame(X.ts)
+  names(XXTs)<-as.character(1:NCOL(XX))
+  YY<-Y
+  
+  MV<-plsr(Y~.,data=XX,validation="CV")
+  LP<-predict(MV,newdata=XXTs)
+  nc<-which.min(apply(MV$validation$PRESS,2,mean,na.rm=T))
+  
+  out.hat<-c(LP[,,nc])
+  
+  
+  
+  
+}
+
 
 
 #' multiplestepAhead
@@ -542,6 +594,7 @@ KNN.pls<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,del=0){
 #' @param  dist: type of distance: \code{euclidean, cosine}
 #' @param  F: forgetting factor
 #' @param  C: integer parameter which sets the maximum number of neighbours (Ck)
+#' @param  smooth: if TRUE, the preidction is obtained by averaging multiple windows with different starting points
 #' @param  method:
 #' \itemize{
 #' \item{arima}: prediction based on the \pkg{forecast} package
@@ -590,17 +643,17 @@ KNN.pls<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,del=0){
 #' lines(t[(N-H+1):N],Y.mimo.comb,col="green")
 #'
 #'
-multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0){
+multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
   TS<-array(TS,c(length(TS),1))
-
+  
   M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
   X<-M$inp
   Y<-M$out
   NX=NROW(X)
   select.var=1:NCOL(X)
   q<-TS[seq(N-D,N-n+1-D,by=-1),1]
-
+  
   switch(method,
          arima={
            fit <- arima(TS,c(n,D,1))
@@ -618,15 +671,16 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0){
          },
          mimo.comb={
            pdirect2<-NULL
-
-           for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
-             p2<-numeric(H)+NA
-             q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-             KK<-KNN.multioutput(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF)
-             p2[1:h]<-KK[(H-h+1):H]
-             pdirect2<-rbind(pdirect2,p2)
-           }
-
+           
+           if (smooth) ## start before the end of the series with an horizon H
+             for (h  in round(H/2):(H)){ 
+               p2<-numeric(H)+NA
+               q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               KK<-KNN.multioutput(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF)
+               p2[1:h]<-KK[(H-h+1):H]
+               pdirect2<-rbind(pdirect2,p2)
+             }
+           
            for (h  in round(H/2):(H)){ ## start at the end of the series with different horizons h=[H/2,...H]
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
@@ -634,26 +688,25 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0){
              p2[1:h]<-KK
              pdirect2<-rbind(pdirect2,p2)
            }
-
+           
            ## combination of different predictions
            p<-apply(pdirect2,2,mean,na.rm=T)
          },
          mimo.acf={
            pdirect3<-NULL
            TS.acf<-TS[,1]
-
-           for (h  in round(H/2):(H)){
-             p2<-numeric(H)+NA
-             q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-             KK<-KNN.acf(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
-                         TS=TS.acf,D)
-             p2[1:h]<-KK[(H-h+1):H]
-             pdirect3<-rbind(pdirect3,p2)
-
-
-           }
-
-
+           
+           if (smooth)
+             for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
+               p2<-numeric(H)+NA
+               q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               KK<-KNN.acf(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
+                           TS=TS.acf,D)
+               p2[1:h]<-KK[(H-h+1):H]
+               pdirect3<-rbind(pdirect3,p2)
+             }
+           
+           
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
@@ -661,32 +714,28 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0){
                          TS=TS.acf,D)
              p2[1:h]<-KK
              pdirect3<-rbind(pdirect3,p2)
-
-
            }
            p<-apply(pdirect3,2,mean,na.rm=T)
-
+           
          },
          mimo.acf.lin={
            ACF.lag<-5
            pdirect4<-NULL
            TS.acf<-TS ##i-1=N
-
+           
+           if (smooth)
+             for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
+               p2<-numeric(H)+NA
+               q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               KK<-KNN.acf.lin(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
+                               Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
+                               Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
+               p2[1:h]<-KK[(H-h+1):H]
+               pdirect4<-rbind(pdirect4,p2)
+             }
+           
+           
            for (h  in round(H/2):(H)){
-             p2<-numeric(H)+NA
-             q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-             KK<-KNN.acf.lin(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
-                             Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
-                             Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
-             p2[1:h]<-KK[(H-h+1):H]
-             pdirect4<-rbind(pdirect4,p2)
-
-
-           }
-
-
-           for (h  in round(H/2):(H)){
-
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
              KK<-KNN.acf.lin(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
@@ -694,22 +743,21 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0){
                              Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
              p2[1:h]<-KK
              pdirect4<-rbind(pdirect4,p2)
-
-
+             
            }
            p<-apply(pdirect4,2,mean,na.rm=T)
          },
          mimo.pls={
            pdirect4<-NULL
-           TS.acf<-TS[1:(i-1),1]
-
-           for (h  in round(H/2):(H)){
-             p2<-numeric(H)+NA
-             q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-             KK<-KNN.pls(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,D)
-             p2[1:h]<-KK[(H-h+1):H]
-             pdirect4<-rbind(pdirect4,p2)
-           }
+           
+           if (smooth)
+             for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
+               p2<-numeric(H)+NA
+               q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               KK<-KNN.pls(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,D)
+               p2[1:h]<-KK[(H-h+1):H]
+               pdirect4<-rbind(pdirect4,p2)
+             }
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
@@ -719,6 +767,27 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0){
            }
            p<-apply(pdirect4,2,mean,na.rm=T)
          },
+         mimo.lin.pls={
+           pdirect4<-NULL
+           if (smooth)
+             for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
+               p2<-numeric(H)+NA
+               q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               KK<-lin.pls(X[,select.var],Y,q2[select.var])
+               p2[1:h]<-KK[(H-h+1):H]
+               pdirect4<-rbind(pdirect4,p2)
+             }
+           
+           for (h  in round(H-2):(H)){
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             KK<-lin.pls(X[,select.var],Y[,1:h],q2[select.var])
+             p2[1:h]<-KK
+             pdirect4<-rbind(pdirect4,p2)
+           }
+           p<-apply(pdirect4,2,mean,na.rm=T)
+         },
+         
          iter={
            piter<-numeric(H)
            for (h  in 1:H){
@@ -729,5 +798,5 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0){
          }
   )
   p
-
+  
 }
