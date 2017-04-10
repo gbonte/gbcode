@@ -94,8 +94,11 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
       Ds<-dist.cos(X,X.ts)
   } else
     Ds<-Di
-  
-  w.na<-which(apply(Y,1,ana))
+  if (m>1){
+    w.na<-which(apply(Y,1,ana))
+  }else{
+    w.na<-which(is.na(Y))
+  }
   if (length(w.na)>0)
     Ds[w.na,]<-Inf
   
@@ -596,12 +599,15 @@ lin.pls<- function(X,Y,X.ts){
 #' \itemize{
 #' \item{arima}: prediction based on the \pkg{forecast} package
 #' \item{direct}: direct prediction based on \link{KNN.multioutput} function
-#' #' \item{iter}: recursive prediction based on \link{KNN.multioutput} function
+#' \item{iter}: recursive prediction based on \link{KNN.multioutput} function
+#' \item{lazydirect}: direct prediction based on \link{lazy.pred} function
+#' \item{lazyiter}: recursive prediction based on \link{lazy.pred} function
 #' \item{mimo}: MIMO prediction based on \link{KNN.multioutput} function
 #' \item{mimo.comb}: MIMO prediction based on \link{KNN.multioutput} function which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo.acf}: MIMO prediction based on \link{KNN.acf} function which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo.acf.lin}: MIMO prediction based on \link{KNN.acf.lin} function which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo.pls}: MIMO prediction based on \link{KNN.pls} function which combines a set of predictors based on different horizons and different starting points
+#' \item{mimo.lin.pls}: MIMO prediction based on Partial Least Squares which combines a set of predictors based on different horizons and different starting points
 #' }
 #' @return H step ahead predictions
 #' @export
