@@ -531,7 +531,7 @@ KNN.pls<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,del=0){
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #'
 #' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
-#' @description Multioutput KNN
+#' @description Multioutput lin PLS
 #' @details Multioutput PLS for multi-step-ahed prediction. It performs a  partial least-squares 
 #' @title lin.pls
 #' @name lin.pls
@@ -559,19 +559,16 @@ lin.pls<- function(X,Y,X.ts){
   out.hat<-array(NA,c(N.ts,m))
   
   
-  
   XX<-data.frame(X)
   names(XX)<-as.character(1:NCOL(XX))
   XXTs<-data.frame(X.ts)
   names(XXTs)<-as.character(1:NCOL(XX))
-  YY<-Y
   
   MV<-plsr(Y~.,data=XX,validation="CV")
   LP<-predict(MV,newdata=XXTs)
   nc<-which.min(apply(MV$validation$PRESS,2,mean,na.rm=T))
   
   out.hat<-c(LP[,,nc])
-  
   
   
   
@@ -653,7 +650,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
   NX=NROW(X)
   select.var=1:NCOL(X)
   q<-TS[seq(N-D,N-n+1-D,by=-1),1]
-  
+  ## TS=[TS(1), TS(2),....., TS(N)]
+  ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
   switch(method,
          arima={
            fit <- arima(TS,c(n,D,1))
@@ -672,10 +670,13 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
          mimo.comb={
            pdirect2<-NULL
            
-           if (smooth) ## start before the end of the series with an horizon H
+           if (smooth & H >=2) ## start before the end of the series with an horizon H
              for (h  in round(H/2):(H)){ 
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               ## TS=[TS(1), TS(2),....., TS(N)]
+               ##  D=0:  q2=[TS(N-H+h), TS(N-1-H+h),...,TS(N-n+1-H+h)]
+               ##        pred=  [TS(N-H+h+1),...TS(N+h+1)]
                KK<-KNN.multioutput(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF)
                p2[1:h]<-KK[(H-h+1):H]
                pdirect2<-rbind(pdirect2,p2)
@@ -696,7 +697,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            pdirect3<-NULL
            TS.acf<-TS[,1]
            
-           if (smooth)
+           if (smooth & H >=2)
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
@@ -715,6 +716,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              p2[1:h]<-KK
              pdirect3<-rbind(pdirect3,p2)
            }
+           ## combination of different predictions
            p<-apply(pdirect3,2,mean,na.rm=T)
            
          },
@@ -723,7 +725,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            pdirect4<-NULL
            TS.acf<-TS ##i-1=N
            
-           if (smooth)
+           if (smooth & H >=2)
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
@@ -745,47 +747,50 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              pdirect4<-rbind(pdirect4,p2)
              
            }
+           ## combination of different predictions
            p<-apply(pdirect4,2,mean,na.rm=T)
          },
          mimo.pls={
-           pdirect4<-NULL
+           pdirect5<-NULL
            
-           if (smooth)
+           if (smooth & H >=2)
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
                KK<-KNN.pls(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,D)
                p2[1:h]<-KK[(H-h+1):H]
-               pdirect4<-rbind(pdirect4,p2)
+               pdirect5<-rbind(pdirect5,p2)
              }
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
              KK<-KNN.pls(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,D)
              p2[1:h]<-KK
-             pdirect4<-rbind(pdirect4,p2)
+             pdirect5<-rbind(pdirect5,p2)
            }
-           p<-apply(pdirect4,2,mean,na.rm=T)
+           ## combination of different predictions
+           p<-apply(pdirect5,2,mean,na.rm=T)
          },
          mimo.lin.pls={
-           pdirect4<-NULL
-           if (smooth)
+           pdirect6<-NULL
+           if (smooth & H >=2)
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
                KK<-lin.pls(X[,select.var],Y,q2[select.var])
                p2[1:h]<-KK[(H-h+1):H]
-               pdirect4<-rbind(pdirect4,p2)
+               pdirect6<-rbind(pdirect6,p2)
              }
            
-           for (h  in round(H-2):(H)){
+           for (h  in max(1,round(H-2)):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
              KK<-lin.pls(X[,select.var],Y[,1:h],q2[select.var])
              p2[1:h]<-KK
-             pdirect4<-rbind(pdirect4,p2)
+             pdirect6<-rbind(pdirect6,p2)
            }
-           p<-apply(pdirect4,2,mean,na.rm=T)
+           ## combination of different predictions
+           p<-apply(pdirect6,2,mean,na.rm=T)
          },
          
          iter={
