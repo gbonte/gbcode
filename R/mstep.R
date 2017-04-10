@@ -590,7 +590,7 @@ lin.pls<- function(X,Y,X.ts){
 #' @param  Kmin: min number of neighbours
 #' @param  dist: type of distance: \code{euclidean, cosine}
 #' @param  F: forgetting factor
-#' @param  C: integer parameter which sets the maximum number of neighbours (Ck)
+#' @param  C: integer parameter which sets the maximum number of neighbours (C*k)
 #' @param  smooth: if TRUE, the preidction is obtained by averaging multiple windows with different starting points
 #' @param  method:
 #' \itemize{
@@ -649,6 +649,15 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
   Y<-M$out
   NX=NROW(X)
   select.var=1:NCOL(X)
+  if (length(select.var)>10){
+    rfs=numeric(NCOL(X))
+    for (j in 1:NCOL(Y)){
+      fs=mrmr(X,Y[,j])
+      rfs[fs]=rfs[fs]+1
+    }
+    select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:5]
+    
+  }
   q<-TS[seq(N-D,N-n+1-D,by=-1),1]
   ## TS=[TS(1), TS(2),....., TS(N)]
   ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
@@ -662,6 +671,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            for (h  in 1:H){
              I<-1:(NROW(X))
              p[h]<-KNN.multioutput(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],k=Kmin,C=C,F=FF)
+           }
+         },
+         lazydirect={
+           p<-numeric(H)
+           for (h  in 1:H){
+             p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],conPar=c(Kmin,C*Kmin),linPar=c(Kmin,C*Kmin)*length(select.var))
            }
          },
          mimo={
@@ -797,6 +812,14 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            piter<-numeric(H)
            for (h  in 1:H){
              piter[h]<-KNN.multioutput(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],k=Kmin,C=C,F=FF)
+             q<-c(piter[h],q[1:(length(q)-1)])
+           }
+           p<-piter
+         },
+         lazyiter={
+           piter<-numeric(H)
+           for (h  in 1:H){
+             piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],conPar=c(Kmin,C*Kmin),linPar=length(select.var)*c(Kmin,C*Kmin))
              q<-c(piter[h],q[1:(length(q)-1)])
            }
            p<-piter
