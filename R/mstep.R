@@ -82,6 +82,10 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
     return (array(mean(Y),c(N.ts,1)))
   }
   
+  if (is.vector(Y) ){
+    Y<-array(Y,c(length(Y),1))
+  }
+  
   m<-NCOL(Y)
   if (n==1)
     X<-array(X,c(N,1))
