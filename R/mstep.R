@@ -689,6 +689,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],conPar=c(Kmin,C*Kmin),linPar=c(Kmin,C*Kmin)*length(select.var))
            }
          },
+         lindirect={
+           p<-numeric(H)
+           for (h  in 1:H){
+             p[h]<-lin.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],class=FALSE)
+           }
+         },
          mimo={
            p<-KNN.multioutput(X[,select.var],Y,q[select.var],k=Kmin,C=C,F=FF)
          },
@@ -830,6 +836,14 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            piter<-numeric(H)
            for (h  in 1:H){
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],conPar=c(Kmin,C*Kmin),linPar=length(select.var)*c(Kmin,C*Kmin))
+             q<-c(piter[h],q[1:(length(q)-1)])
+           }
+           p<-piter
+         },
+         liniter={
+           piter<-numeric(H)
+           for (h  in 1:H){
+             piter[h]<-lin.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],class=FALSE)
              q<-c(piter[h],q[1:(length(q)-1)])
            }
            p<-piter

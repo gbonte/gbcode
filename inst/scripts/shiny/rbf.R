@@ -5,7 +5,7 @@ library(mvtnorm)
 library(scatterplot3d)
 library(ellipse)
 library(plot3D)
-library(neural)
+
 
 BOUND1<-2
 BOUND2<-2

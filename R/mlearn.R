@@ -611,6 +611,12 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
   n<-NCOL(X)
   N<-NROW(X)
 
+ 
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-array(X.ts,c(1,n))
+  }
+  
   if (class){
     L<-levels(Y)
     if (length(L)==2){
@@ -627,12 +633,13 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
     }
   }
 
-  R<-regrlin(X,Y,X.ts,lambda=lambda)
-  beta<-R$beta.hat
-
-
-  out.hat<-R$Y.hat.ts
-
+ 
+  d<-data.frame(Y,X)
+  names(d)[1]<-"Y"
+  mod<-lm(Y~.,data=d)
+  d.ts<-data.frame(X.ts)
+  colnames(d.ts)[1:(n)]<-colnames(d)[2:(n+1)]
+  out.hat<-predict(mod,d.ts)
 
   if (class){
     pred<-as.character(numeric(NROW(X.ts)))
