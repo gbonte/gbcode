@@ -231,7 +231,7 @@ server<-function(input, output,session) {
     if (length(B)>=2 & input$h>0){
       sO<-sort(O,index.return=TRUE)
       
-      plot(sO$x,B[sO$ix],col="blue",type="l",xlab="# parameters", ylab="BIAS^2", lwd=2)
+      plot(sO$x,B[sO$ix],col="blue",type="l",xlab="# neighbours", ylab="BIAS^2", lwd=2)
       
     }
     
@@ -244,7 +244,7 @@ server<-function(input, output,session) {
     cr()
     if (length(B)>=2 & input$h>0){
       sO<-sort(O,index.return=TRUE)
-      plot(sO$x,V[sO$ix],col="red",type="l",xlab="# parameters", ylab="VAR", lwd=2)
+      plot(sO$x,V[sO$ix],col="red",type="l",xlab="# neighbours", ylab="VAR", lwd=2)
     }
     
   }

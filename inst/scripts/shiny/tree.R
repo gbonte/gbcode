@@ -5,7 +5,7 @@ library(mvtnorm)
 library(scatterplot3d)
 library(ellipse)
 library(plot3D)
-library(nnet)
+library(tree)
 
 BOUND1<-2
 BOUND2<-2

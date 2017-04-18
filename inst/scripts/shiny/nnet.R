@@ -207,7 +207,7 @@ server<-function(input, output,session) {
     
     cr()
     
-    bvtitle=paste("B2=", round(avg.bias2,2), "V=", round(avg.var,2), "MSE=", round(avg.mse,3) ,
+    bvtitle=paste("B2=", round(avg.bias2,3), "V=", round(avg.var,3), "MSE=", round(avg.mse,3) ,
                   "MSemp=",round(Remp,3),"MCV=",round(avg.cv,3) )
    
     plot(Xts,muy.ts,lwd=4,col="blue",type="l")
