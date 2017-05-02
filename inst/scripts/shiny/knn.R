@@ -10,7 +10,7 @@ library(nnet)
 BOUND1<-2
 BOUND2<-2
 ui <- dashboardPage(
-  dashboardHeader(title="Neural net"),
+  dashboardHeader(title="KNN"),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
