@@ -50,4 +50,3 @@ for (i in 1:N){
 Gianluca Bontempi  \email{gbonte@ulb.ac.be}
  @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
 }
-

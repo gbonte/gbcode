@@ -26,10 +26,9 @@ R<-regrDataset(N,n,neff,0.1)
 X<-R$X
 Y<-R$Y
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 \url{mlg.ulb.ac.be}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

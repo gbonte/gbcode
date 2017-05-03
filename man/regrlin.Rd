@@ -43,10 +43,9 @@ R2<-regrlin.d(X,Y,X,lambda=1e-5)
 
 
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 \url{mlg.ulb.ac.be}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

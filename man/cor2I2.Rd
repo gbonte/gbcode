@@ -24,10 +24,9 @@ correlation to mutual information under hypothesis of normality
 cor2I2(-0.9)
 
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

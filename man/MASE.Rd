@@ -9,10 +9,9 @@ MASE(y, yhat)
 \description{
 Mean Absolute scaled error
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 \url{https://en.wikipedia.org/wiki/Mean_absolute_scaled_error}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

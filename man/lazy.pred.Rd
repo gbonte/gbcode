@@ -34,10 +34,9 @@ if \code{classi=FALSE} predicted test output; if \code{classi=TRUE} a list with
 \description{
 Wrapper on lazy learning algoritmhs
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 \url{mlg.ulb.ac.be}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

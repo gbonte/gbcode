@@ -68,10 +68,9 @@ MISCL=sum(e)
 print(MISCL/N)
 
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 \url{mlg.ulb.ac.be}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

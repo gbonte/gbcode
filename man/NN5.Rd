@@ -20,4 +20,3 @@ plot(NN5[,1],type="l")
 \url{https://www.researchgate.net/publication/222828050_Conditionally_dependent_strategies_for_multiple-step-ahead_prediction_in_local_learning}
 }
 \keyword{data}
-

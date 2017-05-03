@@ -20,4 +20,3 @@ plot(A[,1],type="l")
 \url{http://www.amazon.com/Time-Series-Prediction-Forecasting-Understanding/dp/0201626020}
 }
 \keyword{data}
-

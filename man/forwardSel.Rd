@@ -71,11 +71,10 @@ Y<-factor(R$Y>mean(R$Y))
 real.features<-R$feat
 ranked.features<-forwardSel(algo=c("rf","lda"), X,Y,nmax=3,classi=TRUE,cv=3)
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}. For
 blocking see \emph{Bontempi G. A blocking strategy to improve gene selection for classification of gene expression data. IEEE/ACM Trans Comput Biol Bioinform. 2007 Apr-Jun;4(2):293-300.}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

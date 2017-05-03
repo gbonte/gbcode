@@ -9,10 +9,9 @@ SMAPE(ts1, ts2, Cent = 0, Sc = 1)
 \description{
 Symmetric mean absolute percentage error
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 \url{https://en.wikipedia.org/wiki/Symmetric_mean_absolute_percentage_error}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

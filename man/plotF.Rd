@@ -9,10 +9,9 @@ plotF(N = 10, N2 = 20)
 \description{
 Plot F distribution
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 \url{mlg.ulb.ac.be}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}

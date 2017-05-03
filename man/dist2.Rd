@@ -17,10 +17,9 @@ dist2(X1, X2)
 \description{
 Returns matrix of distances between two matrices with same number of columns
 }
-\author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
-}
 \references{
 \url{mlg.ulb.ac.be}
 }
-
+\author{
+Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+}
