@@ -686,8 +686,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
          },
          lazydirect={
            p<-numeric(H)
+           LPar=c(Kmin,C*Kmin)*length(select.var)
+           LPar[1]=min(LPar[1],NROW(X)-1)
+           CPar=c(Kmin,C*Kmin)
+           CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
-             p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],conPar=c(Kmin,C*Kmin),linPar=c(Kmin,C*Kmin)*length(select.var))
+             p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],conPar=CPar,linPar=LPar)
            }
          },
          lindirect={
@@ -835,8 +839,13 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
          },
          lazyiter={
            piter<-numeric(H)
+           LPar=c(Kmin,C*Kmin)*length(select.var)
+           LPar[1]=min(LPar[1],NROW(X)-1)
+           CPar=c(Kmin,C*Kmin)
+           CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
-             piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],conPar=c(Kmin,C*Kmin),linPar=length(select.var)*c(Kmin,C*Kmin))
+             piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
+                                 conPar=CPar,linPar=LPar)
              q<-c(piter[h],q[1:(length(q)-1)])
            }
            p<-piter
