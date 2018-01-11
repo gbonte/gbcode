@@ -690,6 +690,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            LPar[1]=min(LPar[1],NROW(X)-1)
            LPar[2]=min(LPar[2],NROW(X))
            print(LPar)
+           print("......")
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
