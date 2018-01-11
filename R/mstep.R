@@ -686,6 +686,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
          },
          lazydirect={
            p<-numeric(H)
+           
            LPar=c(Kmin,(C+1)*Kmin)*length(select.var)
            LPar[1]=min(LPar[1],NROW(X)-2)
            LPar[2]=min(LPar[2],NROW(X)-1)
@@ -697,8 +698,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            print(CPar)
            print(dim(X))
            for (h  in 1:H){
-             p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
+              if (NROW(X)>7)
+               p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
                              conPar=CPar,linPar=LPar)
+              else
+                p[h]=mean(Y[,h])
            }
          },
          lindirect={
