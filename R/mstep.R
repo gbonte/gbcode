@@ -702,7 +702,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
                p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
                              conPar=CPar,linPar=LPar)
               else
-                p[h]=mean(Y[,h])
+                p[h]=mean(Y[,h],na.rm=TRUE)
            }
          },
          lindirect={
