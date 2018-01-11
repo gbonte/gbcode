@@ -115,7 +115,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
     err<-numeric(C*k)+Inf
     oo<-NULL
     
-    for (kk in k:(C*k)){
+    for (kk in k:(min(NROW(X),C*k))){
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
       ## tricube kernel
       wd<-((1-abs(d)^3)^3)*(abs(d)<1)
@@ -132,8 +132,9 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
         err[kk]<-constloo(Y[index$ix[1:kk],1],wd)
         oo<-rbind(oo,mean(Y[index$ix[1:kk],1],na.rm=T))
       }
-      if (is.na(err[kk]))
+      if (is.na(err[kk])){
         stop("KNN.multioutput error")
+      }
     }
     
     

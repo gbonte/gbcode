@@ -7,8 +7,8 @@ library(ellipse)
 library(plot3D)
 library(nnet)
 
-BOUND1<-2
-BOUND2<-2
+BOUND1<-4
+BOUND2<-4
 ui <- dashboardPage(
   dashboardHeader(title="KNN"),
   dashboardSidebar(
@@ -20,7 +20,7 @@ ui <- dashboardPage(
                   value = 100,step=2),
       sliderInput("R",
                   "Number of simulation trials:",
-                  min = 50,
+                  min = 5,
                   max = 100,
                   value = 50,step=2),
       
@@ -216,11 +216,11 @@ server<-function(input, output,session) {
     bvtitle=paste("B2=", round(avg.bias2,2), "V=", round(avg.var,2), "MSE=", round(avg.mse,3) ,
                   "MSemp=",round(Remp,3),"MCV=",round(avg.cv,3) )
    
-    plot(Xts,muy.ts,lwd=4,col="blue",type="l")
+    plot(Xts,muy.ts,lwd=4,col="red",type="l")
     for (r in 1:input$R)
       lines(Xts,Y.hat.ts[r,])
     lines(Xts,meanY.hat.ts,lwd=4,col="green")
-    lines(Xts,muy.ts,lwd=4,col="blue")
+    lines(Xts,muy.ts,lwd=4,col="red")
     title(bvtitle)
     
   })
@@ -231,7 +231,7 @@ server<-function(input, output,session) {
     if (length(B)>=2 & input$h>0){
       sO<-sort(O,index.return=TRUE)
       
-      plot(sO$x,B[sO$ix],col="blue",type="l",xlab="# neighbours", ylab="BIAS^2", lwd=2)
+      plot(sO$x,B[sO$ix],col="red",type="l",xlab="# neighbours", ylab="BIAS^2", lwd=2)
       
     }
     
