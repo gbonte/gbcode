@@ -687,8 +687,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
          lazydirect={
            p<-numeric(H)
            LPar=c(Kmin,(C+1)*Kmin)*length(select.var)
-           LPar[1]=min(LPar[1],NROW(X)-1)
-           LPar[2]=min(LPar[2],NROW(X))
+           LPar[1]=min(LPar[1],NROW(X)-2)
+           LPar[2]=min(LPar[2],NROW(X)-1)
            print(LPar)
            print(dim(X))
            CPar=c(Kmin,C*Kmin)
