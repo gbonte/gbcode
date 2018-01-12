@@ -692,6 +692,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            LPar[2]=min(LPar[2],NROW(X)-1)
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
+           CPar[2]=min(CPar[2],NROW(X))
+          
            if (NROW(X) <= 5*NCOL(X))
              LPar=NULL
            CPar=c(Kmin,C*Kmin)
