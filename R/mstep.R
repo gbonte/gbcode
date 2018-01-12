@@ -683,7 +683,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            p<-numeric(H)
            for (h  in 1:H){
              I<-1:(NROW(X))
-             p[h]<-KNN.multioutput(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],k=Kmin,C=C,F=FF)
+             Yh=Y[,h]
+             if (length(which(!is.na(Yh)))<NROW(X))
+               p[h]<-mean(Yh,na.rm=TRUE)
+             else
+              p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),q[select.var],k=Kmin,C=C,F=FF)
            }
          },
          lazydirect={
