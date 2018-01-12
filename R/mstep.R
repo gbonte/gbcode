@@ -140,6 +140,8 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
     
     
     if (wta) {
+      if ((which.min(err)-k+1)<0)
+        browser()
       out.hat[i,]<-oo[which.min(err)-k+1,]
     }else {
       w<-(1/err[k:(C*k)])/sum(1/err[k:(C*k)])
