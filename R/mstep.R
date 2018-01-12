@@ -690,7 +690,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            LPar=c(Kmin,(C+1)*Kmin)*length(select.var)
            LPar[1]=min(LPar[1],NROW(X)-2)
            LPar[2]=min(LPar[2],NROW(X)-1)
-           CPar=c(Kmin,C*Kmin)
+           CPar=c(Kmin,C*Kmin+1)
            CPar[1]=min(CPar[1],NROW(X)-1)
            CPar[2]=min(CPar[2],NROW(X))
            print(dim(X))
