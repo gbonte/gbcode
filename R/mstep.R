@@ -693,8 +693,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            CPar=c(Kmin,C*Kmin+1)
            CPar[1]=min(CPar[1],NROW(X)-1)
            CPar[2]=min(CPar[2],NROW(X))
-           print(dim(X))
-           print(CPar)
+           #print(dim(X))
+           #print(CPar)
           
            if (NROW(X) <= 5*NCOL(X))
              LPar=NULL
@@ -702,7 +702,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            CPar[1]=min(CPar[1],NROW(X)-1)
            
            for (h  in 1:H){
-              if (NROW(X)>7)
+              if (NROW(X)>9)
                p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
                              conPar=CPar,linPar=LPar)
               else
