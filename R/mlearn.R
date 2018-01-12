@@ -376,7 +376,7 @@ lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,return.more=F){
 #' \item{ \code{prob}:} posteriori probability
 #'}
 lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
-                     conPar=3,linPar=5,cmbPar=10){
+                     conPar=NULL,linPar=NULL,cmbPar=10){
   if (is.vector(X)){
     n<-1
     N<-length(X)
