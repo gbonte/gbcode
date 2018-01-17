@@ -16,8 +16,33 @@ nlcor<-function(x,y){
 
 
 
-
-
+#' timefit
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#'
+#' @description time fitting of time series
+#' @details time fitting
+#' @title timefit
+#' @name timefit
+#' @param TS.tr: training time series
+#' @param C: number of fitted points
+#' @param H: horizon
+#' @return vector of H predictions
+#' @export
+timefit<-function(TS.tr,n,C,H){
+  Ntr=length(TS.tr)
+  Itr=seq(max(1,Ntr-C-3),Ntr)
+  Its=seq(Ntr+1,Ntr+H)
+  D=data.frame(cbind(Itr,TS.tr[Itr]))
+  names(D)<-c('t','ts')
+  weights=rev(exp(-(1:length(Itr))))
+  mod=lm(ts~ poly(t,n),data=D,weights=weights)
+  
+  Dts=data.frame(Its)
+  names(Dts)<-c('t')
+  
+  TS.hat=predict(mod,newdata=Dts)
+  return(TS.hat)
+}
 
 
 #' KNN.multioutput
@@ -679,6 +704,10 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            fit <- arima(TS,c(n,D,1))
            p<-forecast(fit,h=H)$mean
          },
+         timefit={
+           p<-timefit(TS,n,C,H)
+           
+         },
          direct={
            p<-numeric(H)
            for (h  in 1:H){
@@ -709,7 +738,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            CPar[1]=min(CPar[1],NROW(X)-1)
            
            for (h  in 1:H){
-              if (NROW(X)>9)
+              if (length(which(!is.na(Y[,h])))>9)
                p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
                              conPar=CPar,linPar=LPar)
               else
