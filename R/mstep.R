@@ -30,11 +30,12 @@ nlcor<-function(x,y){
 #' @export
 timefit<-function(TS.tr,n,C,H){
   Ntr=length(TS.tr)
-  Itr=seq(max(1,Ntr-C-3),Ntr)
+  Itr=seq(max(1,Ntr-(C+5)),Ntr)
   Its=seq(Ntr+1,Ntr+H)
   D=data.frame(cbind(Itr,TS.tr[Itr]))
   names(D)<-c('t','ts')
   weights=rev(exp(-(1:length(Itr))))
+  weights=weights/max(weights)
   mod=lm(ts~ poly(t,n),data=D,weights=weights)
   
   Dts=data.frame(Its)
