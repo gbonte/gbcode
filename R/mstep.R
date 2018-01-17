@@ -36,7 +36,7 @@ timefit<-function(TS.tr,n,C,H){
   names(D)<-c('t','ts')
   weights=rev(exp(-(1:length(Itr))))
   weights=weights/max(weights)
-  mod=lm(ts~ poly(t,n),data=D,weights=weights)
+  mod=lm(ts~ poly(t,min(length(Itr),n)),data=D,weights=weights)
   
   Dts=data.frame(Its)
   names(Dts)<-c('t')
