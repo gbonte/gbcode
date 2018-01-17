@@ -167,7 +167,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
     
     if (wta) {
       if ((which.min(err)-k+1)<0)
-        browser()
+        stop("(which.min(err)-k+1)<0")
       out.hat[i,]<-oo[which.min(err)-k+1,]
     }else {
       w<-(1/err[k:(C*k)])/sum(1/err[k:(C*k)])
@@ -292,7 +292,7 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,del=0){
         stop("Only for multi step ahead prediction")
       }
       if (is.na(err[kk]))
-        browser()
+        stop("is.na(err[kk])")
     }
     
     w2<-(1/err2[k:(C*k)])/sum(1/err2[k:(C*k)])
