@@ -717,10 +717,10 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              if (length(which(!is.na(Yh)))<1)
                p[h]=0
              else {
-             if (length(which(!is.na(Yh)))<NROW(X))
-               p[h]<-mean(Yh,na.rm=TRUE)
-             else
-              p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),q[select.var],k=Kmin,C=C,F=FF)
+               if (length(which(!is.na(Yh)))<NROW(X))
+                 p[h]<-mean(Yh,na.rm=TRUE)
+               else
+                 p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),q[select.var],k=Kmin,C=C,F=FF)
              }
            }   
          },
@@ -738,16 +738,20 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            
            
            if (NROW(X) <= (7*NCOL(X)))
-              LPar=NULL
+             LPar=NULL
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
            
            for (h  in 1:H){
-              if (length(which(!is.na(Y[,h])))>9)
-               p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
-                             conPar=CPar,linPar=LPar)
-              else
-                p[h]=mean(Y[,h],na.rm=TRUE)
+             if (length(which(!is.na(Y[,h])))<0){
+               p[h]=0
+             }else{
+               if (length(which(!is.na(Y[,h])))>9)
+                 p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
+                                 conPar=CPar,linPar=LPar)
+               else
+                 p[h]=mean(Y[,h],na.rm=TRUE)
+             }
            }
          },
          lindirect={
