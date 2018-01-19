@@ -743,7 +743,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            CPar[1]=min(CPar[1],NROW(X)-1)
            
            for (h  in 1:H){
-             if (length(which(!is.na(Y[,h])))<0){
+             if (length(which(!is.na(Y[,h])))<1){
                p[h]=0
              }else{
                if (length(which(!is.na(Y[,h])))>9)
