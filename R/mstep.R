@@ -1,6 +1,13 @@
 
 
 
+periodest<-function(x){
+  x.spec <- spectrum(x,log="no",span=10,plot=FALSE)
+  spx <- x.spec$freq/del
+  spy <- 2*x.spec$spec
+  return(round(1/spx[which.max(spy)])) ## period estimation
+}
+
 nlcor<-function(x,y){
   require(lazy)
   N<-length(x)
@@ -692,6 +699,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                             Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
   TS<-array(TS,c(N,1))
+  if (dummy < 0)
+    dummy=periodest(TS)
   if (dummy <1){
     M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
   } else {
