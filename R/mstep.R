@@ -3,7 +3,7 @@
 
 periodest<-function(x){
   x.spec <- spectrum(x,log="no",span=10,plot=FALSE)
-  spx <- x.spec$freq/del
+  spx <- x.spec$freq
   spy <- 2*x.spec$spec
   return(round(1/spx[which.max(spy)])) ## period estimation
 }
