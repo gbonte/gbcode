@@ -376,7 +376,7 @@ lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,return.more=F){
 #' \item{ \code{prob}:} posteriori probability
 #'}
 lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
-                     conPar=NULL,linPar=NULL,cmbPar=10){
+                     conPar=NULL,linPar=NULL,cmbPar=10,scaleX=TRUE){
   if (is.vector(X)){
     n<-1
     N<-length(X)
@@ -385,6 +385,17 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
     N<-NROW(X)
   }
 
+  if (is.vector(X.ts) & n>1)
+    X.ts<-array(X.ts,c(1,n))
+  if (is.vector(X.ts) & n==1)
+    X.ts<-array(X.ts,c(length(X.ts),1))
+  
+  
+  if (scaleX){
+    X=scale(X)
+    X.ts=scale(X.ts,attr(X,"scaled:center"), attr(X,"scaled:scale"))
+  }
+  
   if (class){ ## classification
     l.Y<-levels(Y)
     L<-length(l.Y)
@@ -425,10 +436,7 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
                                          conIdPar=conPar,
                                          linIdPar=linPar,
                                          cmbPar=cmbPar))
-    if (is.vector(X.ts) & n>1)
-      X.ts<-array(X.ts,c(1,n))
-    if (is.vector(X.ts) & n==1)
-      X.ts<-array(X.ts,c(length(X.ts),1))
+    
     d.ts<-data.frame(X.ts)
 
     names(d.ts)<-names(d)[2:(n+1)]

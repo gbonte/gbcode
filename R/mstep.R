@@ -82,7 +82,8 @@ timefit<-function(TS.tr,n,C,H){
 #' plot(t[(N-H+1):N],TS.ts)
 #' lines(t[(N-H+1):N],Y.cont)
 
-KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TRUE){
+KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
+                           dist="euclidean",C=2,F=0,wta=TRUE,scaleX=TRUE){
   
   if (k<=0)
     stop("k must be positive")
@@ -103,6 +104,10 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,dist="euclidean",C=2,F=0,wta=TR
       N.ts<-nrow(X.ts)
   }
   
+  if (scaleX){
+    X=scale(X)
+    X.ts=scale(X.ts,attr(X,"scaled:center"), attr(X,"scaled:scale"))
+  }
   
   if ( k >=NROW(X)){
     return (array(mean(Y),c(N.ts,1)))
@@ -679,25 +684,40 @@ lin.pls<- function(X,Y,X.ts){
 #' lines(t[(N-H+1):N],Y.mimo.comb,col="green")
 #'
 #'
-multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=FALSE){
+multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
+                            Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
-  TS<-array(TS,c(length(TS),1))
+  TS<-array(TS,c(N,1))
+  if (dummy <1){
+    M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
+  } else {
+    
+    DUM<-array(rep(seq(1,dummy),length=N+H),c(N,1))
+    M<-MakeEmbedded(ts=cbind(TS,DUM),n=c(n,1),delay=c(D,0),hor=H,w=1)
+    
+  }
   
-  M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
   X<-M$inp
   Y<-M$out
   NX=NROW(X)
   select.var=1:NCOL(X)
-  if (length(select.var)>10){
+  if (length(select.var)>10 || dummy >0 ){
     rfs=numeric(NCOL(X))
     for (j in 1:NCOL(Y)){
-      fs=mrmr(X,Y[,j])
+      fs=mrmr(X,Y[,j],nmax=min(NCOL(X)-1,5))
+      
       rfs[fs]=rfs[fs]+1
     }
-    select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:5]
-    
+    print(rfs)
+    select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:min(5,NCOL(X)-1)]
+    print(select.var)
   }
-  q<-TS[seq(N-D,N-n+1-D,by=-1),1]
+  
+  if (dummy<1){
+    q<-TS[seq(N-D,N-n+1-D,by=-1),1]
+  } else {
+    q<-c(TS[seq(N-D,N-n+1-D,by=-1),1],DUM[N-D])
+  }
   ## TS=[TS(1), TS(2),....., TS(N)]
   ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
   switch(method,
@@ -720,7 +740,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
                if (length(which(!is.na(Yh)))<NROW(X))
                  p[h]<-mean(Yh,na.rm=TRUE)
                else
-                 p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),q[select.var],k=Kmin,C=C,F=FF)
+                 p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),
+                                       q[select.var],k=Kmin,C=C,F=FF)
              }
            }   
          },
@@ -770,6 +791,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              for (h  in round(H/2):(H)){ 
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               if (dummy>1)
+                 q2<-c(q2,DUM[N-H+h-D])
                ## TS=[TS(1), TS(2),....., TS(N)]
                ##  D=0:  q2=[TS(N-H+h), TS(N-1-H+h),...,TS(N-n+1-H+h)]
                ##        pred=  [TS(N-H+h+1),...TS(N+h+1)]
@@ -781,6 +804,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            for (h  in round(H/2):(H)){ ## start at the end of the series with different horizons h=[H/2,...H]
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             if (dummy>1)
+               q2<-c(q2,DUM[N-D])
              KK<-KNN.multioutput(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF)
              p2[1:h]<-KK
              pdirect2<-rbind(pdirect2,p2)
@@ -797,6 +822,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               if (dummy>1)
+                 q2<-c(q2,DUM[N-H+h-D])
+               
                KK<-KNN.acf(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
                            TS=TS.acf,D)
                p2[1:h]<-KK[(H-h+1):H]
@@ -807,6 +835,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             if (dummy>1)
+               q2<-c(q2,DUM[N-D])
              KK<-KNN.acf(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
                          TS=TS.acf,D)
              p2[1:h]<-KK
@@ -825,6 +855,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               if (dummy>1)
+                 q2<-c(q2,DUM[N-H+h-D])
                KK<-KNN.acf.lin(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
                                Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
                                Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
@@ -836,6 +868,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             if (dummy>1)
+               q2<-c(q2,DUM[N-D])
              KK<-KNN.acf.lin(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
                              Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
                              Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
@@ -853,6 +887,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               if (dummy>1)
+                 q2<-c(q2,DUM[N-H+h-D])
                KK<-KNN.pls(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,D)
                p2[1:h]<-KK[(H-h+1):H]
                pdirect5<-rbind(pdirect5,p2)
@@ -860,6 +896,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             if (dummy>1)
+               q2<-c(q2,DUM[N-D])
              KK<-KNN.pls(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,D)
              p2[1:h]<-KK
              pdirect5<-rbind(pdirect5,p2)
@@ -873,6 +911,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               if (dummy>1)
+                 q2<-c(q2,DUM[N-H+h-D])
                KK<-lin.pls(X[,select.var],Y,q2[select.var])
                p2[1:h]<-KK[(H-h+1):H]
                pdirect6<-rbind(pdirect6,p2)
@@ -881,6 +921,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            for (h  in max(1,round(H-2)):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             if (dummy>1)
+               q2<-c(q2,DUM[N-D])
              KK<-lin.pls(X[,select.var],Y[,1:h],q2[select.var])
              p2[1:h]<-KK
              pdirect6<-rbind(pdirect6,p2)
@@ -892,8 +934,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
          iter={
            piter<-numeric(H)
            for (h  in 1:H){
-             piter[h]<-KNN.multioutput(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],k=Kmin,C=C,F=FF)
+             piter[h]<-KNN.multioutput(X[,select.var],array(Y[,1],c(NROW(X),1)),
+                                       q[select.var],k=Kmin,C=C,F=FF)
              q<-c(piter[h],q[1:(length(q)-1)])
+             if (dummy>1)
+               q<-c(q,DUM[N+h])
            }
            p<-piter
          },
@@ -908,6 +953,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
                                  conPar=CPar,linPar=LPar)
              q<-c(piter[h],q[1:(length(q)-1)])
+             if (dummy>1)
+               q<-c(q,DUM[N+h])
            }
            p<-piter
          },
@@ -916,6 +963,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",Kmin=3,C=2,FF=0,smooth=F
            for (h  in 1:H){
              piter[h]<-lin.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],class=FALSE)
              q<-c(piter[h],q[1:(length(q)-1)])
+             if (dummy>1)
+               q<-c(q,DUM[N+h])
            }
            p<-piter
          }
