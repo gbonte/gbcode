@@ -708,9 +708,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
       
       rfs[fs]=rfs[fs]+1
     }
-    print(rfs)
+    
     select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:min(5,NCOL(X)-1)]
-    print(select.var)
+    
   }
   
   if (dummy<1){
