@@ -700,7 +700,7 @@ lin.pls<- function(X,Y,X.ts){
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                             Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
-  if (std(TS)<0.001)
+  if (sd(TS)<0.001)
     return (numeric(H)+TS[1])
   TS<-array(TS,c(N,1))
   if (dummy < 0)
