@@ -700,6 +700,8 @@ lin.pls<- function(X,Y,X.ts){
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                             Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
+  if (std(TS)<0.001)
+    return (numeric(H)+TS[1])
   TS<-array(TS,c(N,1))
   if (dummy < 0)
     dummy=periodest(TS)
@@ -752,7 +754,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              if (length(which(!is.na(Yh)))<1)
                p[h]=0
              else {
-               if (length(which(!is.na(Yh)))<NROW(X))
+               if (length(which(!is.na(Yh)))<NROW(X) || std(Yh)<0.001)
                  p[h]<-mean(Yh,na.rm=TRUE)
                else
                  p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),
