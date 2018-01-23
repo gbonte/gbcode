@@ -1,4 +1,19 @@
-
+sd_trim <- function(x,trim=0.2, const=TRUE){
+  # trimmed sd, where x is a matrix (column-wise)
+  x <- as.matrix(x)
+  if (const){
+    if (trim==0.1){const <- 0.7892}
+    else if (trim==0.2){const <- 0.6615}
+    else {warning("Did you specify the correct consistency constant for trimming?")}
+  }
+  else{const <- 1}
+  m <- apply(x,2,mean,trim)
+  res <- x-rep(1,nrow(x))%*%t(m)
+  qu <- apply(abs(res),2,quantile,1-trim)
+  sdtrim <- apply(matrix(res[t(abs(t(res))<=qu)]^2,ncol=ncol(x),byrow=FALSE),2,sum)
+  sdtrim <- sqrt(sdtrim/((nrow(x)*(1-trim)-1)))/const
+  return(sdtrim)
+}
 
 
 periodest<-function(x){
@@ -700,7 +715,7 @@ lin.pls<- function(X,Y,X.ts){
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                             Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
-  if (sd(TS)<0.001)
+  if (sd_trim(TS)<0.001)
     return (numeric(H)+TS[1])
   TS<-array(TS,c(N,1))
   if (dummy < 0)
