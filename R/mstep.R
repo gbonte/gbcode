@@ -2,6 +2,8 @@
 
 
 periodest<-function(x){
+  if (length(x)<20)
+    return (0)
   x.spec <- spectrum(x,log="no",span=10,plot=FALSE)
   spx <- x.spec$freq
   spy <- 2*x.spec$spec
