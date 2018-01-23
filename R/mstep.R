@@ -754,7 +754,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              if (length(which(!is.na(Yh)))<1)
                p[h]=0
              else {
-               if (length(which(!is.na(Yh)))<NROW(X) || std(Yh)<0.001)
+               if (length(which(!is.na(Yh)))<NROW(X) )
                  p[h]<-mean(Yh,na.rm=TRUE)
                else
                  p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),
