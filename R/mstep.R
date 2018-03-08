@@ -26,6 +26,8 @@ periodest<-function(x){
 }
 
 detectSeason<-function(TS,maxs=10){
+  if (length(TS)<20 || std(TS)<0.1)
+    return (1)
   seas=1
   trnd=lm(TS ~ seq(TS))$fit
   for (add in c(0,1)){
