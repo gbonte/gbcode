@@ -712,6 +712,7 @@ lin.pls<- function(X,Y,X.ts){
 #' lines(t[(N-H+1):N],Y.mimo.comb,col="green")
 #'
 #'
+#'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                             Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
