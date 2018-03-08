@@ -35,6 +35,7 @@ detectSeason<-function(TS,maxs=10){
       S<-TS/trnd
     if (add==0)
       S<-TS-trnd
+    print(S)
     if (any(is.na(S)))
       return (1)
     if (sd(S,na.rm=TRUE)<0.1)
