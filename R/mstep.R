@@ -35,7 +35,7 @@ detectSeason<-function(TS,maxs=10){
       S<-TS/trnd
     if (add==0)
       S<-TS-trnd
-    if (sd(S)<0.1)
+    if (sd(S,na.rm=TRUE)<0.1)
       return (1)
     PVS=numeric(maxs)+Inf
     for (s in 2:maxs){
