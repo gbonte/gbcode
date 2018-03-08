@@ -18,12 +18,45 @@ sd_trim <- function(x,trim=0.2, const=TRUE){
 
 periodest<-function(x){
   if (length(x)<20)
-    return (0)
+    return (1)
   x.spec <- spectrum(x,log="no",span=10,plot=FALSE)
   spx <- x.spec$freq
   spy <- 2*x.spec$spec
   return(round(1/spx[which.max(spy)])) ## period estimation
 }
+
+detectSeason<-function(TS,maxs=10){
+  seas=1
+  trnd=lm(TS ~ seq(TS))$fit
+  for (add in c(0,1)){
+    if (add==1)
+      S<-TS/trnd
+    if (add==0)
+      S<-TS-trnd
+    
+    PVS=numeric(maxs)+Inf
+    for (s in 2:maxs){
+      PV=NULL
+      m_S = t(matrix(data = S, nrow = s))
+      for (i in 1:s){
+        for (j in setdiff(1:s,i)){
+          xs=m_S[,i]
+          ys=unlist(m_S[,j])
+          PV=c(PV,t.test(xs,ys)$p.value)
+        }#
+        
+      }#
+      PVS[s]=median(PV)
+    }# for s
+    
+    if (min(PVS)<0.05){
+      seas=which.min(PVS)
+      return(seas)
+    }# if min
+  }#
+  
+  return(seas)
+}#
 
 nlcor<-function(x,y){
   require(lazy)
@@ -719,13 +752,15 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
   if (sd_trim(TS)<0.001 && method !="timefit" )
     return (numeric(H)+TS[1])
   TS<-array(TS,c(N,1))
-  if (dummy < 0)
+  if (dummy ==-1) 
     dummy=periodest(TS)
+  if (dummy == 0) 
+    dummy=detectSeason(TS)
   if (dummy <1){
     M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
   } else {
     
-    DUM<-array(rep(seq(1,dummy),length=N+H),c(N,1))
+    DUM<-array(rep(seq(1,dummy),length=N+H),c(N,1)) ## additionof a dummy variable to address time and seasonality effectsdu
     M<-MakeEmbedded(ts=cbind(TS,DUM),n=c(n,1),delay=c(D,0),hor=H,w=1)
     
   }
