@@ -48,6 +48,8 @@ detectSeason<-function(TS,maxs=10){
         for (j in setdiff(1:s,i)){
           xs=m_S[,i]
           ys=unlist(m_S[,j])
+          if (sd(xs,na.rm=TRUE)<0.1 || sd(ys,na.rm=TRUE)<0.1)
+            return(1)
           PV=c(PV,t.test(xs,ys)$p.value)
         }#
         
