@@ -432,10 +432,7 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
     names(d)[2:(n+1)]<-paste("x",1:n,sep="")
 
     
-    print(conPar)
-    print(linPar)
-    print(dim(d))
-    browser()
+    
     mod<-lazy(Y~.,d,control=lazy.control(distance="euclidean",
                                          conIdPar=conPar,
                                          linIdPar=linPar,
