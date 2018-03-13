@@ -762,9 +762,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
   TS<-array(TS,c(N,1))
   if (dummy ==-1) 
     dummy=periodest(TS)
-  if (dummy == 0) 
+  if (dummy == -2) 
     dummy=detectSeason(TS)
-  if (dummy <1){
+  if (dummy ==0){
     M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
   } else {
     
