@@ -709,6 +709,8 @@ lin.pls<- function(X,Y,X.ts){
 #' \item{iter}: recursive prediction based on \link{KNN.multioutput} function
 #' \item{lazydirect}: direct prediction based on \link{lazy.pred} function
 #' \item{lazyiter}: recursive prediction based on \link{lazy.pred} function
+#' \item{rfdirect}: direct prediction based on \link{rf.pred} function
+#' \item{rfiter}: recursive prediction based on \link{rf.pred} function
 #' \item{mimo}: MIMO prediction based on \link{KNN.multioutput} function
 #' \item{mimo.comb}: MIMO prediction based on \link{KNN.multioutput} function which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo.acf}: MIMO prediction based on \link{KNN.acf} function which combines a set of predictors based on different horizons and different starting points
@@ -846,6 +848,19 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                if (length(which(!is.na(Y[,h])))>9)
                  p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
                                  conPar=CPar,linPar=LPar)
+               else
+                 p[h]=mean(Y[,h],na.rm=TRUE)
+             }
+           }
+         },
+         rfdirect={
+           p<-numeric(H)
+           for (h  in 1:H){
+             if (length(which(!is.na(Y[,h])))<1){
+               p[h]=0
+             }else{
+               if (length(which(!is.na(Y[,h])))>9)
+                 p[h]<-rf.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var])
                else
                  p[h]=mean(Y[,h],na.rm=TRUE)
              }
@@ -1028,6 +1043,17 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            for (h  in 1:H){
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
                                  conPar=CPar,linPar=LPar)
+             q<-c(piter[h],q[1:(length(q)-1)])
+             if (dummy>1)
+               q<-c(q,DUM[N+h])
+           }
+           p<-piter
+         },
+         rfiter={
+           piter<-numeric(H)
+           
+           for (h  in 1:H){
+             piter[h]<-rf.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var])
              q<-c(piter[h],q[1:(length(q)-1)])
              if (dummy>1)
                q<-c(q,DUM[N+h])
