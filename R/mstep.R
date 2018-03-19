@@ -845,8 +845,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              if (length(which(!is.na(Y[,h])))<1){
                p[h]=0
              }else{
-               if (length(which(!is.na(Y[,h])))>9)
-                 p[h]<-lazy.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
+               wna=which(!is.na(Y[,h]))
+               if (length(wna)>9)
+                 p[h]<-lazy.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
                                  conPar=CPar,linPar=LPar)
                else
                  p[h]=mean(Y[,h],na.rm=TRUE)
@@ -861,7 +862,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              }else{
                wna=which(!is.na(Y[,h]))
                if (length(wna)>9){
-                 p[h]<-rf.pred(X[wna,select.var],array(Y[wna,h],c(NX,1)),q[select.var],class=FALSE)
+                 p[h]<-rf.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],class=FALSE)
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
              }
