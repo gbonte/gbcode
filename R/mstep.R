@@ -860,7 +860,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                p[h]=0
              }else{
                if (length(which(!is.na(Y[,h])))>9)
-                 p[h]<-rf.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var])
+                 p[h]<-rf.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],class=FALSE)
                else
                  p[h]=mean(Y[,h],na.rm=TRUE)
              }
@@ -1053,7 +1053,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            piter<-numeric(H)
            
            for (h  in 1:H){
-             piter[h]<-rf.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var])
+             piter[h]<-rf.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],class=FALSE)
              q<-c(piter[h],q[1:(length(q)-1)])
              if (dummy>1)
                q<-c(q,DUM[N+h])
