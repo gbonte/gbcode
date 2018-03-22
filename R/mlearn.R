@@ -659,6 +659,7 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
   if (n==1){
     mod<-lm(Y~.,data=d)
   } else {
+    browser()
     mod<-lm.ridge(Y~.,data=d,lambda=lambda)
   }
   d.ts<-data.frame(X.ts)
