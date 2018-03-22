@@ -825,31 +825,28 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          },
          lazydirect={
            p<-numeric(H)
-           
-           LPar=c(Kmin,(C+1)*Kmin)*length(select.var)
-           LPar[1]=min(LPar[1],NROW(X)-2)
-           LPar[2]=min(LPar[2],NROW(X)-1)
-           CPar=c(Kmin,C*Kmin+1)
-           CPar[1]=min(CPar[1],NROW(X)-1)
-           CPar[2]=min(CPar[2],NROW(X))
-           #print(dim(X))
-           #print(CPar) 
-           
-           
-           if (NROW(X) <= (7*NCOL(X)))
-             LPar=NULL
-           CPar=c(Kmin,C*Kmin)
-           CPar[1]=min(CPar[1],NROW(X)-1)
-           
+           wna=which(!is.na(Y[,h]))
            for (h  in 1:H){
-             if (length(which(!is.na(Y[,h])))<1){
+             if (length(wna<1)){
                p[h]=0
              }else{
-               wna=which(!is.na(Y[,h]))
-               if (length(wna)>9)
-                 p[h]<-lazy.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
+               if (length(wna)>9){
+                 Xw=X[wna,select.var]
+                 Yw=array(Y[wna,h],c(length(wna),1))
+                 LPar=c(Kmin,(C+1)*Kmin)*length(select.var)
+                 LPar[1]=min(LPar[1],NROW(Xw)-2)
+                 LPar[2]=min(LPar[2],NROW(Xw)-1)
+                 CPar=c(Kmin,C*Kmin+1)
+                 CPar[1]=min(CPar[1],NROW(Xw)-1)
+                 CPar[2]=min(CPar[2],NROW(Xw))
+                
+                 if (NROW(Xw) <= (7*NCOL(Xw)))
+                   LPar=NULL
+                 CPar=c(Kmin,C*Kmin)
+                 CPar[1]=min(CPar[1],NROW(X)-1)
+                 p[h]<-lazy.pred(Xw,Yw,q[select.var],
                                  conPar=CPar,linPar=LPar)
-               else
+               }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
              }
            }
