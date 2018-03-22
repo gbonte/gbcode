@@ -618,7 +618,7 @@ KNN.pred<- function(X,Y,X.ts,Di=NULL,class=FALSE,dist="euclidean",k=3){
 
 
 
-lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
+lin.pred<- function(X,Y,X.ts,lambda=1e-7,class) {
   
   
   n<-NCOL(X)
@@ -656,12 +656,9 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
   
   d<-data.frame(Y,X)
   names(d)[1]<-"Y"
-  if (n==1){
-    mod<-lm(Y~.,data=d)
-  } else {
-    browser()
-    mod<-lm.ridge(Y~.,data=d,lambda=lambda)
-  }
+  
+  mod<-lm(Y~.,data=d, tol = lambda)
+  
   d.ts<-data.frame(X.ts)
   colnames(d.ts)[1:(n)]<-colnames(d)[2:(n+1)]
   

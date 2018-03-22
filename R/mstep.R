@@ -1073,9 +1073,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          liniter={
            piter<-numeric(H)
            for (h  in 1:H){
-             print(X[,select.var])
+             
              piter[h]<-lin.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),
-                                q[select.var],class=FALSE,lambda=(1e-3)*C)
+                                q[select.var],class=FALSE,lambda=(1e-7)*(10*C))
              q<-c(piter[h],q[1:(length(q)-1)])
              if (dummy>1)
                q<-c(q,DUM[N+h])
