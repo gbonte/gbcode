@@ -647,7 +647,7 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
  
   d<-data.frame(Y,X)
   names(d)[1]<-"Y"
-  mod<-lm(Y~.,data=d)
+  mod<-lm.ridge(Y~.,data=d,lambda=lambda)
   d.ts<-data.frame(X.ts)
   colnames(d.ts)[1:(n)]<-colnames(d)[2:(n+1)]
   out.hat<-predict(mod,d.ts)

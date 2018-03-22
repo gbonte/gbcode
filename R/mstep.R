@@ -855,12 +855,13 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          rfdirect={
            p<-numeric(H)
            for (h  in 1:H){
-             if (length(which(!is.na(Y[,h])))<1){
+             wna=which(!is.na(Y[,h]))
+             if (length(wna)<1){
                p[h]=0
              }else{
-               wna=which(!is.na(Y[,h]))
                if (length(wna)>9){
-                 p[h]<-rf.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],class=FALSE)
+                 p[h]<-rf.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
+                               class=FALSE,ntree=C*50)
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
              }
@@ -869,8 +870,17 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          lindirect={
            p<-numeric(H)
            for (h  in 1:H){
-             p[h]<-lin.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],class=FALSE)
-           }
+             wna=which(!is.na(Y[,h]))
+             if (length(wna)<1){
+               p[h]=0
+             }else{
+               if (length(wna)>9){
+                 p[h]<-lin.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
+                                class=FALSE,lambda=1e-3*C)
+               }else
+                 p[h]=mean(Y[,h],na.rm=TRUE)
+             }
+           } ## for h
          },
          mimo={
            p<-KNN.multioutput(X[,select.var],Y,q[select.var],k=Kmin,C=C,F=FF)
@@ -1051,9 +1061,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          },
          rfiter={
            piter<-numeric(H)
-           
            for (h  in 1:H){
-             piter[h]<-rf.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],class=FALSE)
+             piter[h]<-rf.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
+                               class=FALSE,ntree=C*50)
              q<-c(piter[h],q[1:(length(q)-1)])
              if (dummy>1)
                q<-c(q,DUM[N+h])
@@ -1063,7 +1073,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          liniter={
            piter<-numeric(H)
            for (h  in 1:H){
-             piter[h]<-lin.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],class=FALSE)
+             piter[h]<-lin.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),
+                                q[select.var],class=FALSE,lambda=1e-3*C)
              q<-c(piter[h],q[1:(length(q)-1)])
              if (dummy>1)
                q<-c(q,DUM[N+h])
