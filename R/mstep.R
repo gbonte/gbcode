@@ -779,7 +779,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
   Y<-M$out
   NX=NROW(X)
   select.var=1:NCOL(X)
-  if (length(select.var)>10 || dummy >0 ){
+  if (length(select.var)>10 || (length(select.var)>1 && dummy >0 )) {
     rfs=numeric(NCOL(X))
     for (j in 1:NCOL(Y)){
       fs=mrmr(X,Y[,j],nmax=min(NCOL(X)-1,5))
@@ -1073,7 +1073,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          liniter={
            piter<-numeric(H)
            for (h  in 1:H){
-             browser()
+             
              piter[h]<-lin.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),
                                 q[select.var],class=FALSE,lambda=(1e-3)*C)
              q<-c(piter[h],q[1:(length(q)-1)])
