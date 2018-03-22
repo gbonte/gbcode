@@ -17,7 +17,7 @@
 #' \item{\code{pred}:}  predicted class
 #' \item{ \code{prob}:} posteriori probability
 #'}
-#'
+#'  
 #'@examples
 #'## regression example
 #' library(randomForest)
