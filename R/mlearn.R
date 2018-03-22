@@ -663,7 +663,7 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
   }
   d.ts<-data.frame(X.ts)
   colnames(d.ts)[1:(n)]<-colnames(d)[2:(n+1)]
-  browser()
+  
   out.hat<-predict(mod,d.ts)
   
   if (class){
