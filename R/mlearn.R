@@ -657,7 +657,7 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
   d<-data.frame(Y,X)
   names(d)[1]<-"Y"
   if (n==1){
-    mod<-lm(Y~.,data=d,lambda=lambda)
+    mod<-lm(Y~.,data=d)
   } else {
     mod<-lm.ridge(Y~.,data=d,lambda=lambda)
   }
