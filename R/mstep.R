@@ -828,7 +828,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            for (h  in 1:H){
              wna=which(!is.na(Y[,h]))
              if (length(wna<1)){
-               p[h]=0
+               p[h]=0  
              }else{
                if (length(wna)>9){
                  Xw=X[wna,select.var]
