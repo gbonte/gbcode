@@ -619,10 +619,15 @@ KNN.pred<- function(X,Y,X.ts,Di=NULL,class=FALSE,dist="euclidean",k=3){
 
 
 lin.pred<- function(X,Y,X.ts,lambda=1e-3,class) {
-  n<-NCOL(X)
-  N<-NROW(X)
+  
 
- 
+  if (is.vector(X)){
+    n<-1
+    N<-length(X)
+  }else{
+    n<-NCOL(X)
+    N<-NROW(X)
+  }
   if (is.vector(X.ts) & n>1){
     N.ts<-1
     X.ts<-array(X.ts,c(1,n))
