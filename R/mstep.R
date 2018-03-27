@@ -826,7 +826,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          lazydirect={
            p<-numeric(H)
            for (h  in 1:H){
-             wna=which(!is.na(Y[,h]))
+             wna=which(!is.na(Y[,h]))  
              if (length(wna)<1){
                p[h]=0
                
