@@ -845,6 +845,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                    LPar=NULL
                  CPar=c(Kmin,C*Kmin)
                  CPar[1]=min(CPar[1],NROW(X)-1)
+
                  #browser()  
                  p[h]<-lazy.pred(Xw,Yw,q[select.var],
                                  conPar=CPar,linPar=LPar)
