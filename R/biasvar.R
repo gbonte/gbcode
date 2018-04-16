@@ -24,7 +24,7 @@
 #'
 #'
 #'
-BiasVar<-function(N=25,n=10, R=200,seed=1){
+BiasVar<-function(N=25,n=20, R=200,seed=1){
 
 
   f<-function(x,ord){
