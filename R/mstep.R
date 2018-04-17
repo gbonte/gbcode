@@ -846,7 +846,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                  CPar=c(Kmin,C*Kmin)
                  CPar[1]=min(CPar[1],NROW(X)-1)
                  
-                 vX=apply(Xw,2,sd)
+                 vX=1
+                 if (!is.vector(Xw))
+                   vX=apply(Xw,2,sd)
                  if (any(vX<0.01)){ 
                    v0=which(vX==0)
                    q2=q[select.var]
@@ -1091,7 +1093,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            }
            p<-piter
          }
-                 )
-                 p
-                 
+  )
+  p
+  
 }
