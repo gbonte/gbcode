@@ -847,7 +847,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                  CPar[1]=min(CPar[1],NROW(X)-1)
                  
                  vX=apply(Xw,2,sd)
-                 if (any(vX<0.01)){
+                 if (any(vX<0.01)){ 
                    v0=which(vX==0)
                    q2=q[select.var]
                    p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
