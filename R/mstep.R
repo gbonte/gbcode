@@ -845,9 +845,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                    LPar=NULL
                  CPar=c(Kmin,C*Kmin)
                  CPar[1]=min(CPar[1],NROW(X)-1)
-                 print(Xw)
-                 print(Yw)
-                 #browser()  
+                   
                  vX=apply(Xw,2,sd)
                  if (any(vX<0.01){
                    v0=which(vX==0)
