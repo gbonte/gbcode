@@ -852,10 +852,14 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                  if (any(vX<0.01)){ 
                    v0=which(vX<0.01)
                    
-                   q2=q[select.var]
-                   print(Xw[,-v0])
-                   p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
-                                   conPar=CPar,linPar=LPar)
+                   if (length(v0)>= length(select.var)){
+                     p[h]=mean(Y[,h],na.rm=TRUE)
+                   } else {
+                     q2=q[select.var]
+                     print(Xw[,-v0])
+                     p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
+                                     conPar=CPar,linPar=LPar)
+                   }
                  }else{
                    p[h]<-lazy.pred(Xw,Yw,q[select.var],
                                    conPar=CPar,linPar=LPar)
