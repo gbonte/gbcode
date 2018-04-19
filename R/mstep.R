@@ -856,7 +856,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                      p[h]=mean(Y[,h],na.rm=TRUE)
                    } else {
                      q2=q[select.var]
-                     print(Xw[,-v0])
+                     
                      p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
                                      conPar=CPar,linPar=LPar)
                    }
