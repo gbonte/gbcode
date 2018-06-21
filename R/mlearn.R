@@ -6,7 +6,7 @@
 #' @title Wrapper on learning algoritmhs for regression and classification
 #' @name pred
 #' @export
-#'@param algo: learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}, \code{"nb"}: \pkg{e1071}, \code{"lasso"}: \pkg{lars}
+#'@param algo: learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}, \code{"nb"}: \pkg{e1071}, \code{"lasso"}: \pkg{lars},\code{"mboost"}: \pkg{mboost}
 #'@param X: training input
 #'@param Y: training output
 #'@param X.ts: test input
@@ -250,8 +250,8 @@ svm.pred<- function(X,Y,X.ts,proba=TRUE,class=TRUE,...){
     names(d)[1]<-"Y"
     d.ts<-data.frame(X.ts)
     names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
-    mod.svm<-svm(Y~.,data=d,
-                 kernel=kernel,...)
+    
+    mod.svm<-svm(Y~.,data=d,...)
     
     return(predict(mod.svm,d.ts))
   }
@@ -880,7 +880,7 @@ gam.pred<- function(X,Y,X.ts,class=TRUE,...) {
   
   
   
-  mod<-gam("Y~.",data=d,family=gaussian)
+  mod<-gam(Y~.,data=d,family=gaussian)
   
   
   
@@ -1039,8 +1039,13 @@ lasso.pred<-function(X,Y,X.ts,n.cv=5, class=TRUE,type='lasso') {
     
     if (is.vector(X))
       return(lin.pred(X,Y,X.ts,class=F))
-    out.hat<-use.lars(X,Y,X.test=X.ts,test=T,type=type,
-                      lossFunc="quad",N.CV=n.cv,useVar=F,return.pvalues=F)$Y.pred
+    mod<-lars(X,Y,type="lasso")
+    cv.lars.fit<-cv.lars(X, Y, K=10,index=seq(from=0, to=1, length=80),plot.it=FALSE)
+    # choose fraction based min cv error rule
+    min.indx <- which.min(cv.lars.fit$cv)
+    s.cvmin <- cv.lars.fit$index[min.indx] 
+    out.hat<-predict(mod, newx=X.ts, s=s.cvmin,type="fit", mode="fraction")$fit
+    return(out.hat)
   } else {
     L<-levels(Y)
     
@@ -1632,8 +1637,6 @@ mboost.pred<-function(X,Y,X.ts,classi,ntrees=1000,...){
     
     
     
-    
-    
     prob<-cbind(1-pred,pred)
     colnames(prob)<-l.Y
     
@@ -1672,7 +1675,7 @@ stacked.pred<-function(X,Y,X.ts,classi,M=20,R=Inf,algo2="lazy",...){
   N<-NROW(X)
   n<-NCOL(X)
   Nts<-NROW(X.ts)
-  if (classi && length(l.Y)!=2)
+  if (!(classi && length(l.Y)==2))
     stop("Stacked can be used only for binary classification")
   
   Y<-as.numeric(Y)-1
