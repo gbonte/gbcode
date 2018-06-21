@@ -1057,8 +1057,12 @@ lasso.pred<-function(X,Y,X.ts,n.cv=5, class=TRUE,type='lasso') {
       
       Y<-as.numeric(Y)-1
       
-      lasso.hat<-use.lars(X,Y,X.test=X.ts,test=T,type=type,lossFunc="01",
-                          N.CV=n.cv,useVar=T,return.pvalues=F)$Y.pred
+      mod<-lars(X,Y,type="lasso")
+      cv.lars.fit<-cv.lars(X, Y, K=10,index=seq(from=0, to=1, length=80),plot.it=FALSE)
+      # choose fraction based min cv error rule
+      min.indx <- which.min(cv.lars.fit$cv)
+      s.cvmin <- cv.lars.fit$index[min.indx] 
+      out.hat<-predict(mod, newx=X.ts, s=s.cvmin,type="fit", mode="fraction")$fit
       out.hat<-factor(L[lasso.hat+1],levels=L)
     } else {
       algo="lasso"
