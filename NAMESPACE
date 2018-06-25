@@ -41,6 +41,7 @@ export(multiplestepAhead)
 
 
 import(lars)
+import(xgboost)
 import(mboost)
 import(gbm)
 import(MASS)

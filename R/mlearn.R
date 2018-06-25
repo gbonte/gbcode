@@ -100,6 +100,9 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
   if (algo=="mboost")
     P<-mboost.pred(X,Y,X.ts,class=classi,...)
   
+  if (algo=="xgboost")
+    P<-xgboost.pred(X,Y,X.ts,class=classi,...)
+  
   if (algo=="stacked")
     P<-stacked.pred(X,Y,X.ts,class=classi,...)
   
@@ -1670,6 +1673,58 @@ mboost.pred<-function(X,Y,X.ts,classi,ntrees=1000,...){
   }
   
 }
+
+xgboost.pred<-function(X,Y,X.ts,classi,nrounds=100,...){
+  
+  
+  n<-NCOL(X)
+  
+  if (classi){
+    l.Y<-levels(Y)
+    Y<-as.numeric(Y)-1
+    X<-as.matrix(X)
+    X.ts<-as.matrix(X.ts)
+    colnames(X.ts)<-paste("x",1:NCOL(X.ts),sep="")
+    colnames(X)<-colnames(X.ts)
+    d<-data.frame(Y,X)
+    names(d)[1]<-"Y"
+    
+    ##gbmodel<-mboost(Y~.,data=d,control=boost_control(...),baselearner="btree")
+    gbmodel<-xgboost(Y~.,data=d,control=boost_control(...))
+    d.ts<-data.frame(X.ts)
+    
+    
+    names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
+    pred<-pmin(pmax(0,predict(gbmodel,d.ts)),1)
+    
+    
+    
+    prob<-cbind(1-pred,pred)
+    colnames(prob)<-l.Y
+    
+    pred<-l.Y[apply(prob,1,which.max)]
+    
+    return(list(prob=prob,pred=pred))
+  }else {
+    
+    X<-as.matrix(X)
+    X.ts<-as.matrix(X.ts)
+    colnames(X.ts)<-paste("x",1:NCOL(X.ts),sep="")
+    colnames(X)<-colnames(X.ts)
+    d<-cbind(Y,X)
+    names(d)[1]<-"Y"
+  
+    
+    gbmodel<-xgboost(Y~.,data=X,label=Y,nrounds=nrounds,verbose=0)
+    
+   return(predict(gbmodel,X.ts))
+    
+    
+    
+  }
+  
+}
+
 
 
 
