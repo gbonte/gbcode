@@ -1712,7 +1712,7 @@ xgboost.pred<-function(X,Y,X.ts,classi,nrounds=100,...){
     names(d)[1]<-"Y"
   
     
-    gbmodel<-xgboost(Y~.,data=X,label=Y,nrounds=nrounds,verbose=0)
+    gbmodel<-xgboost(Y~.,data=X,label=Y,nrounds=nrounds,verbose=0,...)
     
    return(predict(gbmodel,X.ts))
     
