@@ -858,11 +858,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                      q2=q[select.var]
                      
                      p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
-                                     conPar=CPar,linPar=LPar)
+                                     conPar=CPar,linPar=LPar,cmbPar=10)
                    }
                  }else{
                    p[h]<-lazy.pred(Xw,Yw,q[select.var],
-                                   conPar=CPar,linPar=LPar)
+                                   conPar=CPar,linPar=LPar,cmbPar=10)
                  }
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
@@ -1065,11 +1065,14 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            LPar=c(Kmin,C*Kmin)*length(select.var)
            LPar[1]=min(LPar[1],NROW(X)-1)
            LPar[2]=min(LPar[2],NROW(X))
+           if (NROW(X) <= (7*length(select.var)))
+             LPar=NULL
+           
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
-                                 conPar=CPar,linPar=LPar)
+                                 conPar=CPar,linPar=LPar,cmbPar=10)
              q<-c(piter[h],q[1:(length(q)-1)])
              if (dummy>1)
                q<-c(q,DUM[N+h])
