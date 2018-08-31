@@ -779,7 +779,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
   Y<-M$out
   NX=NROW(X)
   select.var=1:NCOL(X)
-  if (length(select.var)>10 || (length(select.var)>5 && dummy >0 )) {
+  if (length(select.var)>10 || (length(select.var)>5 && dummy >1 )) {
     rfs=numeric(NCOL(X))
     for (j in 1:NCOL(Y)){
       fs=mrmr(X,Y[,j],nmax=min(NCOL(X)-1,5))
@@ -791,7 +791,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
     
   }
   
-  if (dummy<1){
+  if (dummy<2){
     q<-TS[seq(N-D,N-n+1-D,by=-1),1]
   } else {
     q<-c(TS[seq(N-D,N-n+1-D,by=-1),1],DUM[N-D])
