@@ -1072,7 +1072,6 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
-             browser()
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
                                  conPar=CPar,linPar=LPar,cmbPar=10)
              q<-c(piter[h],q[1:(length(q)-1)])
