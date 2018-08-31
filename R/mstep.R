@@ -796,6 +796,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
   } else {
     q<-c(TS[seq(N-D,N-n+1-D,by=-1),1],DUM[N-D])
   }
+  print(dummy)
+  print(q)
   ## TS=[TS(1), TS(2),....., TS(N)]
   ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
   switch(method,
