@@ -790,7 +790,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
     select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:min(5,NCOL(X))]
     
   }
-  
+  print(select.var)
   if (dummy<1){
     q<-TS[seq(N-D,N-n+1-D,by=-1),1]
   } else {
