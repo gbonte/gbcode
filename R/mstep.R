@@ -790,14 +790,13 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
     select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:min(5,NCOL(X))]
     
   }
-  print(select.var)
+  
   if (dummy<1){
     q<-TS[seq(N-D,N-n+1-D,by=-1),1]
   } else {
     q<-c(TS[seq(N-D,N-n+1-D,by=-1),1],DUM[N-D])
   }
-  print(dummy)
-  print(q)
+ 
   ## TS=[TS(1), TS(2),....., TS(N)]
   ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
   switch(method,
@@ -1073,6 +1072,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
+             browser()
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
                                  conPar=CPar,linPar=LPar,cmbPar=10)
              q<-c(piter[h],q[1:(length(q)-1)])
