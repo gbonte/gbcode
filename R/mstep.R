@@ -152,7 +152,7 @@ timefit<-function(TS.tr,n,C,H){
 #' lines(t[(N-H+1):N],Y.cont)
 
 KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
-                           dist="euclidean",C=2,F=0,wta=TRUE,scaleX=FALSE){
+                           dist="euclidean",C=2,F=0,wta=TRUE,scaleX=TRUE){
   
   if (k<=0)
     stop("k must be positive")
