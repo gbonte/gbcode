@@ -791,12 +791,22 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
     
   }
   
+  if (length(select.var)>2){
+    sdX<-apply(X[,select.var],2,sd)
+    ws<-which(sdX<0.01)
+    if (length(ws)>0)
+      select.var<-setdiff(select.var,ws)
+  }
+  if (length(select.var)==1)
+    if (sd(X)<0.01)
+      return(numeric(H)+mean(Y))
+  
   if (dummy<2){
     q<-TS[seq(N-D,N-n+1-D,by=-1),1]
   } else {
     q<-c(TS[seq(N-D,N-n+1-D,by=-1),1],DUM[N-D])
   }
- 
+  
   ## TS=[TS(1), TS(2),....., TS(N)]
   ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
   switch(method,
