@@ -395,7 +395,8 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
     X=scale(X)
     X.ts=scale(X.ts,attr(X,"scaled:center"), attr(X,"scaled:scale"))
     if (any(is.na(X))| any(is.na(X.ts)))
-      stop("NA values")
+      return(mean(Y))
+##      stop("NA values")
   }
   
   if (class){ ## classification

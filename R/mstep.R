@@ -872,6 +872,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                                      conPar=CPar,linPar=LPar,cmbPar=10)
                    }
                  }else{
+                  
                    p[h]<-lazy.pred(Xw,Yw,q[select.var],
                                    conPar=CPar,linPar=LPar,cmbPar=10)
                  }
