@@ -881,6 +881,50 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              }
            } ## for h
          },
+         clazydirect={
+           p<-numeric(H)
+           for (h  in 1:H){
+             wna=which(!is.na(Y[,h]))  
+             if (length(wna)<1){
+               p[h]=0
+               
+             }else{
+               if (length(wna)>9){
+                 Xw=X[wna,select.var]
+                 Yw=array(Y[wna,h],c(length(wna),1))
+                 
+                 CPar=c(Kmin,C*Kmin+1)
+                 CPar[1]=min(CPar[1],NROW(Xw)-1)
+                 CPar[2]=min(CPar[2],NROW(Xw))
+                 
+                 
+                  LPar=NULL
+                 
+                 
+                 vX=1
+                 if (!is.vector(Xw))
+                   vX=apply(Xw,2,sd)
+                 if (any(vX<0.01)){ 
+                   v0=which(vX<0.01)
+                   
+                   if (length(v0)>= length(select.var)){
+                     p[h]=mean(Y[,h],na.rm=TRUE)
+                   } else {
+                     q2=q[select.var]
+                     
+                     p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
+                                     conPar=CPar,linPar=LPar,cmbPar=10)
+                   }
+                 }else{
+                   
+                   p[h]<-lazy.pred(Xw,Yw,q[select.var],
+                                   conPar=CPar,linPar=LPar,cmbPar=10)
+                 }
+               }else
+                 p[h]=mean(Y[,h],na.rm=TRUE)
+             }
+           } ## for h
+         },
          rfdirect={
            p<-numeric(H)
            for (h  in 1:H){
@@ -1079,6 +1123,22 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            LPar[2]=min(LPar[2],NROW(X))
            if (NROW(X) <= (7*length(select.var)))
              LPar=NULL
+           
+           CPar=c(Kmin,C*Kmin)
+           CPar[1]=min(CPar[1],NROW(X)-1)
+           for (h  in 1:H){
+             piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
+                                 conPar=CPar,linPar=LPar,cmbPar=10)
+             q<-c(piter[h],q[1:(length(q)-1)])
+             if (dummy>1)
+               q<-c(q,DUM[N+h])
+           }
+           p<-piter
+         },
+         clazyiter={
+           piter<-numeric(H)
+           
+          LPar=NULL
            
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
