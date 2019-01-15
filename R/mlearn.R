@@ -166,14 +166,14 @@ rf.pred<- function(X,Y,X.ts,class=FALSE,...){
   mod.rf<-randomForest(Y~.,data=d,...)
   d.ts<-data.frame(X.ts)
   names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
-
+  p<-predict(mod.rf,d.ts,type="response")
+  
   if (class){
     P<-predict(mod.rf,d.ts,type="prob")
-    
-    list(pred=p,prob=P)
+    return(list(pred=p,prob=P))
   } else {
     
-    p<-predict(mod.rf,d.ts,type="response")
+    
     return(p)
   }
   
