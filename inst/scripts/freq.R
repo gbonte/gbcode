@@ -6,7 +6,7 @@
 ## and of the absolute difference between the number of heads and tails 
 
 set.seed(1)
-R<-600000
+R<-1000000
 
 tosses<-sample(c("H","T"),R,replace=T)
 
@@ -20,12 +20,13 @@ for (r in seq(1,R,by=5000)){
   gap<-c(gap,abs(lH-lT))
   freq<-c(freq,lH/r)
   trials<-c(trials,r)
-  plot(trials,freq,type="l",ylim=c(0.2,0.6),xlab="Number of trials",
-       ylab="Relative frequency")
-  lines(trials,0.5+numeric(length(freq)))
-  plot(trials,gap,type="l",xlab="Number of trials",
-       ylab="Absolute difference (no. heads and tails)")
-  lines(trials,numeric(length(gap)))
+ 
   
   
 }
+plot(trials,freq,type="l",ylim=c(0.2,0.6),xlab="Number of trials",
+     ylab="Relative frequency")
+lines(trials,0.5+numeric(length(freq)))
+plot(trials,gap,type="l",xlab="Number of trials",
+     ylab="Absolute difference (no. heads and tails)")
+lines(trials,numeric(length(gap)))
