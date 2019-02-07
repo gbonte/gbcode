@@ -6,7 +6,8 @@
 # Script: visualizes the distribution of the estimator
 # of the variance of a non gaussian random variableshows the central limit theorem
 
-
+rm(list=ls())
+graphics.off()
 par(ask=TRUE)
 N<-1
 R<-1000
