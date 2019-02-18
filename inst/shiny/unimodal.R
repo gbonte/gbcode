@@ -12,7 +12,7 @@ library(ellipse)
 BOUND1<-7
 BOUND2<-5
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422"),
+  dashboardHeader(title="InfoF422: unimodal"),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",

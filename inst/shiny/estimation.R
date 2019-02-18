@@ -170,7 +170,8 @@ server<-function(input, output,session) {
       meanD<-c(meanD,mean(rnorm(input$N,input$mean,input$sdev)))
       
     }
-    hist(meanD,xlim=c(-BOUND1,BOUND1))
+    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Th sd=", round(input$sdev/sqrt(input$N),2),
+                                                 "Sample sd=", round(sd(meanD),2)))
     
     
   })
@@ -181,7 +182,7 @@ server<-function(input, output,session) {
       varD<-c(varD,var(rnorm(input$N,input$mean,input$sdev)))
       
     }
-    hist(varD,xlim=c(-BOUND1,BOUND1))
+    hist(varD,xlim=c(-BOUND1,BOUND1),main=paste("Sample mean=", round(mean(sqrt(varD)),2)))
     
     
   })
