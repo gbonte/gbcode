@@ -2,10 +2,10 @@
 ## R package gbcode 
 ## Author: G. Bontempi
 
-# cumdis_2.R
+# cumdis_1.R
 # Script: visualizes the unbiasedness of the empirical distribution function 
 
-library(stepfun)
+
 par(ask=TRUE)
 rm(list=ls())
 N<-1000
