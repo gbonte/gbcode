@@ -55,7 +55,7 @@ ui <- dashboardPage(
                     sliderInput("P1","P1:",min = 0, max = 1 ,value = 0.5),
                     textOutput("textB")),
                 box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("biPlotP"))),
-              fluidRow(   box(width=12,title = "Data",plotOutput("biPlotD")))
+              fluidRow(   box(width=6,title = "Data",plotOutput("biPlotD")))
             
       )
   )

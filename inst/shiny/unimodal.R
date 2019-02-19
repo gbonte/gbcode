@@ -43,11 +43,11 @@ ui <- dashboardPage(
       tabItem(tabName = "Bivariate",
               fluidRow(
                 box(width=4,sliderInput("rot","Rotation:", min = -3.14,max = 3.14, value = 0),
-                    sliderInput("ax1","Axis1:",min = 0,max = BOUND2,value = 2),
-                    sliderInput("ax2","Axis2:", min = 0.1, max = BOUND2, value = 0.5),
+                    sliderInput("ax1","Axis1:",min = 0,max = BOUND2,value = 2,step=0.1),
+                    sliderInput("ax2","Axis2:", min = 0.1, max = BOUND2, value = 0.5,step=0.1),
                     textOutput("textB")),
                 box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("biPlotP"))),
-              fluidRow(   box(width=12,title = "Data",plotOutput("biPlotD")))
+              fluidRow(   box(width=6,title = "Data",plotOutput("biPlotD")))
             
       ),# tabItem
       tabItem(tabName = "Trivariate",
@@ -57,7 +57,7 @@ ui <- dashboardPage(
                   sliderInput("ax31","Axis1:",min = 0.01,max = BOUND2,value = 2),
                   sliderInput("ax32", "Axis2:",  min = 0.01, max = BOUND2,value = 0.5),
                   sliderInput("ax33", "Axis3:", min = 0.01,max = BOUND2,value = 0.5)),
-              fluidRow(   box(width=12,title = "Data",plotOutput("triPlotD")))
+              fluidRow(   box(width=6,title = "Data",plotOutput("triPlotD")))
               
     )
   )
