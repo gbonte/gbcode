@@ -20,7 +20,7 @@ for (i in 1:R){
   F<-ecdf(DN)
   emp<-rbind(emp,F(I))
   m.emp<-apply(emp,2,mean) # average of the empirical function
-  plot(I,m.emp,main=paste("Average of ",i," empirical distributions"))
+  plot(I,m.emp,main=paste("Average of ",i," empirical distributions made with ", N, " samples"))
   lines(I,pnorm(I),pch=15) #  distribution function
   legend(-4,1,legend=c("Empirical","Gaussian"),lty=c(3,1))
   
