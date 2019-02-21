@@ -27,9 +27,9 @@ while (1){
   ## Bayes state update after control action
   for (i in 1:Wx){
     for (j in 1:Wy){
-      Pt=log(P[i,j])
-      Lik=dnorm(x,mean=i,sd=sdX,log=TRUE)+dnorm(y,mean=j,sd=sdX,log=TRUE)
-      P[i,j]=max(zero,exp(Pt+Lik))
+      prev.i=round(max(1,min(i-ux,Wx)))
+      prev.j=round(max(1,min(j-uy,Wy)))
+       P[i,j]=P[prev.i,prev.j]
       
     }
   }
