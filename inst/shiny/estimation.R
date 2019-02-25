@@ -41,7 +41,8 @@ ui <- dashboardPage(
                   max = 0.3,
                   value = 0.15,step=0.01),
       
-      menuItem("Univariate", tabName = "Univariate", icon = icon("th")),
+      menuItem("Univariate point", tabName = "Univariate", icon = icon("th")),
+      menuItem("Univariate interval ", tabName = "UnivariateI", icon = icon("th")),
       menuItem("Likelihood (1 par)", tabName = "Likelihood", icon = icon("th")),
       menuItem("Likelihood (2 pars)", tabName = "Likelihood2", icon = icon("th")),
       menuItem("Bivariate", tabName = "Bivariate", icon = icon("th")),
@@ -62,6 +63,18 @@ ui <- dashboardPage(
               fluidRow(   
                 box(width=5,title = "Sampling Distribution Mean",plotOutput("uniSamplingM", height = 300)),
                 box(width=5,title = "Sampling Distribution Variance",plotOutput("uniSamplingV", height = 300))
+              )
+      ), # tabItem
+      tabItem(tabName = "UnivariateI",
+              fluidRow(
+                box(width=4,sliderInput("meanI","Mean:",min = -BOUND1, max = BOUND1 ,
+                                        value = 0),
+                    sliderInput("sdevI","St Dev:",min = 0.001,max = 2, value = 0.1),
+                    sliderInput("alpha","Alpha:",min = 0.001,max = 1, value = 0.1,step=0.01)),
+                box(width=4,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotI", height = 300))),
+              
+              fluidRow(   
+                box(width=8,title = "Sampling Distribution Interval",plotOutput("uniSamplingI", height = 300))
               )
       ), # tabItem
       tabItem(tabName = "Likelihood",
@@ -192,7 +205,7 @@ server<-function(input, output,session) {
     xaxis=seq(input$mean-BOUND1,input$mean+BOUND1,by=0.01)
     plot(xaxis,dnorm(xaxis,input$mean,input$sdev),
          ylab="density",type="l",lwd=2)
-    
+    points(rnorm(input$N,input$mean,input$sdev),numeric(input$N))
   })
   
   output$uniSamplingM <- renderPlot( {
@@ -215,6 +228,39 @@ server<-function(input, output,session) {
     }
     hist(varD,xlim=c(-BOUND1,BOUND1),main=paste("Sample mean=", round(mean(sqrt(varD)),2)))
     
+    
+  })
+  
+  output$uniPlotI <- renderPlot( {
+    
+    xaxis=seq(input$meanI-BOUND1,input$meanI+BOUND1,by=0.01)
+    plot(xaxis,dnorm(xaxis,input$meanI,input$sdevI),
+         ylab="density",type="l",lwd=2)
+    points(rnorm(input$N,input$meanI,input$sdevI),numeric(input$N))
+    
+  })
+  
+  output$uniSamplingI <- renderPlot( {
+    loI<-NULL
+    upI<-NULL
+    inperc<-0
+    wI<-NULL
+    for (r in 1:input$R){
+      D<-rnorm(input$N,input$meanI,input$sdevI)
+      loID<-mean(D)-qt(1-input$alpha/2,df=input$N-1)*sd(D)/sqrt(input$N) ## Student distribution
+      upID<-mean(D)+qt(1-input$alpha/2,df=input$N-1)*sd(D)/sqrt(input$N)
+      wI<-c(wI,upID-loID)
+      loI<-c(loI,loID)
+      upI<-c(upI,upID)
+      if (loID< input$meanI & upID>input$meanI)
+        inperc<-inperc+1
+    }
+    p1<-hist(loI,freq=FALSE)
+    p2<-hist(upI,freq=FALSE)
+    plot(p1,xlim=c(input$meanI-0.5*input$sdevI,input$meanI+0.5*input$sdevI),
+         main=paste("Percentage internal=",round(100*inperc/input$R,2), 
+                    " Avg width=",round(mean(wI),2) ),col=rgb(0,0,1,1/4),xlab="")
+    plot( p2, col=rgb(1,0,0,1/4), xlim=c(input$meanI-0.5*input$sdevI,input$meanI+0.5*input$sdevI), add=T)
     
   })
   
