@@ -1,5 +1,6 @@
 
 rm(list=ls())
+set.seed(0)
 Wx=50 ## width arena
 Wy=50
 
@@ -7,8 +8,8 @@ Wy=50
 P=array(1/(Wx*Wy),c(Wx,Wy))
 
 S=numeric(4) # Sensors: east, south,west, north
-x=0
-y=0
+x=Wx/2
+y=Wy/2
 
 zero=1e-10
 sdS=4
@@ -16,8 +17,8 @@ sdX=2
 while (1){
   
   # control action
-  ux<-sample(c(-1,0,1),1)
-  uy<-sample(c(-1,0,1),1)
+  ux<-sample(c(-2,-1,0,1,2),1)
+  uy<-sample(c(-2,-1,0,1, 2),1)
   
   
   # update position robot
@@ -65,7 +66,7 @@ while (1){
   image(1:Wx,1:Wy,P, col = grey(seq(0, 1, length = 256)),
         main="Bayes robot state estimation",
         xlab="",ylab="")
-  points(x,y,col="red")
+  points(x,y,col="red",lwd=5)
   Sys.sleep(0.1)
   
   

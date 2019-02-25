@@ -1,5 +1,3 @@
-
-
 library(shinydashboard)
 library(mvtnorm)
 library(scatterplot3d)
@@ -9,7 +7,7 @@ library(plot3D)
 BOUND1<-5
 BOUND2<-2
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: Estimation: Bias-variance analysis"),
+  dashboardHeader(title="InfoF422: Estimation"),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
@@ -26,12 +24,12 @@ ui <- dashboardPage(
                   "3D theta:",
                   min = -60,
                   max = 60,
-                  value = 0,step=5),
+                  value = -30,step=5),
       sliderInput("tdp",
                   "3D phi:",
                   min = 0,
                   max = 90,
-                  value = 75,step=1),
+                  value = 10,step=1),
       sliderInput("dx",
                   "X density:",
                   min = 0.1,
@@ -44,11 +42,13 @@ ui <- dashboardPage(
                   value = 0.15,step=0.01),
       
       menuItem("Univariate", tabName = "Univariate", icon = icon("th")),
+      menuItem("Likelihood (1 par)", tabName = "Likelihood", icon = icon("th")),
+      menuItem("Likelihood (2 pars)", tabName = "Likelihood2", icon = icon("th")),
       menuItem("Bivariate", tabName = "Bivariate", icon = icon("th")),
       menuItem("Linear Regression", tabName = "Linear", icon = icon("th")),
       menuItem("Nonlinear Regression", tabName = "Nonlinear", icon = icon("th"))
-    )
-  ),
+    ) # sidebar Menu
+  ), # dashboard sidebar
   dashboardBody(
     tabItems(
       #
@@ -63,6 +63,37 @@ ui <- dashboardPage(
                 box(width=5,title = "Sampling Distribution Mean",plotOutput("uniSamplingM", height = 300)),
                 box(width=5,title = "Sampling Distribution Variance",plotOutput("uniSamplingV", height = 300))
               )
+      ), # tabItem
+      tabItem(tabName = "Likelihood",
+              fluidRow(
+                box(width=4,sliderInput("meanL","Mean:",min = -BOUND1, max = BOUND1 ,
+                                        value = 0,step=0.01)),
+                box(width=4,sliderInput("varL","Var:",min = 0.5, max = 1,
+                                        value = 0.6,step=0.01)),
+                box(width=4,sliderInput("estimate","Estimate mean:",min = -BOUND1/2, max = BOUND1/2 ,
+                                        value = 0,step=0.01))),
+              #
+              fluidRow(   
+                box(width=6,title = "Data",plotOutput("LikeData", height = 400)),
+                box(width=6,title = "LogLikelihood function",plotOutput("Likelihood", height = 400))
+              )
+      ), # tabItem
+      tabItem(tabName = "Likelihood2",
+               fluidRow(
+                 box(width=4,sliderInput("meanL2","Mean:",min = -BOUND1/2, max = BOUND1/2 ,
+                                         value = 0,step=0.01)),
+                 box(width=4,sliderInput("varL2","Var:",min = 0.15, max = 0.5,
+                                         value = 0.3,step=0.01))),
+                fluidRow(
+                 box(width=4,sliderInput("meanhatL2","Estimate mean:",min = -BOUND1/2, max = BOUND1/2 ,
+                                         value = 0,step=0.01)),
+                 box(width=4,sliderInput("varhatL2","Estimate var:",min = 0.15, max = 0.5 ,
+                                         value = 0.4,step=0.01))),
+               #
+               fluidRow(   
+                 box(width=6,title = "Data",plotOutput("LikeData2", height = 400)),
+                 box(width=6,title = "LogLikelihood function",plotOutput("Likelihood2", height = 400))
+               )
       ), # tabItem
       tabItem(tabName = "Bivariate",
               fluidRow(
@@ -88,7 +119,7 @@ ui <- dashboardPage(
                            sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
                        box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("linearPlotP"))),## fluidRow
               fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("linearBV", height = 300)),
-                 box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("linearCond", height = 300)))
+                          box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("linearCond", height = 300)))
               
       ), ## tabItem
       tabItem(tabName = "Nonlinear",
@@ -102,12 +133,12 @@ ui <- dashboardPage(
                            sliderInput("nrx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
                        box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("nlinearPlotP", height = 400))),## fluidRow
               fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("nlinearBV", height = 300)),
-                box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("nlinearCond", height = 300)))
+                          box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("nlinearCond", height = 300)))
               
-      )
-    )
-  )
-) # ui
+      ) ## tabItem
+    ) ## tabItems
+  )# DashboardBody
+) # ui dashboardPage
 
 D<-NULL ## Univariate dataset
 E<-NULL ## Bivariate eigenvalue matrix
@@ -139,11 +170,11 @@ server<-function(input, output,session) {
       
       return(numeric(N)+mean(Y))
     }
-      for (ord in 1:h){
-        X.tr<-cbind(X.tr,X^ord)
-        X.ts<-cbind(X.ts,Xts^ord)
-      }
-  
+    for (ord in 1:h){
+      X.tr<-cbind(X.tr,X^ord)
+      X.ts<-cbind(X.ts,Xts^ord)
+    }
+    
     p<-h+1
     
     DN<-data.frame(cbind(Y,X.tr))
@@ -188,6 +219,44 @@ server<-function(input, output,session) {
   })
   
   
+  output$LikeData <- renderPlot( {
+    set.seed(0)
+    xaxis=seq(input$meanL-2*BOUND1,input$meanL+2*BOUND1,by=0.01)
+    D<<-rnorm(input$N,input$meanL,sqrt(input$varL))
+    plot(D,D*0,lwd=3,xlim=c(-BOUND1,BOUND1),ylab="")
+    lines(xaxis,xaxis*0)
+    lines(xaxis,dnorm(xaxis,input$estimate,input$varL),lwd=1,col="red")
+    lines(xaxis,dnorm(xaxis,input$meanL,input$varL),lwd=1,col="green")
+    legend(x=median(xaxis),y=-0.5,legend=c("estimate","parameter"), col=c("red","green"),pch="-")
+  })
+  
+  output$Likelihood <- renderPlot( {
+    input$N
+    xaxis=seq(input$meanL-BOUND1/2,input$meanL+BOUND1/2,by=0.01)
+    Lik<-numeric(length(xaxis))
+    logLik<-numeric(length(xaxis))
+    for (j in 1:length(xaxis)){
+      Lik[j]=1
+      logLik[j]=1
+      for (i in 1:length(D)){
+        Lik[j]=Lik[j]*dnorm(D[i],xaxis[j],sqrt(input$varL))
+      logLik[j]=logLik[j]+dnorm(D[i],xaxis[j],sqrt(input$varL),log=TRUE)
+      }
+    }
+    
+    
+    eLik=1
+    elogLik=0
+    for (i in 1:length(D)){
+      eLik=eLik*dnorm(D[i],input$estimate,input$varL)
+      elogLik=elogLik+dnorm(D[i],input$estimate,sqrt(input$varL),log=TRUE)
+    }
+    #plot(xaxis,Lik,type="l")
+    plot(xaxis,logLik,type="l",main=paste("logLik=",round(elogLik,2), "maxlogLik=",round(max(logLik),2)),
+         xlab="estimate")
+    points(input$estimate,elogLik,col="red",lwd=8)
+    points(input$meanL,max(logLik),col="green",lwd=8)
+  })
   
   
   output$biPlotP <- renderPlot({
@@ -311,6 +380,63 @@ server<-function(input, output,session) {
     
     
   })
+  
+  
+  output$LikeData2 <- renderPlot( {
+    set.seed(0)
+    xaxis=seq(input$meanL2-BOUND1,input$meanL2+BOUND1,by=0.01)
+    D<<-rnorm(input$N,input$meanL2,sd=sqrt(input$varL2))
+    plot(D,D*0,lwd=3,xlim=c(-BOUND1,BOUND1),ylab="")
+    lines(xaxis,xaxis*0)
+    lines(xaxis,dnorm(xaxis,input$meanhatL2,sd=sqrt(input$varhatL2)),lwd=1,col="red")
+    lines(xaxis,dnorm(xaxis,input$meanL2,sd=sqrt(input$varL2)),lwd=1,col="green")
+    legend(x=median(xaxis),y=-0.5,legend=c("estimate","parameter"), col=c("red","green"),pch="-")
+  })
+  
+  output$Likelihood2 <- renderPlot( {
+    input$N
+    input$meanL2
+    input$varL2
+    xaxis=seq(-BOUND1/2,BOUND1/2,by=0.05)
+    yaxis=seq(0.15,0.5,by=0.05)
+    
+    logLik<-array(0,c(length(xaxis),length(yaxis)))
+    for (j in 1:length(xaxis)){
+      for (k in 1:length(yaxis)){
+      
+      for (i in 1:length(D)){
+        logLik[j,k]=logLik[j,k]+dnorm(D[i],xaxis[j],sd=sqrt(yaxis[k]),log=TRUE)
+      }
+      }
+    }
+    
+    
+    elogLik=0
+    for (i in 1:length(D)){
+      elogLik=elogLik+dnorm(D[i],input$meanhatL2,sd=sqrt(input$varhatL2),log=TRUE)
+    }
+    
+  
+    
+   
+    op <- par(bg = "white")
+   # browser()
+    surface<-persp(xaxis, yaxis, logLik, 
+                     theta = input$tdt, phi =input$tdp, expand = 0.5, xlim=c(min(xaxis),max(xaxis)),
+                   ylim=c(min(yaxis),max(yaxis)),
+                     main=paste("logLik=",round(elogLik,2), "maxlogLik=",round(max(logLik),2)))
+    
+    points (trans3d(x=input$meanhatL2, 
+                   y = input$varhatL2, z = elogLik, pmat = surface), col = "red",lwd=8)
+    points (trans3d(x=input$meanL2, 
+                    y = input$varL2, z = max(c(logLik)), pmat = surface), col = "green",lwd=8)
+   # lines (trans3d(y=input$varhatL2, 
+    #               x = seq(-BOUND2, BOUND2, by= .2), z =elogLik, pmat = surface), col = "green",lwd=1)
+    #plot(xaxis,logLik,type="l",main=paste("logLik=",round(elogLik,2)))
+    #abline(v=input$meanhatL2,col="red")
+    
+  })
+  
   
   output$linearBV <- renderPlot( {
     
