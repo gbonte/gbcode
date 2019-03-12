@@ -1,7 +1,7 @@
 
 
 library(shinydashboard)
-library(mvtnorm)
+#library(mvtnorm)
 library(scatterplot3d)
 library(ellipse)
 library(plot3D)
