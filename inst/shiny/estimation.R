@@ -41,11 +41,12 @@ ui <- dashboardPage(
                   max = 0.3,
                   value = 0.15,step=0.01),
       
-      menuItem("Univariate point", tabName = "Univariate", icon = icon("th")),
-      menuItem("Univariate interval ", tabName = "UnivariateI", icon = icon("th")),
+      menuItem("1D point estimation (Gaussian)", tabName = "Univariate", icon = icon("th")),
+      menuItem("1D point estimation (Uniform)", tabName = "UUnivariate", icon = icon("th")),
+      menuItem("1D confidence interval ", tabName = "UnivariateI", icon = icon("th")),
       menuItem("Likelihood (1 par)", tabName = "Likelihood", icon = icon("th")),
       menuItem("Likelihood (2 pars)", tabName = "Likelihood2", icon = icon("th")),
-      menuItem("Bivariate", tabName = "Bivariate", icon = icon("th")),
+      menuItem("2D point estimation (Gaussian)", tabName = "Bivariate", icon = icon("th")),
       menuItem("Linear Regression", tabName = "Linear", icon = icon("th")),
       menuItem("Nonlinear Regression", tabName = "Nonlinear", icon = icon("th"))
     ) # sidebar Menu
@@ -65,16 +66,30 @@ ui <- dashboardPage(
                 box(width=5,title = "Sampling Distribution Variance",plotOutput("uniSamplingV", height = 300))
               )
       ), # tabItem
+      tabItem(tabName = "UUnivariate",
+              fluidRow(
+                box(width=4,sliderInput("bound","Uniform:",min = -BOUND1, max = BOUND1 ,
+                                        value = c(-0.5,0.5),step=0.05),
+                    uiOutput('Uinfo')
+                ),
+                box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("UuniPlotP", height = 300))),
+              
+              fluidRow(   
+                box(width=5,title = "Estimator Mean: Sampling Distribution ",plotOutput("UuniSamplingM", height = 300)),
+                box(width=5,title = "Estimator Variance: Sampling Distribution ",plotOutput("UuniSamplingV", height = 300))
+              )
+      ), # tabItem
+      ##
       tabItem(tabName = "UnivariateI",
               fluidRow(
                 box(width=4,sliderInput("meanI","Mean:",min = -BOUND1, max = BOUND1 ,
                                         value = 0),
                     sliderInput("sdevI","St Dev:",min = 0.001,max = 2, value = 0.1),
-                    sliderInput("alpha","Alpha:",min = 0.001,max = 1, value = 0.1,step=0.01)),
+                    sliderInput("alpha","Alpha:",min = 0.001,max = 0.5, value = 0.1,step=0.001)),
                 box(width=4,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotI", height = 300))),
               
               fluidRow(   
-                box(width=8,title = "Sampling Distribution Interval",plotOutput("uniSamplingI", height = 300))
+                box(width=8,title = "Sampling Distribution Interval",plotOutput("uniSamplingI", height = 500))
               )
       ), # tabItem
       tabItem(tabName = "Likelihood",
@@ -92,21 +107,21 @@ ui <- dashboardPage(
               )
       ), # tabItem
       tabItem(tabName = "Likelihood2",
-               fluidRow(
-                 box(width=4,sliderInput("meanL2","Mean:",min = -BOUND1/2, max = BOUND1/2 ,
-                                         value = 0,step=0.01)),
-                 box(width=4,sliderInput("varL2","Var:",min = 0.15, max = 0.5,
-                                         value = 0.3,step=0.01))),
-                fluidRow(
-                 box(width=4,sliderInput("meanhatL2","Estimate mean:",min = -BOUND1/2, max = BOUND1/2 ,
-                                         value = 0,step=0.01)),
-                 box(width=4,sliderInput("varhatL2","Estimate var:",min = 0.15, max = 0.5 ,
-                                         value = 0.4,step=0.01))),
-               #
-               fluidRow(   
-                 box(width=6,title = "Data",plotOutput("LikeData2", height = 400)),
-                 box(width=6,title = "LogLikelihood function",plotOutput("Likelihood2", height = 400))
-               )
+              fluidRow(
+                box(width=4,sliderInput("meanL2","Mean:",min = -BOUND1/2, max = BOUND1/2 ,
+                                        value = 0,step=0.01)),
+                box(width=4,sliderInput("varL2","Var:",min = 0.15, max = 0.5,
+                                        value = 0.3,step=0.01))),
+              fluidRow(
+                box(width=4,sliderInput("meanhatL2","Estimate mean:",min = -BOUND1/2, max = BOUND1/2 ,
+                                        value = 0,step=0.01)),
+                box(width=4,sliderInput("varhatL2","Estimate var:",min = 0.15, max = 0.5 ,
+                                        value = 0.4,step=0.01))),
+              #
+              fluidRow(   
+                box(width=6,title = "Data",plotOutput("LikeData2", height = 400)),
+                box(width=6,title = "LogLikelihood function",plotOutput("Likelihood2", height = 400))
+              )
       ), # tabItem
       tabItem(tabName = "Bivariate",
               fluidRow(
@@ -117,8 +132,8 @@ ui <- dashboardPage(
                 ),
                 box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("biPlotP", height = 300))),
               fluidRow(   
-                box(width=5,title = "Sampling Distribution Mean",plotOutput("biSamplingM"), height = 300),
-                box(width=5,title = "Sampling Distribution Covariance",plotOutput("biSamplingV", height = 300))
+                box(width=5,title = "Sampling Distribution Mean",plotOutput("biSamplingM"), height = 500),
+                box(width=5,title = "Sampling Distribution Covariance",plotOutput("biSamplingV", height = 500))
               )
       ), ## tabItem
       tabItem(tabName = "Linear",
@@ -127,22 +142,23 @@ ui <- dashboardPage(
                                        value = 0,step=0.1),
                            sliderInput("m","Slope:", min = -3,max = 3, 
                                        value = 1,step=0.1),
-                           sliderInput("sdw","Cond sdev:", min = 0.1,max = 1.5, 
+                           sliderInput("vdw","Cond var:", min = 0.1,max = 1.5, 
                                        value = 0.2,step=0.1),
                            sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
                        box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("linearPlotP"))),## fluidRow
               fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("linearBV", height = 300)),
-                          box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("linearCond", height = 300)))
+                          box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("linearCond", height = 300))),## fluidRow
+              fluidRow(   box(width=12,collapsible = TRUE,title = "Sampling distribution parameters",plotOutput("linearPar", height = 300)))
               
       ), ## tabItem
       tabItem(tabName = "Nonlinear",
               fluidRow(box(width=4,collapsible = TRUE,
-                           sliderInput("ord","Function:", min = -2,max = 10, 
+                           sliderInput("ord","Target Function:", min = -3,max = 10, 
                                        value = 1,step=1),
-                           sliderInput("h","Learner:", min = 0,max = 10, 
+                           sliderInput("h","Degree polynomial hypothesis:", min = 0,max = 10, 
                                        value = 1,step=1),
-                           sliderInput("nsdw","Cond sdev:", min = 0.1,max = 2, 
-                                       value = 0.25,step=0.1),
+                           sliderInput("nvdw","Cond var:", min = 0.1,max = 1, 
+                                       value = 0.25,step=0.01),
                            sliderInput("nrx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
                        box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("nlinearPlotP", height = 400))),## fluidRow
               fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("nlinearBV", height = 300)),
@@ -166,6 +182,8 @@ server<-function(input, output,session) {
       f<-sin(x)
     if (ord==-2)
       f<-cos(2*x)
+    if (ord==-3)
+      f<-cos(5*x)
     if (ord>=1)
       for (o in 1:ord)
         f<-f+x^o
@@ -257,14 +275,65 @@ server<-function(input, output,session) {
     }
     p1<-hist(loI,freq=FALSE)
     p2<-hist(upI,freq=FALSE)
-    plot(p1,xlim=c(input$meanI-0.5*input$sdevI,input$meanI+0.5*input$sdevI),
+    par(mfrow=c(1,2)) 
+    plot(p1,xlim=c(input$meanI-input$sdevI,input$meanI+input$sdevI),
          main=paste("Percentage internal=",round(100*inperc/input$R,2), 
                     " Avg width=",round(mean(wI),2) ),col=rgb(0,0,1,1/4),xlab="")
     plot( p2, col=rgb(1,0,0,1/4), xlim=c(input$meanI-0.5*input$sdevI,input$meanI+0.5*input$sdevI), add=T)
     
+    plot(seq(loI[1],upI[1],by=0.01),0*seq(loI[1],upI[1],by=0.01),
+         main=paste("# intervals not containing (red)=",input$R-inperc),
+         xlim=c(input$meanI-input$sdevI,input$meanI+input$sdevI),
+         ylim=c(-0.1,1),type="l",
+         xlab="conf intervals",ylab="", yaxt='n')
+    for (r in 2:input$R){
+      if (loI[r]< input$meanI & upI[r]>input$meanI)
+        lines(seq(loI[r],upI[r],by=0.01),1/input$R*(r+0*seq(loI[r],upI[r],by=0.01)))
+      else
+        lines(seq(loI[r],upI[r],by=0.01),1/input$R*(r+0*seq(loI[r],upI[r],by=0.01)),col="red")
+        
+    }
+    abline(v=input$meanI,col="red")
   })
   
+  output$UuniPlotP <- renderPlot( {
+    
+    xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
+    plot(xaxis,dunif(xaxis,input$bound[1],input$bound[2]),
+         ylab="density",type="l",lwd=2)
+    DN<-runif(input$N,input$bound[1],input$bound[2])
+    points(DN,0*DN)
+    
+  })
   
+  output$UuniSamplingM <- renderPlot( {
+    meanD<-NULL
+    for (r in 1:input$R){
+      meanD<-c(meanD,mean(runif(input$N,input$bound[1],input$bound[2])))
+      
+    }
+    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Avg=",round(mean(meanD),2),
+                                                 "Var=",round(var(meanD),5) ))
+    
+    
+  })
+  
+  output$UuniSamplingV <- renderPlot( {
+    varD<-NULL
+    for (r in 1:input$R){
+      varD<-c(varD,var(runif(input$N,input$bound[1],input$bound[2])))
+      
+    }
+    hist(varD,xlim=c(0,2*BOUND1),main=paste("Avg=",round(mean((varD)),3)))
+    
+    
+  })
+  
+  output$Uinfo<- renderUI({
+    withMathJax(sprintf('$$\\mu= %.04f,  \\sigma^2= %.04f$$ \n $$\\frac{\\sigma^2}{N}= %.04f $$',mean(input$bound), (1/12*(input$bound[2]-input$bound[1])^2),
+                        (1/12*(input$bound[2]-input$bound[1])^2)/input$N))
+    
+  })
   output$LikeData <- renderPlot( {
     set.seed(0)
     xaxis=seq(input$meanL-2*BOUND1,input$meanL+2*BOUND1,by=0.01)
@@ -286,7 +355,7 @@ server<-function(input, output,session) {
       logLik[j]=1
       for (i in 1:length(D)){
         Lik[j]=Lik[j]*dnorm(D[i],xaxis[j],sqrt(input$varL))
-      logLik[j]=logLik[j]+dnorm(D[i],xaxis[j],sqrt(input$varL),log=TRUE)
+        logLik[j]=logLik[j]+dnorm(D[i],xaxis[j],sqrt(input$varL),log=TRUE)
       }
     }
     
@@ -361,7 +430,7 @@ server<-function(input, output,session) {
       
     }
     
-    plot(allmeanD[,1],allmeanD[,2],xlim=c(-BOUND1/2,BOUND1/2), ylim=c(-BOUND1/2,BOUND1/2))
+    plot(allmeanD[,1],allmeanD[,2],xlim=c(-BOUND1/2,BOUND1/2), ylim=c(-BOUND1/2,BOUND1/2),xlab="x",ylab="y")
     lines(ellipse(cov(allmeanD)))
     
     
@@ -413,7 +482,7 @@ server<-function(input, output,session) {
     
     for (i in 1:length(x)){
       for (j in 1:length(y)){
-        z[i,j]<-dnorm(y[j],mean=muy[i],sd=input$sdw)
+        z[i,j]<-dnorm(y[j],mean=muy[i],sd=sqrt(input$vdw))
       }
     }
     z[is.na(z)] <- 1
@@ -449,10 +518,10 @@ server<-function(input, output,session) {
     logLik<-array(0,c(length(xaxis),length(yaxis)))
     for (j in 1:length(xaxis)){
       for (k in 1:length(yaxis)){
-      
-      for (i in 1:length(D)){
-        logLik[j,k]=logLik[j,k]+dnorm(D[i],xaxis[j],sd=sqrt(yaxis[k]),log=TRUE)
-      }
+        
+        for (i in 1:length(D)){
+          logLik[j,k]=logLik[j,k]+dnorm(D[i],xaxis[j],sd=sqrt(yaxis[k]),log=TRUE)
+        }
       }
     }
     
@@ -462,21 +531,21 @@ server<-function(input, output,session) {
       elogLik=elogLik+dnorm(D[i],input$meanhatL2,sd=sqrt(input$varhatL2),log=TRUE)
     }
     
-  
     
-   
+    
+    
     op <- par(bg = "white")
-   # browser()
+    # browser()
     surface<-persp(xaxis, yaxis, logLik, 
-                     theta = input$tdt, phi =input$tdp, expand = 0.5, xlim=c(min(xaxis),max(xaxis)),
+                   theta = input$tdt, phi =input$tdp, expand = 0.5, xlim=c(min(xaxis),max(xaxis)),
                    ylim=c(min(yaxis),max(yaxis)),
-                     main=paste("logLik=",round(elogLik,2), "maxlogLik=",round(max(logLik),2)))
+                   main=paste("logLik=",round(elogLik,2), "maxlogLik=",round(max(logLik),2)))
     
     points (trans3d(x=input$meanhatL2, 
-                   y = input$varhatL2, z = elogLik, pmat = surface), col = "red",lwd=8)
+                    y = input$varhatL2, z = elogLik, pmat = surface), col = "red",lwd=8)
     points (trans3d(x=input$meanL2, 
                     y = input$varL2, z = max(c(logLik)), pmat = surface), col = "green",lwd=8)
-   # lines (trans3d(y=input$varhatL2, 
+    # lines (trans3d(y=input$varhatL2, 
     #               x = seq(-BOUND2, BOUND2, by= .2), z =elogLik, pmat = surface), col = "green",lwd=1)
     #plot(xaxis,logLik,type="l",main=paste("logLik=",round(elogLik,2)))
     #abline(v=input$meanhatL2,col="red")
@@ -494,13 +563,14 @@ server<-function(input, output,session) {
     beta.hat.1<-numeric(input$R)
     beta.hat.0<-numeric(input$R)
     var.hat.w<-numeric(input$R)
-    plot(X,muy,xlim=c(-BOUND2,BOUND2),ylim=c(-BOUND2,BOUND2),lwd=3)
+    plot(X,muy,xlim=c(-BOUND2,BOUND2),ylim=c(-BOUND2,BOUND2),
+         lwd=3,xlab="x",main=paste("E[y|x]=",round(input$q+input$m*input$rx,2)))
     for (r in 1:input$R){
       X.tr<-rnorm(input$N)
       x.hat<-mean(X.tr)
       S.xx<-sum((X.tr-x.hat)^2)
       muy.tr=input$q+input$m*X.tr
-      Y=muy.tr+rnorm(input$N,sd=input$sdw)
+      Y=muy.tr+rnorm(input$N,sd=sqrt(input$vdw))
       
       y.hat<-mean(Y)
       S.xy<-sum((X.tr-x.hat)*Y)
@@ -509,7 +579,7 @@ server<-function(input, output,session) {
       beta.hat.0[r]<-y.hat-beta.hat.1[r]*x.hat
       
       Y.hat[r,]<-beta.hat.0[r]+beta.hat.1[r]*X
-      var.hat.w[r]<-sum((Y-Y.hat[r,])^2)/(input$N-2)
+      
       lines(X,Y.hat[r,],xlim=c(-BOUND2,BOUND2),ylim=c(-BOUND2,BOUND2))
     }
     
@@ -517,6 +587,42 @@ server<-function(input, output,session) {
     abline(v=input$rx,  col = "red",lwd=3)
     
   })
+  
+  
+  output$linearPar <- renderPlot( {
+    X=seq(-BOUND2, BOUND2,length.out=input$N)
+    muy=input$q+input$m*X
+    
+     
+    beta.hat.1<<-numeric(input$R)
+    beta.hat.0<<-numeric(input$R)
+    var.hat.w<-numeric(input$R)
+    for (r in 1:input$R){
+      X.tr<-rnorm(input$N)
+      x.hat<-mean(X.tr)
+      S.xx<-sum((X.tr-x.hat)^2)
+      muy.tr=input$q+input$m*X.tr
+      Y=muy.tr+rnorm(input$N,sd=sqrt(input$vdw))
+      
+      y.hat<-mean(Y)
+      S.xy<-sum((X.tr-x.hat)*Y)
+      
+      beta.hat.1[r]<-S.xy/S.xx
+      beta.hat.0[r]<-y.hat-beta.hat.1[r]*x.hat
+      
+      Y.hat<-beta.hat.0[r]+beta.hat.1[r]*X.tr
+      var.hat.w[r]<-sum((Y-Y.hat)^2)/(input$N-2)
+    }
+    
+   
+    par(mfrow=c(1,3)) 
+    hist(beta.hat.0,freq=FALSE,main=paste("Avg=",round(mean(beta.hat.0),2)),xlab="Intercept estimate")
+    hist(beta.hat.1,freq=FALSE,main=paste("Avg=",round(mean(beta.hat.1),2)),xlab="Slope estimate")
+    hist(var.hat.w,freq=FALSE,main=paste("Avg=",round(mean(var.hat.w),2)),xlab="Variance estimate")
+    
+    
+  })
+  
   
   output$linearCond <- renderPlot( {
     X=seq(-BOUND2, BOUND2,length.out=input$N)
@@ -530,7 +636,7 @@ server<-function(input, output,session) {
     var.hat.w<-numeric(input$R)
     
     for (r in 1:input$R){
-      Y=muy+rnorm(input$N,sd=input$sdw)
+      Y=muy+rnorm(input$N,sd=sqrt(input$vdw))
       
       y.hat<-mean(Y)
       S.xy<-sum((X-x.hat)*Y)
@@ -542,7 +648,7 @@ server<-function(input, output,session) {
       var.hat.w[r]<-sum((Y-Y.hat[r,])^2)/(input$N-2)
       
     }
-    hist(Y.hat)
+    hist(Y.hat,freq=FALSE,xlab="Y estimation",main=paste("Avg=",round(mean(Y.hat),2)))
     abline(v=input$q+input$m*input$rx,col="lightblue")
   })
   
@@ -562,7 +668,7 @@ server<-function(input, output,session) {
     
     for (i in 1:length(x)){
       for (j in 1:length(y)){
-        z[i,j]<-dnorm(y[j],mean=muy[i],sd=input$nsdw)
+        z[i,j]<-dnorm(y[j],mean=muy[i],sd=sqrt(input$nvdw))
       }
     }
     z[is.na(z)] <- 1
@@ -591,7 +697,7 @@ server<-function(input, output,session) {
     for (r in 1:input$R){
       Xtr=rnorm(input$N)
       muy.tr=f(Xtr,input$ord)
-      Y=muy.tr+rnorm(input$N,sd=input$nsdw)
+      Y=muy.tr+rnorm(input$N,sd=sqrt(input$nvdw))
       
       Y.hat[r,]<-hyp(Xtr,Y,X,input$h)
       E.hat[r,]=muy-Y.hat[r,]
@@ -608,8 +714,8 @@ server<-function(input, output,session) {
     
     bvtitle=paste("Bias^2=", round(avg.bias2,2), "Var=", round(avg.var,2), "MSE=", round(avg.mse,2) )
     title(bvtitle)
-    lines(X,muy,lwd=2,col="blue")
-    lines(X,meanY.hat,lwd=2,col="green")
+    lines(X,muy,lwd=4,col="blue")
+    lines(X,meanY.hat,lwd=4,col="green")
     abline(v=input$nrx,  col = "red",lwd=1)
     
   })
@@ -620,7 +726,7 @@ server<-function(input, output,session) {
     for (r in 1:input$R){
       Xtr=rnorm(input$N)
       muy.tr=f(Xtr,input$ord)
-      Y=muy.tr+rnorm(input$N,sd=input$nsdw)
+      Y=muy.tr+rnorm(input$N,sd=sqrt(input$nvdw))
       
       Y.hat[r]<-hyp(Xtr,Y,input$nrx,input$h)
       
