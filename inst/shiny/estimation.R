@@ -11,7 +11,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
-                  "Number of samples:",
+                  "Number of samples N:",
                   min = 2,
                   max = 200,
                   value = 50,step=2),
@@ -56,9 +56,10 @@ ui <- dashboardPage(
       #
       tabItem(tabName = "Univariate",
               fluidRow(
-                box(width=4,sliderInput("mean","Mean:",min = -BOUND1, max = BOUND1 ,
+                box(width=4,sliderInput("mean",withMathJax(sprintf('$$\\mu:$$')),min = -BOUND1, max = BOUND1 ,
                                         value = 0),
-                    sliderInput("sdev","St Dev:",min = 0.001,max = 2, value = 0.1)),
+                    sliderInput("var",withMathJax(sprintf('$$\\sigma^2:$$')),min = 0.1,max = 2, value = 1),
+                    uiOutput('Uinfo')),
                 box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotP", height = 300))),
               
               fluidRow(   
@@ -70,7 +71,7 @@ ui <- dashboardPage(
               fluidRow(
                 box(width=4,sliderInput("bound","Uniform:",min = -BOUND1, max = BOUND1 ,
                                         value = c(-0.5,0.5),step=0.05),
-                    uiOutput('Uinfo')
+                    uiOutput('UUinfo')
                 ),
                 box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("UuniPlotP", height = 300))),
               
@@ -94,11 +95,11 @@ ui <- dashboardPage(
       ), # tabItem
       tabItem(tabName = "Likelihood",
               fluidRow(
-                box(width=4,sliderInput("meanL","Mean:",min = -BOUND1, max = BOUND1 ,
+                box(width=4,sliderInput("meanL",withMathJax(sprintf('$$\\mu:$$')),min = -BOUND1, max = BOUND1 ,
                                         value = 0,step=0.01)),
-                box(width=4,sliderInput("varL","Var:",min = 0.5, max = 1,
+                box(width=4,sliderInput("varL",withMathJax(sprintf('$$\\sigma^2:$$')),min = 0.5, max = 1,
                                         value = 0.6,step=0.01)),
-                box(width=4,sliderInput("estimate","Estimate mean:",min = -BOUND1/2, max = BOUND1/2 ,
+                box(width=4,sliderInput("estimate",withMathJax(sprintf('$$\\hat{\\mu}:$$')),min = -BOUND1/2, max = BOUND1/2 ,
                                         value = 0,step=0.01))),
               #
               fluidRow(   
@@ -108,14 +109,14 @@ ui <- dashboardPage(
       ), # tabItem
       tabItem(tabName = "Likelihood2",
               fluidRow(
-                box(width=4,sliderInput("meanL2","Mean:",min = -BOUND1/2, max = BOUND1/2 ,
+                box(width=4,sliderInput("meanL2",withMathJax(sprintf('$$\\mu:$$')),min = -BOUND1/2, max = BOUND1/2 ,
                                         value = 0,step=0.01)),
-                box(width=4,sliderInput("varL2","Var:",min = 0.15, max = 0.5,
+                box(width=4,sliderInput("varL2",withMathJax(sprintf('$$\\sigma^2:$$')),min = 0.15, max = 0.5,
                                         value = 0.3,step=0.01))),
               fluidRow(
-                box(width=4,sliderInput("meanhatL2","Estimate mean:",min = -BOUND1/2, max = BOUND1/2 ,
+                box(width=4,sliderInput("meanhatL2",withMathJax(sprintf('$$\\hat{\\mu}:$$')),min = -BOUND1/2, max = BOUND1/2 ,
                                         value = 0,step=0.01)),
-                box(width=4,sliderInput("varhatL2","Estimate var:",min = 0.15, max = 0.5 ,
+                box(width=4,sliderInput("varhatL2",withMathJax(sprintf('$$\\hat{\\sigma}^2:$$')),min = 0.15, max = 0.5 ,
                                         value = 0.4,step=0.01))),
               #
               fluidRow(   
@@ -138,11 +139,11 @@ ui <- dashboardPage(
       ), ## tabItem
       tabItem(tabName = "Linear",
               fluidRow(box(width=4,collapsible = TRUE,
-                           sliderInput("q","Intercept:", min = -0.5,max = 0.5, 
-                                       value = 0,step=0.1),
-                           sliderInput("m","Slope:", min = -3,max = 3, 
-                                       value = 1,step=0.1),
-                           sliderInput("vdw","Cond var:", min = 0.1,max = 1.5, 
+                           sliderInput("q",withMathJax(sprintf('$$\\beta_0:$$')), min = -0.5,max = 0.5, 
+                                       value = 0,step=0.01),
+                           sliderInput("m",withMathJax(sprintf('$$\\beta_1:$$')), min = -BOUND2/2,max = BOUND2/2, 
+                                       value = 1,step=0.01),
+                           sliderInput("vdw",withMathJax(sprintf('$$\\sigma^2_w:$$')), min = 0.1,max = BOUND2, 
                                        value = 0.2,step=0.1),
                            sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
                        box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("linearPlotP"))),## fluidRow
@@ -157,7 +158,7 @@ ui <- dashboardPage(
                                        value = 1,step=1),
                            sliderInput("h","Degree polynomial hypothesis:", min = 0,max = 10, 
                                        value = 1,step=1),
-                           sliderInput("nvdw","Cond var:", min = 0.1,max = 1, 
+                           sliderInput("nvdw",withMathJax(sprintf('$$\\sigma^2_w:$$')), min = 0.1,max = 1, 
                                        value = 0.25,step=0.01),
                            sliderInput("nrx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
                        box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("nlinearPlotP", height = 400))),## fluidRow
@@ -221,33 +222,42 @@ server<-function(input, output,session) {
   output$uniPlotP <- renderPlot( {
     
     xaxis=seq(input$mean-BOUND1,input$mean+BOUND1,by=0.01)
-    plot(xaxis,dnorm(xaxis,input$mean,input$sdev),
-         ylab="density",type="l",lwd=2)
-    points(rnorm(input$N,input$mean,input$sdev),numeric(input$N))
+    plot(xaxis,dnorm(xaxis,input$mean,sqrt(input$var)),
+         ylab="density",type="l",lwd=2,xlab="z")
+    points(rnorm(input$N,input$mean,sqrt(input$var)),numeric(input$N))
   })
   
   output$uniSamplingM <- renderPlot( {
     meanD<-NULL
     for (r in 1:input$R){
-      meanD<-c(meanD,mean(rnorm(input$N,input$mean,input$sdev)))
+      meanD<-c(meanD,mean(rnorm(input$N,input$mean,sqrt(input$var))))
       
     }
-    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Th sd=", round(input$sdev/sqrt(input$N),2),
-                                                 "Sample sd=", round(sd(meanD),2)))
-    
+    hist(meanD,xlim=c(-BOUND1,BOUND1),
+         main=TeX(sprintf("$E\\[\\hat{\\mu}\\] = %.02f ; Var\\[\\hat{\\mu}\\] = %.02f$ ", mean(meanD), var(meanD))))
+    abline(v=input$mean,col="green",lwd=3)
     
   })
   
   output$uniSamplingV <- renderPlot( {
     varD<-NULL
     for (r in 1:input$R){
-      varD<-c(varD,var(rnorm(input$N,input$mean,input$sdev)))
+      varD<-c(varD,var(rnorm(input$N,input$mean,sqrt(input$var))))
       
     }
-    hist(varD,xlim=c(-BOUND1,BOUND1),main=paste("Sample mean=", round(mean(sqrt(varD)),2)))
+    hist(varD,xlim=c(-BOUND1,BOUND1),main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\] = %.02f$ ", mean(varD))))
+    abline(v=input$var,col="green",lwd=3)
+  
     
     
   })
+  
+  output$Uinfo<- renderUI({
+    withMathJax(sprintf('$$\\frac{\\sigma^2}{N}= %.04f $$',
+                        (input$var/input$N)))
+    
+  })
+  
   
   output$uniPlotI <- renderPlot( {
     
@@ -257,6 +267,8 @@ server<-function(input, output,session) {
     points(rnorm(input$N,input$meanI,input$sdevI),numeric(input$N))
     
   })
+  
+ 
   
   output$uniSamplingI <- renderPlot( {
     loI<-NULL
@@ -300,7 +312,7 @@ server<-function(input, output,session) {
     
     xaxis=seq(input$mean-2*BOUND1,input$mean+2*BOUND1,by=0.01)
     plot(xaxis,dunif(xaxis,input$bound[1],input$bound[2]),
-         ylab="density",type="l",lwd=2)
+         ylab="density",type="l",lwd=2,xlab="z")
     DN<-runif(input$N,input$bound[1],input$bound[2])
     points(DN,0*DN)
     
@@ -312,8 +324,10 @@ server<-function(input, output,session) {
       meanD<-c(meanD,mean(runif(input$N,input$bound[1],input$bound[2])))
       
     }
-    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Avg=",round(mean(meanD),2),
-                                                 "Var=",round(var(meanD),5) ))
+    hist(meanD,xlim=c(-BOUND1,BOUND1),
+         main=TeX(sprintf("$E\\[\\hat{\\mu}\\] = %.02f ; Var\\[\\hat{\\mu}\\] = %.03f$ ", mean(meanD), var(meanD))))
+    abline(v=mean(c(input$bound[1],input$bound[2])),col="green",lwd=3)
+    
     
     
   })
@@ -324,12 +338,15 @@ server<-function(input, output,session) {
       varD<-c(varD,var(runif(input$N,input$bound[1],input$bound[2])))
       
     }
-    hist(varD,xlim=c(0,2*BOUND1),main=paste("Avg=",round(mean((varD)),3)))
+    hist(varD,xlim=c(-BOUND1,BOUND1),main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\] = %.02f$ ", mean(varD))))
+    abline(v=(1/12*(input$bound[2]-input$bound[1])^2),col="green",lwd=3)
     
+   
     
   })
   
-  output$Uinfo<- renderUI({
+  
+  output$UUinfo<- renderUI({
     withMathJax(sprintf('$$\\mu= %.04f,  \\sigma^2= %.04f$$ \n $$\\frac{\\sigma^2}{N}= %.04f $$',mean(input$bound), (1/12*(input$bound[2]-input$bound[1])^2),
                         (1/12*(input$bound[2]-input$bound[1])^2)/input$N))
     
@@ -616,10 +633,18 @@ server<-function(input, output,session) {
     
    
     par(mfrow=c(1,3)) 
-    hist(beta.hat.0,freq=FALSE,main=paste("Avg=",round(mean(beta.hat.0),2)),xlab="Intercept estimate")
-    hist(beta.hat.1,freq=FALSE,main=paste("Avg=",round(mean(beta.hat.1),2)),xlab="Slope estimate")
-    hist(var.hat.w,freq=FALSE,main=paste("Avg=",round(mean(var.hat.w),2)),xlab="Variance estimate")
-    
+    hist(beta.hat.0,freq=FALSE,
+         main=TeX(sprintf("$E\\[\\hat{\\beta}_0\\]$=%.2f",mean(beta.hat.0))),
+                    xlab=TeX(sprintf("$\\hat{\\beta}_0$")),xlim=c(-BOUND2,BOUND2))
+    abline(v=input$q,col="green",lwd=3)
+    hist(beta.hat.1,freq=FALSE,
+         main=TeX(sprintf("$E\\[\\hat{\\beta}_1\\]$=%.2f",mean(beta.hat.1))),
+         xlab=TeX(sprintf("$\\hat{\\beta}_1$")),xlim=c(-BOUND2,BOUND2))
+    abline(v=input$m,col="green",lwd=3)
+    hist(var.hat.w,freq=FALSE,
+         main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\]$=%.2f",mean(var.hat.w))),
+         xlab=TeX(sprintf("$\\hat{\\sigma}^2$")),xlim=c(0,BOUND2))
+    abline(v=input$vdw,col="green",lwd=3)
     
   })
   
@@ -648,8 +673,9 @@ server<-function(input, output,session) {
       var.hat.w[r]<-sum((Y-Y.hat[r,])^2)/(input$N-2)
       
     }
-    hist(Y.hat,freq=FALSE,xlab="Y estimation",main=paste("Avg=",round(mean(Y.hat),2)))
-    abline(v=input$q+input$m*input$rx,col="lightblue")
+    hist(Y.hat,freq=FALSE,xlab=TeX(sprintf("$\\hat{y}$")),
+         main=TeX(sprintf("$E\\[\\hat{y} | x \\]$= %.02f",mean(Y.hat))),xlim=c(-BOUND2,BOUND2))
+    abline(v=input$q+input$m*input$rx,col="green",lwd=3)
   })
   
   output$nlinearPlotP <- renderPlot({
