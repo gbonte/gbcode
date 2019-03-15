@@ -7,7 +7,7 @@ library(plot3D)
 BOUND1<-5
 BOUND2<-2
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: Boostrap"),
+  dashboardHeader(title="InfoF422: Boostrap", titleWidth = 500),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
@@ -33,9 +33,9 @@ ui <- dashboardPage(
       #
       tabItem(tabName = "Univariate",
               fluidRow(
-                box(width=4,sliderInput("mean","Mean:",min = -BOUND1, max = BOUND1 ,
+                box(width=4,sliderInput("mean",withMathJax(sprintf('$$\\mu:$$')),min = -BOUND1, max = BOUND1 ,
                                         value = 0),
-                    sliderInput("var","Var:",min = 0.001,max = 2, value = 1),
+                    sliderInput("var",withMathJax(sprintf('$$\\sigma^2:$$')),min = 0.001,max = 2, value = 1),
                     uiOutput('EVar')),
                 box(width=6,title = "Distribution",collapsible = TRUE,
                     plotOutput("uniPlotP",height = 300))),
@@ -67,7 +67,7 @@ server<-function(input, output,session) {
     
     xaxis=seq(input$mean-BOUND1,input$mean+BOUND1,by=0.01)
     plot(xaxis,dnorm(xaxis,input$mean,sqrt(input$var)),
-         ylab="density",type="l",lwd=2)
+         xlab="z",ylab="density",type="l",lwd=2)
     
     points(rnorm(input$N,input$mean,sqrt(input$var)),numeric(input$N))
   })
@@ -78,8 +78,10 @@ server<-function(input, output,session) {
       meanD<-c(meanD,mean(rnorm(input$N,input$mean,sqrt(input$var))))
       
     }
-    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Bias=", round(mean(meanD)-input$mean,2),
-                                                 "Variance=", round(var(meanD),2)))
+    hist(meanD,xlim=c(-BOUND1,BOUND1),
+         xlab=TeX(sprintf("$\\hat{\\mu}$")),
+         main=paste("Bias=", round(mean(meanD)-input$mean,2),
+                    "Variance=", round(var(meanD),2)))
     
     
   })
@@ -90,7 +92,8 @@ server<-function(input, output,session) {
       varD<-c(varD,var(rnorm(input$N,input$mean,sqrt(input$var))))
       
     }
-    hist(varD,xlim=c(-BOUND1,BOUND1),main=paste("Bias=", round(mean(varD)-input$var,2)))
+    hist(varD,xlab=TeX(sprintf("$\\hat{\\sigma}^2$")),
+         xlim=c(-BOUND1,BOUND1),main=paste("Bias=", round(mean(varD)-input$var,2)))
     
     
   })
@@ -98,14 +101,15 @@ server<-function(input, output,session) {
   output$uniBootM <- renderPlot( {
     meanD<-NULL
     D<-rnorm(input$N,input$mean,sqrt(input$var))
-   
+    
     for (r in 1:input$B){
       Db<-sample(D,replace=TRUE)
       meanD<-c(meanD,mean(Db))
       
     }
-    hist(meanD,xlim=c(-BOUND1,BOUND1),main=paste("Bootstrap bias=", round(mean(meanD)-mean(D),2), 
-                                                 "; Bootstrap variance=", round(var(meanD),2)))
+    hist(meanD,xlab=TeX(sprintf("$\\hat{\\mu}_{(b)}$")),
+         xlim=c(-BOUND1,BOUND1),main=paste("Bootstrap bias=", round(mean(meanD)-mean(D),2), 
+                                           "; Bootstrap variance=", round(var(meanD),2)))
     
     
   })
@@ -115,11 +119,13 @@ server<-function(input, output,session) {
     D<-rnorm(input$N,input$mean,sqrt(input$var))
     for (r in 1:input$B){
       Db<-sample(D,replace=TRUE)
-     
+      
       varD<-c(varD,var(Db))
       
     }
-    hist(varD,xlim=c(-BOUND1,BOUND1),main=paste("Bootstrap bias=", round(mean(varD)-var(D),2)))
+    
+    hist(varD,xlab=TeX(sprintf("$\\hat{\\sigma^2}_{(b)}$")),
+         xlim=c(-BOUND1,BOUND1),main=paste("Bootstrap bias=", round(mean(varD)-var(D),2)))
     
     
   })

@@ -14,7 +14,7 @@ library(plot3D)
 BOUND1<-5
 BOUND2<-5
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: Conditional probability"),
+  dashboardHeader(title="InfoF422: Conditional probability", titleWidth = 500),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",

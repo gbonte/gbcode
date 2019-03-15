@@ -3,11 +3,11 @@ library(mvtnorm)
 library(scatterplot3d)
 library(ellipse)
 library(plot3D)
-
+library(latex2exp)
 BOUND1<-5
 BOUND2<-2
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: Estimation"),
+  dashboardHeader(title="InfoF422: Estimation, bias and variance", titleWidth = 600),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
@@ -70,7 +70,7 @@ ui <- dashboardPage(
       tabItem(tabName = "UUnivariate",
               fluidRow(
                 box(width=4,sliderInput("bound","Uniform:",min = -BOUND1, max = BOUND1 ,
-                                        value = c(-0.5,0.5),step=0.05),
+                                        value = c(-1,1),step=0.05),
                     uiOutput('UUinfo')
                 ),
                 box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("UuniPlotP", height = 300))),
@@ -234,6 +234,7 @@ server<-function(input, output,session) {
       
     }
     hist(meanD,xlim=c(-BOUND1,BOUND1),
+         xlab=TeX(sprintf("$\\hat{\\mu}$")),
          main=TeX(sprintf("$E\\[\\hat{\\mu}\\] = %.02f ; Var\\[\\hat{\\mu}\\] = %.02f$ ", mean(meanD), var(meanD))))
     abline(v=input$mean,col="green",lwd=3)
     
@@ -245,7 +246,8 @@ server<-function(input, output,session) {
       varD<-c(varD,var(rnorm(input$N,input$mean,sqrt(input$var))))
       
     }
-    hist(varD,xlim=c(-BOUND1,BOUND1),main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\] = %.02f$ ", mean(varD))))
+    hist(varD,xlab=TeX(sprintf("$\\hat{\\sigma}^2$")),
+         xlim=c(-BOUND1,BOUND1),main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\] = %.02f$ ", mean(varD))))
     abline(v=input$var,col="green",lwd=3)
   
     
@@ -325,6 +327,7 @@ server<-function(input, output,session) {
       
     }
     hist(meanD,xlim=c(-BOUND1,BOUND1),
+         xlab=TeX(sprintf("$\\hat{\\mu}$")),
          main=TeX(sprintf("$E\\[\\hat{\\mu}\\] = %.02f ; Var\\[\\hat{\\mu}\\] = %.03f$ ", mean(meanD), var(meanD))))
     abline(v=mean(c(input$bound[1],input$bound[2])),col="green",lwd=3)
     
@@ -338,7 +341,8 @@ server<-function(input, output,session) {
       varD<-c(varD,var(runif(input$N,input$bound[1],input$bound[2])))
       
     }
-    hist(varD,xlim=c(-BOUND1,BOUND1),main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\] = %.02f$ ", mean(varD))))
+    hist(varD,xlab=TeX(sprintf("$\\hat{\\sigma}^2$")),
+         xlim=c(-BOUND1,BOUND1),main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\] = %.02f$ ", mean(varD))))
     abline(v=(1/12*(input$bound[2]-input$bound[1])^2),col="green",lwd=3)
     
    
@@ -581,7 +585,8 @@ server<-function(input, output,session) {
     beta.hat.0<-numeric(input$R)
     var.hat.w<-numeric(input$R)
     plot(X,muy,xlim=c(-BOUND2,BOUND2),ylim=c(-BOUND2,BOUND2),
-         lwd=3,xlab="x",main=paste("E[y|x]=",round(input$q+input$m*input$rx,2)))
+         lwd=3,xlab="x",ylab="y",
+         main=paste("E[y|x]=",round(input$q+input$m*input$rx,2)))
     for (r in 1:input$R){
       X.tr<-rnorm(input$N)
       x.hat<-mean(X.tr)
@@ -719,7 +724,7 @@ server<-function(input, output,session) {
     beta.hat.1<-numeric(input$R)
     beta.hat.0<-numeric(input$R)
     var.hat.w<-numeric(input$R)
-    plot(X,muy,xlim=c(-BOUND2,BOUND2),type="n")
+    plot(X,muy,xlim=c(-BOUND2,BOUND2),ylab="y",xlab="x",type="n")
     for (r in 1:input$R){
       Xtr=rnorm(input$N)
       muy.tr=f(Xtr,input$ord)
@@ -763,7 +768,8 @@ server<-function(input, output,session) {
     
     Yq=f(input$nrx,input$ord)
     bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,2), "Var=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2) )
-    hist(Y.hat,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
+    hist(Y.hat,xlab=TeX(sprintf("$\\hat{y}$")),
+         xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)
     

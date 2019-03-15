@@ -12,7 +12,7 @@ library(ellipse)
 BOUND1<-5
 BOUND2<-5
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: random variates"),
+  dashboardHeader(title="InfoF422: introduction to random variables",titleWidth = 500),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
