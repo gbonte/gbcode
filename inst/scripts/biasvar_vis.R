@@ -14,7 +14,10 @@ f<-function(x,ord){
   f
 }
 
-
+PRESS <- function(linear.model) {
+  pr <- residuals(linear.model)/(1 - lm.influence(linear.model)$hat)
+  mean(pr^2)
+}
 set.seed(1)
 
 n<-1
@@ -22,24 +25,22 @@ N<-25
 
 x<-seq(-2,2,length.out=N)
 N<-length(x)
-sd.w<-0.5
+sd.w<-0.75
 O<-3
 Y<-f(x,ord=O)+rnorm(N,sd=sd.w)
 data.tr<-cbind(Y,x)
 
 
-R<-20
+R<-10
 
 Remp<-numeric(R)
-FPE<-numeric(R)
-PSE<-numeric(R)
 MSE.loo<-numeric(R)
 x.ts<-seq(-2,2,length.out=200)
 
-
-
-
-
+B2<-numeric(R)
+V<-numeric(R)
+PR<-numeric(R)
+FPE<-numeric(R)
 for (r in 1:R){
   X.ts<-NULL
   X<-NULL
@@ -49,19 +50,18 @@ for (r in 1:R){
   }
   p<-r+1
   Pr<-NULL
-  for (rr in 1:200){
+  for (rr in 1:500){
+    set.seed(rr)
     Y<-f(x,ord=O)+rnorm(N,sd=sd.w)
     DN<-data.frame(cbind(Y,X))
     
     mod<-lm(Y~.,DN)
     sd.w.hat<-sqrt(sum(mod$residuals^2)/(N-p))
-    Remp[r]<-sqrt(mean(mod$residuals^2))
-    
-    
-    e.hat.i<-numeric(N)
-    
-    
-    
+    if (rr==1){
+      Remp[r]<-(mean(mod$residuals^2))
+      PR[r]<-PRESS(mod)
+      FPE[r]<-Remp[r]+2*sd.w.hat*p/N
+    }
     Y.ts<-f(x.ts,ord=O)
     data.ts<-data.frame(cbind(Y.ts,X.ts))
     names(data.ts)<-names(DN)
@@ -77,9 +77,22 @@ for (r in 1:R){
   }
   lines(x.ts,Y.ts,type="l",ylim=c(min(Y),max(Y)),lwd=5)
   lines(x.ts,apply(Pr,1,mean),type="l",ylim=c(min(Y),max(Y)),lwd=5,col="green")
-  title(paste("Bias",round(mean(abs(Y.ts-apply(Pr,1,mean))),2),
-              "Var",round(mean(apply(Pr,1,var)),2), "degree=",r))
-  cat(r,"\n")
+  title(paste("N=", N, "; degree=",r, "\n Bias=",round(mean(abs(Y.ts-apply(Pr,1,mean))),2),
+              "; Var=",round(mean(apply(Pr,1,var)),2), 
+              "; Emp risk=",round(Remp[r],2)))
+  B2[r]=mean((Y.ts-apply(Pr,1,mean))^2)
+  V[r]=mean(apply(Pr,1,var))
   par(ask=TRUE)
 }
-
+par(ask=FALSE)
+mR=13
+plot(1:mR,Remp[1:mR],type="l",main="Bias-variance tradeoff",
+     lwd=1, xlab="degree",ylab="",col="yellow",ylim=c(0,4))
+lines(1:mR,B2[1:mR]+V[1:mR],col="black",lwd=3)
+lines(1:mR,B2[1:mR],col="green")
+lines(1:mR,V[1:mR],col="red")
+lines(1:mR,PR[1:mR],col="orange")
+lines(1:mR,FPE[1:mR],col="cyan")
+legend("topright", legend=c("Remp","MSE","Bias","Variance","LOO","FPE"),
+col = c("yellow","black","green","red","orange","cyan"),
+       lty = c(1,1,1,1,1))
