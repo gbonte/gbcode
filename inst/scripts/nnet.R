@@ -1,11 +1,13 @@
 ## "INFOF422 Statistical foundations of machine learning" course
 ## R package gbcode 
 ## Author: G. Bontempi
-
+rm(list=ls())
 source("inst/scripts/dopler.R")
 N=2000
 library(nnet)
 D<-dataset.dopler(N)
+
+D$y=D$x^3
 plot(D$x,D$y,type="l")
 
 d<-data.frame(D$y,D$x)
