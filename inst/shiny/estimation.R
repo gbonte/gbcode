@@ -138,23 +138,27 @@ ui <- dashboardPage(
               )
       ), ## tabItem
       tabItem(tabName = "Linear",
-              fluidRow(box(width=4,collapsible = TRUE,
-                           sliderInput("q",withMathJax(sprintf('$$\\beta_0:$$')), min = -0.5,max = 0.5, 
+              fluidRow(box(width=4, height=400, collapsible = TRUE,
+                           column(width=6,
+                               sliderInput("q",withMathJax(sprintf('$$\\beta_0:$$')), min = -0.5,max = 0.5, 
                                        value = 0,step=0.01),
                            sliderInput("m",withMathJax(sprintf('$$\\beta_1:$$')), min = -BOUND2/2,max = BOUND2/2, 
-                                       value = 1,step=0.01),
+                                       value = 1,step=0.01)),
+                           column(width=6,
                            sliderInput("vdw",withMathJax(sprintf('$$\\sigma^2_w:$$')), min = 0.1,max = BOUND2, 
                                        value = 0.2,step=0.1),
-                           sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
-                       box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("linearPlotP"))),## fluidRow
-              fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("linearBV", height = 300)),
-                          box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("linearCond", height = 300))),## fluidRow
-              fluidRow(   box(width=12,collapsible = TRUE,title = "Sampling distribution parameters",plotOutput("linearPar", height = 300)))
+                           sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05))), 
+                       box(width=4,height=400,title = "Distribution",collapsible = TRUE,
+                           plotOutput("linearPlotP",height = "300px")),
+                       box(width=4,collapsible = TRUE,title = "Sampling distribution",plotOutput("linearBV", height = 400))),## fluidRow
+              fluidRow(   
+                          box(width=4,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("linearCond", height = 400)),  
+                          box(width=8,collapsible = TRUE,title = "Sampling distribution parameters",plotOutput("linearPar", height = 400)))
               
       ), ## tabItem
       tabItem(tabName = "Nonlinear",
               fluidRow(box(width=4,collapsible = TRUE,
-                           sliderInput("ord","Target Function:", min = -3,max = 10, 
+                           sliderInput("ord","Target Function:", min = -3,max = 3, 
                                        value = 1,step=1),
                            sliderInput("h","Degree polynomial hypothesis:", min = 0,max = 10, 
                                        value = 1,step=1),

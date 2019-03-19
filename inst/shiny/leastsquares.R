@@ -36,33 +36,35 @@ ui <- dashboardPage(
       #
       tabItem(tabName = "LS",
               fluidRow(column(4,
-                           sliderInput("b1",withMathJax(sprintf('$$\\beta_1:$$')), min = -BOUND2,max = BOUND2, 
-                                       value = 1,step=0.01),
-                           sliderInput("b0",withMathJax(sprintf('$$\\beta_0:$$')), min = -BOUND2,max = BOUND2, 
-                                       value = -1,step=0.01)),
+                              sliderInput("b1",withMathJax(sprintf('$$\\beta_1:$$')), min = -BOUND2,max = BOUND2, 
+                                          value = 1,step=0.01),
+                              sliderInput("b0",withMathJax(sprintf('$$\\beta_0:$$')), min = -BOUND2,max = BOUND2, 
+                                          value = -1,step=0.01)),
                        column(4,
-                                    sliderInput("m",withMathJax(sprintf('$$\\hat{\\beta}_1:$$')), min = -BOUND2,max = BOUND2, 
-                                       value = 0,step=0.01),
-                           sliderInput("q",withMathJax(sprintf('$$\\hat{\\beta}_0:$$')), min = -BOUND2,max = BOUND2, 
-                                       value = 0,step=0.01)),
-                           column(4,    sliderInput("eta",withMathJax(sprintf('$${\\eta}:$$')), min = 0.0001,max = 1, 
-                                       value = 0.01,step=0.01)),
+                              sliderInput("m",withMathJax(sprintf('$$\\hat{\\beta}_1:$$')), min = -BOUND2,max = BOUND2, 
+                                          value = 0,step=0.01),
+                              sliderInput("q",withMathJax(sprintf('$$\\hat{\\beta}_0:$$')), min = -BOUND2,max = BOUND2, 
+                                          value = 0,step=0.01)),
+                       column(4,    sliderInput("eta",withMathJax(sprintf('$${\\eta}:$$')), min = 0.0001,max = 1, 
+                                                value = 0.01,step=0.01)),
                        actionButton("do", "Gradient step"),
+                       
                        box(width=6,collapsible = TRUE,title = "Data set",plotOutput("Data", height = 300)), 
-                box(width=6,collapsible = TRUE,title = "Residual sum of squares",
-                    plotOutput("EmpErr", height = 300)))
+                       box(width=6,collapsible = TRUE,title = "Residual sum of squares",
+                           plotOutput("EmpErr", height = 300)))
               
       ),
       tabItem(tabName = "NLS",
               fluidRow(box(width=6,collapsible = TRUE,title = "NNET 3 hidden nodes",
-                                                      sliderInput("NLsteps","# steps", min = 10,max = 1000, 
+                           sliderInput("NLsteps","# steps", min = 10,max = 1000, 
                                        value = 100,step=10),
                            sliderInput("NLeta",withMathJax(sprintf('$${\\eta}:$$')), min = 0.0001,max = 1, 
                                        value = 0.01,step=0.01)),
-                       actionButton("NLdo", "Gradient step NNet")),
+                       actionButton("NLdo", "Gradient step NNet"),
+                       actionButton("NLreset", "Reset weights")),
               fluidRow(box(width=6,collapsible = TRUE,title = "Data set",plotOutput("NLData", height = 300)),
-                box(width=6,collapsible = TRUE,title = "Residual sum of squares",
-                    plotOutput("NLEmpErr", height = 300)))
+                       box(width=6,collapsible = TRUE,title = "Residual sum of squares",
+                           plotOutput("NLEmpErr", height = 300)))
               
       )
     ) ## tabItems
@@ -184,12 +186,12 @@ server<-function(input, output,session) {
   W<-reactiveValues(W=rnorm(10))
   allE<-reactiveValues(allE=NULL)
   Xtr<-reactive({allE$allE<-NULL
-        sort(runif(input$N,-BOUND2, BOUND2))})
+  sort(runif(input$N,-BOUND2, BOUND2))})
   Ytr<-reactive({
-        input$b1*Xtr()+input$b0+rnorm(input$N,0,sd=sqrt(input$nvdw))})
+    input$b1*Xtr()+input$b0+rnorm(input$N,0,sd=sqrt(input$nvdw))})
   
   Ytr2<-reactive({allE$allE<-NULL
-            sin(pi*Xtr())+rnorm(input$N,sd=sqrt(input$nvdw)) })
+  sin(pi*Xtr())+rnorm(input$N,sd=sqrt(input$nvdw)) })
   
   output$Data <- renderPlot( {
     
@@ -203,13 +205,14 @@ server<-function(input, output,session) {
     
     beta.hat.1<-S.xy/S.xx
     beta.hat.0<-y.hat-beta.hat.1*x.hat
-    plot(Xtr(),Ytr(),main=TeX(paste(sprintf("Least-squares $\\hat{\\beta}_1 = %.02f %s \\hat{\\beta}_0 = %.02f$ ", beta.hat.1, ";    ", beta.hat.0))),
-         xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2))
+    plot(Xtr(),Ytr(),
+         main=TeX(paste(sprintf("Least-squares $\\hat{\\beta}_1 = %.02f %s \\hat{\\beta}_0 = %.02f$ ", beta.hat.1, ";    ", beta.hat.0))),
+         xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y")
     
     #plot(Xtr,Ytr,main=paste("LS estimates: betahat1=", round(beta.hat.1,2), ": betahat0=", round(beta.hat.0,2)),
     #    xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2))
-    lines(Xtr(),yhat,col="red")
-    lines(Xtr(),beta.hat.1*Xtr()+beta.hat.0,col="green")
+    lines(Xtr(),yhat,col="red",lwd=2)
+    lines(Xtr(),beta.hat.1*Xtr()+beta.hat.0,col="green",lwd=2)
   })
   
   observeEvent(input$do,{
@@ -259,7 +262,8 @@ server<-function(input, output,session) {
     surface<-persp(maxis, qaxis, EE, 
                    theta = input$tdt, phi =input$tdp, expand = 0.5, xlim=c(min(maxis),max(maxis)),
                    ylim=c(min(qaxis),max(qaxis)),
-                   main=paste("Err=",round(Emq,2), "; LS Err=",round(E.ls,2)))
+                   main=paste("Err=",round(Emq,2), "; LS Err=",round(E.ls,2)),
+                   xlab="beta1", ylab="beta0" )
     
     points (trans3d(x=input$m, 
                     y = input$q, z = Emq, pmat = surface), col = "red",lwd=8)
@@ -280,8 +284,8 @@ server<-function(input, output,session) {
     plot(Xtr(),Ytr2(),
          xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y")
     
-    lines(Xtr(),yhat,col="red")
-    lines(Xtr(),sin(pi*Xtr()),col="green")
+    lines(Xtr(),yhat,col="red",lwd=2)
+    lines(Xtr(),sin(pi*Xtr()),col="green",lwd=2)
     
   })
   
@@ -296,12 +300,20 @@ server<-function(input, output,session) {
     
   })
   
+  observeEvent(input$NLreset,{
+    allE$allE<-NULL
+      W$W<-rnorm(10,sd=2)
+      
+   
+    
+  })
+  
   
   output$NLEmpErr <- renderPlot( {
     if (length(allE$allE)>0){
-     
+      
       plot( allE$allE,type="l",main="Empirical error",ylab="E") 
-       
+      
     }
     
   }

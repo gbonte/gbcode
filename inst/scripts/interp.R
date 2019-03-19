@@ -19,7 +19,7 @@ Y<-f(x,ord=O)+rnorm(N,sd=sd.w)
 data.tr<-cbind(Y,x)
 
 
-R<-12
+R<-20
 
 Remp<-numeric(R)
 FPE<-numeric(R)
@@ -60,8 +60,8 @@ for (r in 1:R){
   plot(x.ts,Y.ts,type="l",ylim=c(min(Y),max(Y)))
   points(x,Y)
   lines(x.ts,predict(mod.i,data.ts),col="red")
-  title(paste("R.emp=",round(Remp[r],2), " FPE[r]=",round(FPE[r],2)))
-  cat(r,"\n")
+  title(paste("degree=", r, "; MISE_emp=",round(Remp[r],2), "; FPE=",round(FPE[r],2)))
+ 
   par(ask=TRUE)
 }
 
