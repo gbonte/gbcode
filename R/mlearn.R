@@ -1712,10 +1712,10 @@ xgboost.pred<-function(X,Y,X.ts,classi,nrounds=100,...){
     d<-cbind(Y,X)
     names(d)[1]<-"Y"
   
+    bst <- xgboost(data =X, label = Y,nrounds=100)
+    Yhat<-predict(bst,X.ts)
     
-    gbmodel<-xgboost(Y~.,data=X,label=Y,nrounds=nrounds,verbose=0,...)
-    
-   return(predict(gbmodel,X.ts))
+   return(Yhat)
     
     
     
