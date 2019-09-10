@@ -1705,12 +1705,8 @@ xgboost.pred<-function(X,Y,X.ts,classi,nrounds=100,...){
     return(list(prob=prob,pred=pred))
   }else {
     
-    X<-as.matrix(X)
-    X.ts<-as.matrix(X.ts)
-    colnames(X.ts)<-paste("x",1:NCOL(X.ts),sep="")
-    colnames(X)<-colnames(X.ts)
-    d<-cbind(Y,X)
-    names(d)[1]<-"Y"
+    X<-data.matrix(X)
+    X.ts<-data.matrix(X.ts)
   
     bst <- xgboost(data =X, label = Y,nrounds=100)
     Yhat<-predict(bst,X.ts)
