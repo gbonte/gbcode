@@ -1678,37 +1678,13 @@ xgboost.pred<-function(X,Y,X.ts,classi,nrounds=100,...){
   n<-NCOL(X)
   
   if (classi){
-    l.Y<-levels(Y)
-    Y<-as.numeric(Y)-1
-    X<-as.matrix(X)
-    X.ts<-as.matrix(X.ts)
-    colnames(X.ts)<-paste("x",1:NCOL(X.ts),sep="")
-    colnames(X)<-colnames(X.ts)
-    d<-data.frame(Y,X)
-    names(d)[1]<-"Y"
-    
-    ##gbmodel<-mboost(Y~.,data=d,control=boost_control(...),baselearner="btree")
-    gbmodel<-xgboost(Y~.,data=d,control=boost_control(...))
-    d.ts<-data.frame(X.ts)
-    
-    
-    names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
-    pred<-pmin(pmax(0,predict(gbmodel,d.ts)),1)
-    
-    
-    
-    prob<-cbind(1-pred,pred)
-    colnames(prob)<-l.Y
-    
-    pred<-l.Y[apply(prob,1,which.max)]
-    
-    return(list(prob=prob,pred=pred))
+    stop("Only regression version")
   }else {
     
     X<-data.matrix(X)
     X.ts<-data.matrix(X.ts)
   
-    bst <- xgboost(data =X, label = Y,nrounds=100)
+    bst <- xgboost(data =X, label = Y,nrounds=100,verbose=0)
     Yhat<-predict(bst,X.ts)
     
    return(Yhat)
