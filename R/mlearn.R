@@ -1672,19 +1672,19 @@ mboost.pred<-function(X,Y,X.ts,classi,ntrees=1000,...){
   
 }
 
-xgboost.pred<-function(X,Y,X.ts,classi,nrounds=100,...){
+xgboost.pred<-function(X,Y,X.ts,classi,...){
   
   
   n<-NCOL(X)
   
   if (classi){
-    stop("Only regression version")
+    stop("The only thing that XGBoost does is a regression. ")
   }else {
     
     X<-data.matrix(X)
     X.ts<-data.matrix(X.ts)
   
-    bst <- xgboost(data =X, label = Y,nrounds=100,verbose=0)
+    bst <- xgboost(data =X, label = Y,verbose=0,...)
     Yhat<-predict(bst,X.ts)
     
    return(Yhat)
