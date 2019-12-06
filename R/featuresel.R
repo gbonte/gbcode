@@ -487,6 +487,7 @@ forwardSel<-function(X,Y,algo="rf",nmax=5,nmax2=nmax,cv=1,classi=FALSE,verbose=F
     selected<-c(selected,which.min(accuracy))
     if (verbose){
       print(accuracy)
+      cat("Selected =",selected,"\n")
       cat("Selected var=",colnames(X)[selected],"\n")
     }
   }
