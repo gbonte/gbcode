@@ -759,6 +759,52 @@ lin.pls<- function(X,Y,X.ts){
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                             Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
+  
+  ### Set of statistical methods borrowed from M4 competition 
+  
+  if (method=="stat_naive"){
+    p=StatPredictors1(TS, H , index=1,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  if (method=="stat_ses_naive"){
+    p=StatPredictors1(TS, H , index=2,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  if (method=="stat_naive2"){
+    p=StatPredictors1(TS, H , index=3,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  
+  if (method=="stat_ses"){
+    p=StatPredictors1(TS, H , index=4,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  
+  if (method=="stat_holt"){
+    p=StatPredictors1(c(TS), H , index=5,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  
+  if (method=="stat_damped"){
+    p=StatPredictors1(c(TS), H , index=6,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  
+  if (method=="stat_theta"){
+    p=StatPredictors1(c(TS), H , index=7,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  
+  if (method=="stat_comb"){
+    p=StatPredictors1(c(TS), H , index=8,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  if (method=="stat_4theta"){
+    p=StatPredictors1(c(TS), H , index=9,verbose=F)
+    return(array(p,c(1,length(p))))
+  }
+  
+  
   if (sd_trim(TS)<0.001 && method !="timefit" )
     return (numeric(H)+TS[1])
   TS<-array(TS,c(N,1))
@@ -1173,7 +1219,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                q<-c(q,DUM[N+h])
            }
            p<-piter
-         }
+         }, 
+        stop("multistepAhead: Unknown method")
+         
   )
   p
   

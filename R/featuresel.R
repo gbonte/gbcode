@@ -433,7 +433,7 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
 #' @param classi: if TRUE, classification problem else regression
 #' @param back: if TRUE, backward reordering based on linear regression
 #' @param cv: number of cross-validation folds (if \code{cv=1} no cross-validation)
-#' @param verbose: if TRUE it prints out the MSE estimations
+#' @param verbose: if TRUE it prints out the selected variables and associated accuracy (MSE if regression and Misclassification error if classification)
 #' @return Indices of \code{nmax} top ranked features
 #'
 #' @examples
@@ -472,6 +472,8 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
 forwardSel<-function(X,Y,algo="rf",nmax=5,nmax2=nmax,cv=1,classi=FALSE,verbose=FALSE,...){
 
   n<-NCOL(X)
+  if (is.null(colnames(X)))
+    colnames(X)<-paste(1:n)
   selected<-NULL
   for ( i in 1:nmax2){
     accuracy<-numeric(n)+NA
@@ -485,7 +487,7 @@ forwardSel<-function(X,Y,algo="rf",nmax=5,nmax2=nmax,cv=1,classi=FALSE,verbose=F
     selected<-c(selected,which.min(accuracy))
     if (verbose){
       print(accuracy)
-      print(colnames(X)[selected])
+      cat("Selected var=",colnames(X)[selected],"\n")
     }
   }
   if (length(selected)<nmax)
