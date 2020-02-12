@@ -49,6 +49,9 @@ regrlin<-function(X,Y,X.ts=NULL,lambda=1e-3){
        Y.hat<-XX%*%beta.hat
        e<-Y-Y.hat
        e.loo<-e/(1-diag(H))
+       w.na<-which(is.na(e.loo))
+       if (length(w.na)>0)
+         e.loo[w.na]=1
        MSE.loo<-mean( e.loo^2 )
        if (MSE.loo<min.MSE.loo){
          lambda<-lambdah
