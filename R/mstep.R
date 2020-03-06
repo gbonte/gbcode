@@ -841,6 +841,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
       Y<-Y[-wna,]
     }
   }
+  if (any(is.na(Y)))
+    stop("Na in M$out")
   NX=NROW(X)
   select.var=1:NCOL(X)
   if (length(select.var)>10 || (length(select.var)>5 && dummy >1 )) {
