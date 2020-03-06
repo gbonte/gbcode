@@ -40,7 +40,7 @@ export(MASE)
 export(SMAPE)
 export(multiplestepAhead)
 
-
+import(forecast) #Requires v8.2
 import(lars)
 import(mboost)
 import(xgboost)

@@ -80,7 +80,7 @@ differB<-function(D,last){
   return(last+cumsum(D))
 }
 
-library(forecast) #Requires v8.2
+
 
 SeasonalityTest <- function(input, ppy){
   #Used for determining whether the time series is seasonal
