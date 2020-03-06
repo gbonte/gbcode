@@ -702,6 +702,7 @@ lin.pls<- function(X,Y,X.ts){
 #' @param  F: forgetting factor
 #' @param  C: integer parameter which sets the maximum number of neighbours (C*k)
 #' @param  smooth: if TRUE, the preidction is obtained by averaging multiple windows with different starting points
+#' @param  XC: covariates 
 #' @param  method:
 #' \itemize{
 #' \item{arima}: prediction based on the \pkg{forecast} package
@@ -756,7 +757,7 @@ lin.pls<- function(X,Y,X.ts){
 #'
 #'
 #'
-multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
+multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
                             Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
   
@@ -820,6 +821,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
     M<-MakeEmbedded(ts=cbind(TS,DUM),n=c(n,1),delay=c(D,0),hor=H,w=1)
     
   }
+  
+  if (!is.null(XC)){
+    M<-MakeEmbedded(ts=cbind(TS,XC),n=c(n,1),delay=c(D,0),hor=H,w=1)
+    
+  }
+    
   
   X<-M$inp
   Y<-M$out
