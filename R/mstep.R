@@ -1226,7 +1226,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
          stop("multistepAhead: Unknown method")
          
   )
-  if (any(is.na(c(p))) 
+  if (any(is.na(c(p))))
     stop("error in multipleStepAhead")
   p
   
