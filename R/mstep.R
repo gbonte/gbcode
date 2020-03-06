@@ -756,77 +756,84 @@ lin.pls<- function(X,Y,X.ts){
 #'
 #'
 #'
-multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
-                            Kmin=3,C=2,FF=0,smooth=FALSE,DUM=NULL){
+multiplestepAhead<-function(TS,n,H,D=0, method="direct",
+                            Kmin=3,C=2,FF=0,smooth=FALSE,
+                            XC=NULL,detrend=-1, forget=-1){
   N<-length(TS)
+  
+  if (forget>0){
+    I=min(N-10,max(1,round(N*forget))):N
+    TS=TS[I]
+    if (!is.null(XC))
+      XC=XC[I[1]:NROW(XC),]
+    N<-length(TS)
+  }
+  
+  trnd.ts=numeric(H)
+  trnd.ts2=numeric(H)
+  if (detrend>0){
+    I=min(N-10,max(1,round(N*detrend))):N
+    trnd=pred("lin",I,TS[I],seq(c(TS)),classi=FALSE) 
+    trnd.ts=pred("lin",I,TS[I],seq(c(TS,1:H)),classi=FALSE)[(N+1):(N+H)]
+    TS=TS-trnd
+  }
+  
+  if (!is.null(XC)){
+    trnd2=pred("lin",XC[1:N,],TS,XC[1:N,],classi=FALSE)
+    trnd.ts2=pred("lin",XC[1:N,],TS,XC,classi=FALSE)[(N+1):(N+H)]
+    TS=TS-trnd2
+    trnd.ts=trnd.ts+trnd.ts2
+  }
   
   ### Set of statistical methods borrowed from M4 competition 
   
   if (method=="stat_naive"){
     p=StatPredictors1(TS, H , index=1,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   if (method=="stat_ses_naive"){
     p=StatPredictors1(TS, H , index=2,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   if (method=="stat_naive2"){
     p=StatPredictors1(TS, H , index=3,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   
   if (method=="stat_ses"){
     p=StatPredictors1(TS, H , index=4,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   
   if (method=="stat_holt"){
     p=StatPredictors1(c(TS), H , index=5,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   
   if (method=="stat_damped"){
     p=StatPredictors1(c(TS), H , index=6,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   
   if (method=="stat_theta"){
     p=StatPredictors1(c(TS), H , index=7,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   
   if (method=="stat_comb"){
     p=StatPredictors1(c(TS), H , index=8,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   if (method=="stat_4theta"){
     p=StatPredictors1(c(TS), H , index=9,verbose=F)
-    return(array(p,c(1,length(p))))
+    return(array(p+trnd.ts,c(1,length(p))))
   }
   
   
   if (sd_trim(TS)<0.001 && method !="timefit" )
-    return (numeric(H)+TS[1])
+    return (numeric(H)+TS[1]+trnd.ts)
   TS<-array(TS,c(N,1))
-  if (dummy ==-1) 
-    dummy=periodest(TS)
-  if (dummy == -2) 
-    dummy=detectSeason(TS)
-  if (dummy <=1){
-    M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
-  } 
-  
-  if (dummy>1 || !is.null(DUM)){
-    if (is.null(DUM)){
-      DUM<-array(rep(seq(1,dummy),length=N+H),c(N,1)) ## additionof a dummy variable to address time and seasonality effectsdu
-    }
-    
-    M<-MakeEmbedded(ts=cbind(TS,DUM),n=c(n,numeric(NCOL(DUM))+1),delay=c(D,numeric(NCOL(DUM))),hor=H,w=1)
-    dummy<-2
-  }
-  
-  ## dummy > 1 means that a covariate set of size [N+H,] is available
-  
+  M <- MakeEmbedded(TS, n, D, H, w = 1)
   
   
   X<-M$inp
@@ -834,7 +841,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
   
   NX=NROW(X)
   select.var=1:NCOL(X)
-  if (length(select.var)>10 || (length(select.var)>5 && dummy >1 )) {
+  if (length(select.var)>10 ) {
     rfs=numeric(NCOL(X))
     for (j in 1:NCOL(Y)){
       fs=mrmr(X,Y[,j],nmax=min(NCOL(X)-1,5))
@@ -856,11 +863,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
     if (sd(X)<0.01)
       return(numeric(H)+mean(Y))
   
-  if (dummy<=1){
+  
     q<-TS[seq(N-D,N-n+1-D,by=-1),1]
-  } else {
-    q<-c(TS[seq(N-D,N-n+1-D,by=-1),1],DUM[N-D])
-  }
+ 
   
   ## TS=[TS(1), TS(2),....., TS(N)]
   ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
@@ -1020,8 +1025,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              for (h  in round(H/2):(H)){ 
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-               if (dummy>1)
-                 q2<-c(q2,DUM[N-H+h-D])
+               
                ## TS=[TS(1), TS(2),....., TS(N)]
                ##  D=0:  q2=[TS(N-H+h), TS(N-1-H+h),...,TS(N-n+1-H+h)]
                ##        pred=  [TS(N-H+h+1),...TS(N+h+1)]
@@ -1033,8 +1037,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            for (h  in round(H/2):(H)){ ## start at the end of the series with different horizons h=[H/2,...H]
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
-             if (dummy>1)
-               q2<-c(q2,DUM[N-D])
+             
              KK<-KNN.multioutput(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF)
              p2[1:h]<-KK
              pdirect2<-rbind(pdirect2,p2)
@@ -1051,8 +1054,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-               if (dummy>1)
-                 q2<-c(q2,DUM[N-H+h-D])
+               
                
                KK<-KNN.acf(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
                            TS=TS.acf,D)
@@ -1064,8 +1066,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
-             if (dummy>1)
-               q2<-c(q2,DUM[N-D])
+             
              KK<-KNN.acf(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
                          TS=TS.acf,D)
              p2[1:h]<-KK
@@ -1084,8 +1085,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-               if (dummy>1)
-                 q2<-c(q2,DUM[N-H+h-D])
+               
                KK<-KNN.acf.lin(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
                                Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
                                Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
@@ -1097,8 +1097,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
-             if (dummy>1)
-               q2<-c(q2,DUM[N-D])
+            
              KK<-KNN.acf.lin(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
                              Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
                              Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D)
@@ -1116,8 +1115,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-               if (dummy>1)
-                 q2<-c(q2,DUM[N-H+h-D])
+               
                KK<-KNN.pls(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,D)
                p2[1:h]<-KK[(H-h+1):H]
                pdirect5<-rbind(pdirect5,p2)
@@ -1125,8 +1123,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
-             if (dummy>1)
-               q2<-c(q2,DUM[N-D])
+             
              KK<-KNN.pls(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,D)
              p2[1:h]<-KK
              pdirect5<-rbind(pdirect5,p2)
@@ -1140,8 +1137,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-               if (dummy>1)
-                 q2<-c(q2,DUM[N-H+h-D])
+               
                KK<-lin.pls(X[,select.var],Y,q2[select.var])
                p2[1:h]<-KK[(H-h+1):H]
                pdirect6<-rbind(pdirect6,p2)
@@ -1150,8 +1146,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
            for (h  in max(1,round(H-2)):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
-             if (dummy>1)
-               q2<-c(q2,DUM[N-D])
+             
              KK<-lin.pls(X[,select.var],Y[,1:h],q2[select.var])
              p2[1:h]<-KK
              pdirect6<-rbind(pdirect6,p2)
@@ -1166,8 +1161,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              piter[h]<-KNN.multioutput(X[,select.var],array(Y[,1],c(NROW(X),1)),
                                        q[select.var],k=Kmin,C=C,F=FF)
              q<-c(piter[h],q[1:(length(q)-1)])
-             if (dummy>1)
-               q<-c(q,DUM[N+h])
+            
            }
            p<-piter
          },
@@ -1185,8 +1179,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
                                  conPar=CPar,linPar=LPar,cmbPar=10)
              q<-c(piter[h],q[1:(length(q)-1)])
-             if (dummy>1)
-               q<-c(q,DUM[N+h])
+             
            }
            p<-piter
          },
@@ -1201,8 +1194,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
                                  conPar=CPar,linPar=LPar,cmbPar=10)
              q<-c(piter[h],q[1:(length(q)-1)])
-             if (dummy>1)
-               q<-c(q,DUM[N+h])
+            
            }
            p<-piter
          },
@@ -1212,8 +1204,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              piter[h]<-rf.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
                                class=FALSE,ntree=C*50)
              q<-c(piter[h],q[1:(length(q)-1)])
-             if (dummy>1)
-               q<-c(q,DUM[N+h])
+             
            }
            p<-piter
          },
@@ -1224,8 +1215,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
              piter[h]<-lin.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),
                                 q[select.var],class=FALSE,lambda=(1e-7)*(10*C))
              q<-c(piter[h],q[1:(length(q)-1)])
-             if (dummy>1)
-               q<-c(q,DUM[N+h])
+             
            }
            p<-piter
          }, 
@@ -1234,6 +1224,6 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
   )
   if (any(is.na(c(p))))
     stop("error in multipleStepAhead")
-  p
+  p+trnd.ts
   
 }
