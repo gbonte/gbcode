@@ -826,6 +826,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
     TX=cbind(TS,XC)
     M<-MakeEmbedded(ts=TX,n=c(n,numeric(NCOL(XC))+1),delay=c(D,numeric(NCOL(XC))),
                     hor=H,w=1)
+    browser()
     
   }
     
