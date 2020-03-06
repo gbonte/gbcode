@@ -823,7 +823,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
   }
   
   if (!is.null(XC)){
-    M<-MakeEmbedded(ts=cbind(TS,XC),n=c(n,1),delay=c(D,0),hor=H,w=1)
+    TX=cbind(TS,XC)
+    M<-MakeEmbedded(ts=TX,n=c(n,numeric(NCOL(XC))+1),delay=c(D,numeric(NCOL(XC))),
+                    hor=H,w=1)
     
   }
     

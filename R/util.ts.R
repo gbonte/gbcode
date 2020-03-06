@@ -141,7 +141,7 @@ dist2<-function(X1,X2){
 #' @param ts: multivariate time series [no. observations,no. variates]
 #' @param n [no.var]: vector of embedding orders
 #' @param delay [no.var]: vector of delays
-#' @param hor [no.var]: vector of predicted horizons (hor=1 boils down to one-step-ahed prediction)
+#' @param hor [length(w)]: vector of predicted horizons (hor=1 boils down to one-step-ahed prediction)
 #' @param w: index of variables appearing in $out
 #'
 #' @return list with
