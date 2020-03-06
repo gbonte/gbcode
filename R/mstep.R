@@ -826,13 +826,21 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
     TX=cbind(TS,XC)
     M<-MakeEmbedded(ts=TX,n=c(n,numeric(NCOL(XC))+1),delay=c(D,numeric(NCOL(XC))),
                     hor=H,w=1)
-    browser()
+    
+    
     
   }
-    
+  
   
   X<-M$inp
   Y<-M$out
+  if (H>1){
+    wna<-which(is.na(apply(Y,1,sum)))
+    if (length(wna)>0){
+      X<-X[-wna,]
+      Y<-Y[-wna,]
+    }
+  }
   NX=NROW(X)
   select.var=1:NCOL(X)
   if (length(select.var)>10 || (length(select.var)>5 && dummy >1 )) {
@@ -928,7 +936,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
                                      conPar=CPar,linPar=LPar,cmbPar=10)
                    }
                  }else{
-                  
+                   
                    p[h]<-lazy.pred(Xw,Yw,q[select.var],
                                    conPar=CPar,linPar=LPar,cmbPar=10)
                  }
@@ -954,7 +962,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
                  CPar[2]=min(CPar[2],NROW(Xw))
                  
                  
-                  LPar=NULL
+                 LPar=NULL
                  
                  
                  vX=1
@@ -1194,7 +1202,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
          clazyiter={
            piter<-numeric(H)
            
-          LPar=NULL
+           LPar=NULL
            
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
@@ -1230,7 +1238,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
            }
            p<-piter
          }, 
-        stop("multistepAhead: Unknown method")
+         stop("multistepAhead: Unknown method")
          
   )
   p
