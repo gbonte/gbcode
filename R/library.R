@@ -381,8 +381,15 @@ SeasonalityTest <- function(input, ppy){
 }
 
 
-
-
+#### StatPredictors1 ####
+#' Statistical forecasting predictors
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references M4 competition
+#' @title Statistical forecasting predictors
+#' @param input: time series
+#' @param fh: horizon
+#' @return: forecasting vector of size fh
+#' @export
 StatPredictors1 <- function(input, fh, index=0,verbose=F){
   #Used to estimate the statistical benchmarks of the M4 competition
   
