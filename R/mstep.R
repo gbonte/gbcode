@@ -835,7 +835,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
   X<-M$inp
   Y<-M$out
   if (H>1){
-    wna<-which(is.na(apply(Y,1,sum)))
+    wna<-which(is.na(apply(Y,1,sum)) | is.na(apply(X,1,sum)))
     if (length(wna)>0){
       X<-X[-wna,]
       Y<-Y[-wna,]
