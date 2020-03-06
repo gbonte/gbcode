@@ -1243,6 +1243,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
          stop("multistepAhead: Unknown method")
          
   )
+  if (any(is.na(p))) 
+    browser()
   p
   
 }
