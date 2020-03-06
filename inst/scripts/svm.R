@@ -19,7 +19,7 @@ if (!separable){
 eps<-0.001
 
 for ( rep in 1:10){
-  N<-15  #number of samples per class
+  N<-150  #number of samples per class
   x1<-cbind(rnorm(N),rnorm(N))
   y1<-numeric(N)+1
   

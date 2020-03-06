@@ -105,7 +105,7 @@ V<-NULL
 M<-NULL
 marge=0.8
 Nts=200
-prevord=c(0,0)
+prevord=c(0,0,0)
 server<-function(input, output,session) {
   
   set.seed(122)
@@ -446,8 +446,8 @@ server<-function(input, output,session) {
     set.seed(0)
     
     observeEvent(input$ord+input$N,{
-      if (any(c(input$ord,input$N)!=prevord)){
-        prevord<<-c(input$ord,input$N)
+      if (any(c(input$ord,input$N,input$nvdw)!=prevord)){
+        prevord<<-c(input$ord,input$N,input$nvdw)
         O<<-NULL
         B<<-NULL
         V<<-NULL

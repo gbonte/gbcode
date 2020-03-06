@@ -31,7 +31,7 @@ Y<-f(x,ord=O)+rnorm(N,sd=sd.w)
 data.tr<-cbind(Y,x)
 
 
-R<-10
+R<-20
 
 Remp<-numeric(R)
 MSE.loo<-numeric(R)

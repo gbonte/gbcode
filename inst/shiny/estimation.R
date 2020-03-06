@@ -138,22 +138,22 @@ ui <- dashboardPage(
               )
       ), ## tabItem
       tabItem(tabName = "Linear",
-              fluidRow(box(width=4, height=400, collapsible = TRUE,
+              fluidRow(box(width=4, height=300, collapsible = TRUE,
                            column(width=6,
-                               sliderInput("q",withMathJax(sprintf('$$\\beta_0:$$')), min = -0.5,max = 0.5, 
-                                       value = 0,step=0.01),
-                           sliderInput("m",withMathJax(sprintf('$$\\beta_1:$$')), min = -BOUND2/2,max = BOUND2/2, 
-                                       value = 1,step=0.01)),
+                                  sliderInput("q",withMathJax(sprintf('$$\\beta_0:$$')), min = -0.5,max = 0.5, 
+                                              value = 0,step=0.01),
+                                  sliderInput("m",withMathJax(sprintf('$$\\beta_1:$$')), min = -BOUND2/2,max = BOUND2/2, 
+                                              value = 1,step=0.01)),
                            column(width=6,
-                           sliderInput("vdw",withMathJax(sprintf('$$\\sigma^2_w:$$')), min = 0.1,max = BOUND2, 
-                                       value = 0.2,step=0.1),
-                           sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05))), 
-                       box(width=4,height=400,title = "Distribution",collapsible = TRUE,
+                                  sliderInput("vdw",withMathJax(sprintf('$$\\sigma^2_w:$$')), min = 0.1,max = BOUND2, 
+                                              value = 0.2,step=0.1),
+                                  sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05))), 
+                       box(width=4,height=300,title = "Distribution",collapsible = TRUE,
                            plotOutput("linearPlotP",height = "300px")),
-                       box(width=4,collapsible = TRUE,title = "Sampling distribution",plotOutput("linearBV", height = 400))),## fluidRow
+                       box(width=4,collapsible = TRUE,title = "Sampling distribution",plotOutput("linearBV", height = 300))),## fluidRow
               fluidRow(   
-                          box(width=4,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("linearCond", height = 400)),  
-                          box(width=8,collapsible = TRUE,title = "Sampling distribution parameters",plotOutput("linearPar", height = 400)))
+                box(width=4,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("linearCond", height = 300)),  
+                box(width=8,collapsible = TRUE,title = "Sampling distribution parameters",plotOutput("linearPar", height = 300)))
               
       ), ## tabItem
       tabItem(tabName = "Nonlinear",
@@ -253,7 +253,7 @@ server<-function(input, output,session) {
     hist(varD,xlab=TeX(sprintf("$\\hat{\\sigma}^2$")),
          xlim=c(-BOUND1,BOUND1),main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\] = %.02f$ ", mean(varD))))
     abline(v=input$var,col="green",lwd=3)
-  
+    
     
     
   })
@@ -274,7 +274,7 @@ server<-function(input, output,session) {
     
   })
   
- 
+  
   
   output$uniSamplingI <- renderPlot( {
     loI<-NULL
@@ -309,7 +309,7 @@ server<-function(input, output,session) {
         lines(seq(loI[r],upI[r],by=0.01),1/input$R*(r+0*seq(loI[r],upI[r],by=0.01)))
       else
         lines(seq(loI[r],upI[r],by=0.01),1/input$R*(r+0*seq(loI[r],upI[r],by=0.01)),col="red")
-        
+      
     }
     abline(v=input$meanI,col="red")
   })
@@ -349,7 +349,7 @@ server<-function(input, output,session) {
          xlim=c(-BOUND1,BOUND1),main=TeX(sprintf("$E\\[\\hat{\\sigma}^2\\] = %.02f$ ", mean(varD))))
     abline(v=(1/12*(input$bound[2]-input$bound[1])^2),col="green",lwd=3)
     
-   
+    
     
   })
   
@@ -619,7 +619,7 @@ server<-function(input, output,session) {
     X=seq(-BOUND2, BOUND2,length.out=input$N)
     muy=input$q+input$m*X
     
-     
+    
     beta.hat.1<<-numeric(input$R)
     beta.hat.0<<-numeric(input$R)
     var.hat.w<-numeric(input$R)
@@ -640,11 +640,11 @@ server<-function(input, output,session) {
       var.hat.w[r]<-sum((Y-Y.hat)^2)/(input$N-2)
     }
     
-   
+    
     par(mfrow=c(1,3)) 
     hist(beta.hat.0,freq=FALSE,
          main=TeX(sprintf("$E\\[\\hat{\\beta}_0\\]$=%.2f",mean(beta.hat.0))),
-                    xlab=TeX(sprintf("$\\hat{\\beta}_0$")),xlim=c(-BOUND2,BOUND2))
+         xlab=TeX(sprintf("$\\hat{\\beta}_0$")),xlim=c(-BOUND2,BOUND2))
     abline(v=input$q,col="green",lwd=3)
     hist(beta.hat.1,freq=FALSE,
          main=TeX(sprintf("$E\\[\\hat{\\beta}_1\\]$=%.2f",mean(beta.hat.1))),

@@ -28,7 +28,8 @@ ui <- dashboardPage(
                   max = 90,
                   value = 10,step=1),
       menuItem("Linear Least squares", tabName = "LS", icon = icon("th")),
-      menuItem("Nonlinear LS ", tabName = "NLS", icon = icon("th"))
+      menuItem("Nonlinear LS ", tabName = "NLS", icon = icon("th")),
+      menuItem("CV ", tabName = "CV", icon = icon("th"))
     ) # sidebar Menu
   ), # dashboard sidebar
   dashboardBody(
@@ -65,6 +66,18 @@ ui <- dashboardPage(
               fluidRow(box(width=6,collapsible = TRUE,title = "Data set",plotOutput("NLData", height = 300)),
                        box(width=6,collapsible = TRUE,title = "Residual sum of squares",
                            plotOutput("NLEmpErr", height = 300)))
+              
+      ),
+      tabItem(tabName = "CV",
+              fluidRow(box(width=6,collapsible = TRUE,title = "CV",
+                           sliderInput("folds","# folds", min = 2,max = 10, 
+                                       value = 5,step=1),
+                           sliderInput("neigh","# neighbours", min = 1,max = 10, 
+                                       value = 3,step=1)),
+                       actionButton("CVdo", "CV step")),
+              fluidRow(box(width=6,collapsible = TRUE,title = "Data set",plotOutput("CVData", height = 300)),
+                       box(width=6,collapsible = TRUE,title = "CV sum of squares",
+                           plotOutput("CVErr", height = 300)))
               
       )
     ) ## tabItems
@@ -185,7 +198,13 @@ server<-function(input, output,session) {
   }
   W<-reactiveValues(W=rnorm(10))
   allE<-reactiveValues(allE=NULL)
+  CV<-reactiveValues(k=1,I.k.tr=NULL,I.k.ts=NULL,E=NULL,I=NULL )
+  
   Xtr<-reactive({allE$allE<-NULL
+  CV$I.k.tr=1:input$N
+  CV$I=sample(input$N)
+  CV$I.k.ts= NULL
+  CV$E=numeric(input$N)
   sort(runif(input$N,-BOUND2, BOUND2))})
   Ytr<-reactive({
     input$b1*Xtr()+input$b0+rnorm(input$N,0,sd=sqrt(input$nvdw))})
@@ -302,9 +321,9 @@ server<-function(input, output,session) {
   
   observeEvent(input$NLreset,{
     allE$allE<-NULL
-      W$W<-rnorm(10,sd=2)
-      
-   
+    W$W<-rnorm(10,sd=2)
+    
+    
     
   })
   
@@ -320,10 +339,63 @@ server<-function(input, output,session) {
   )
   
   
+  output$CVData <- renderPlot( {
+    
+    Xtr=Xtr()[CV$I.k.tr]
+    Ytr=Ytr2()[CV$I.k.tr]
+    Xts=Xtr()[CV$I.k.ts]
+    Yts=Ytr2()[CV$I.k.ts]
+    
+    
+    
+    plot(Xtr,Ytr,
+         xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y")
+    points(Xts,Yts,
+           xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y",col="yellow")
+    
+    if (length(Yts)>0){
+      Yhat=NULL
+      for (i in 1:length(Yts)){
+        dis=abs(Xtr-Xts[i])
+        s=sort(dis,decreasing=FALSE,index=TRUE)$ix
+        Yhat=c(Yhat,mean(Ytr[s[1:input$neigh]]))
+        
+      }
+     
+      CV$E[CV$I.k.ts]=Yts-Yhat
+      points(Xts,Yhat,
+             xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y",col="red")
+      title(paste("Fold=",isolate(CV$k)))
+      
+    }
+  })
+  
+  observeEvent(input$CVdo,{
+    N<-NROW(Xtr())
+    k<-min(input$folds,isolate(CV$k))
+    N.k<-round(N/input$folds)
+    CV$I.k.ts<-CV$I[((k-1)*N.k+1):min(N,N.k*k)]
+    CV$I.k.tr<-setdiff(1:N,isolate(CV$I.k.ts))
+    if (any(is.na(CV$I.k.ts)))
+      browser()
+    if (isolate(CV$k)>=input$folds)
+      CV$k<-1
+    else
+      CV$k<-(isolate(CV$k)+1)
+   
+    
+  })
   
   
-  
-  
+  output$CVErr <- renderPlot( {
+    if (length(CV$E)>0){
+      
+      plot( Xtr(),CV$E,main=paste("CV err=",mean(CV$E^2)),ylim=c(-2,2)) 
+      
+    }
+    
+  }
+  )
 }
 
 

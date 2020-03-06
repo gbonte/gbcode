@@ -3,11 +3,11 @@ library(rgl)
 while (rgl.cur() > 0) { rgl.close() }
 
 example=3
-
+spherical=TRUE
 # 1: green gaussian
 # 2: green mixture of 2 gaussians
 # 3 : green mixture of 4 gaussians
-N=100
+N=1000
 BOUND=4
 x <- seq(-BOUND, BOUND, by= .1)
 y <- x
@@ -25,6 +25,9 @@ p1=0.5
 ax1<-1
 th=1
 ax2<-2
+if (spherical)
+  ax2<-ax1
+
 Rot<-array(c(cos(th), -sin(th), sin(th), cos(th)),dim=c(2,2)); #rotation matrix
 A<-array(c(ax1, 0, 0, ax2),dim=c(2,2))
 Sigma<-(Rot%*%A)%*%t(Rot)
@@ -46,6 +49,8 @@ Dred=rmvnorm(N,sigma=Sigma)
 ax1<-0.2
 th=2
 ax2<-1
+if (spherical)
+  ax2<-ax1
 Rot<-array(c(cos(th), -sin(th), sin(th), cos(th)),dim=c(2,2)); #rotation matrix
 A<-array(c(ax1, 0, 0, ax2),dim=c(2,2))
 Sigma2<-(Rot%*%A)%*%t(Rot)
@@ -85,7 +90,7 @@ greenp<-z
 open3d()
 bg3d("white")
 material3d(col = "black")
-persp3d(x, y, redp,  col = "red",zlab="Class conditional densities")
+persp3d(x, y, redp,  col = "red",main="Class conditional densities", zlab="")
 
 
 
@@ -96,13 +101,20 @@ postp=(redp*p1)/(redp*p1+greenp*(1-p1))
 open3d()
 bg3d("white")
 material3d(col = "black")
-persp3d(x, y, postp,  col = "red",zlab="Conditional distrib")
+persp3d(x, y, postp,  col = "red",
+        main="Posteriori probability class red", zlab="")
 
 
 open3d()
 bg3d("white")
 material3d(col = "black")
-persp3d(x, y, 1-postp,  col = "green",zlab="Conditional distrib")
+persp3d(x, y, 1-postp,  col = "green",main="Posteriori probability class green", zlab="")
+
+
+open3d()
+bg3d("white")
+material3d(col = "black")
+persp3d(x, y, postp*(1-postp),  col = "yellow",main="Posteriori variance", zlab="")
 
 plot(Dred[,1],Dred[,2],col="red",xlim=c(-BOUND,BOUND),ylim=c(-BOUND,BOUND))
 points(Dgreen[,1],Dgreen[,2],col="green")
