@@ -757,7 +757,7 @@ lin.pls<- function(X,Y,X.ts){
 #'
 #'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
-                            Kmin=3,C=2,FF=0,smooth=FALSE){
+                            Kmin=3,C=2,FF=0,smooth=FALSE,DUM=NULL){
   N<-length(TS)
   
   ### Set of statistical methods borrowed from M4 competition 
@@ -814,12 +814,18 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
     dummy=detectSeason(TS)
   if (dummy <=1){
     M<-MakeEmbedded(TS,n,D,H,w=1)  ## putting time series in input/output form
-  } else {
+  } 
+  
+  if (dummy>1 || !is.null(DUM)){
+    if (is.null(DUM)){
+      DUM<-array(rep(seq(1,dummy),length=N+H),c(N,1)) ## additionof a dummy variable to address time and seasonality effectsdu
+    }
     
-    DUM<-array(rep(seq(1,dummy),length=N+H),c(N,1)) ## additionof a dummy variable to address time and seasonality effectsdu
-    M<-MakeEmbedded(ts=cbind(TS,DUM),n=c(n,1),delay=c(D,0),hor=H,w=1)
-    
+    M<-MakeEmbedded(ts=cbind(TS,DUM),n=c(n,numeric(NCOL(DUM))+1),delay=c(D,numeric(NCOL(DUM))),hor=H,w=1)
+    dummy<-2
   }
+  
+  ## dummy > 1 means that a covariate set of size [N+H,] is available
   
   
   
@@ -850,7 +856,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
     if (sd(X)<0.01)
       return(numeric(H)+mean(Y))
   
-  if (dummy<2){
+  if (dummy<=1){
     q<-TS[seq(N-D,N-n+1-D,by=-1),1]
   } else {
     q<-c(TS[seq(N-D,N-n+1-D,by=-1),1],DUM[N-D])
