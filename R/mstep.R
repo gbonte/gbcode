@@ -702,7 +702,6 @@ lin.pls<- function(X,Y,X.ts){
 #' @param  F: forgetting factor
 #' @param  C: integer parameter which sets the maximum number of neighbours (C*k)
 #' @param  smooth: if TRUE, the preidction is obtained by averaging multiple windows with different starting points
-#' @param  XC: covariates 
 #' @param  method:
 #' \itemize{
 #' \item{arima}: prediction based on the \pkg{forecast} package
@@ -757,7 +756,7 @@ lin.pls<- function(X,Y,X.ts){
 #'
 #'
 #'
-multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
+multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,
                             Kmin=3,C=2,FF=0,smooth=FALSE){
   N<-length(TS)
   
@@ -822,27 +821,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
     
   }
   
-  if (!is.null(XC)){
-    TX=cbind(TS,XC)
-    M<-MakeEmbedded(ts=TX,n=c(n,numeric(NCOL(XC))+1),delay=c(D,numeric(NCOL(XC))),
-                    hor=H,w=1)
-    
-    
-    
-  }
   
   
   X<-M$inp
   Y<-M$out
-  if (H>1){
-    wna<-which(is.na(apply(Y,1,sum)) | is.na(apply(X,1,sum)))
-    if (length(wna)>0){
-      X<-X[-wna,]
-      Y<-Y[-wna,]
-    }
-  }
-  if (any(is.na(Y)))
-    stop("Na in M$out")
+  
   NX=NROW(X)
   select.var=1:NCOL(X)
   if (length(select.var)>10 || (length(select.var)>5 && dummy >1 )) {
@@ -1243,8 +1226,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",dummy=0,XC=NULL,
          stop("multistepAhead: Unknown method")
          
   )
-  if (any(is.na(p))) 
-    browser()
+  if (any(is.na(c(p))) 
+    stop("error in multipleStepAhead")
   p
   
 }
