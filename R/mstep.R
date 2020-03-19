@@ -701,6 +701,7 @@ lin.pls<- function(X,Y,X.ts){
 #' @param  dist: type of distance: \code{euclidean, cosine}
 #' @param  F: forgetting factor
 #' @param  C: integer parameter which sets the maximum number of neighbours (C*k)
+#' @param  detrend: real parameter (in [0,1]) which fixes the window used for detrending the series. If equal to -1, no detrending is carried out
 #' @param  smooth: if TRUE, the preidction is obtained by averaging multiple windows with different starting points
 #' @param  method:
 #' \itemize{
@@ -773,14 +774,14 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   trnd.ts2=numeric(H)
   if (detrend>0){
     I=min(N-10,max(1,round(N*detrend))):N
-    trnd=pred("lin",I,TS[I],seq(c(TS)),classi=FALSE) 
-    trnd.ts=pred("lin",I,TS[I],seq(c(TS,1:H)),classi=FALSE)[(N+1):(N+H)]
+    trnd=pred("lin",I,TS[I],seq(c(TS)),classi=FALSE,lambda=1e-3) 
+    trnd.ts=pred("lin",I,TS[I],seq(c(TS,1:H)),classi=FALSE,lambda=1e-3)[(N+1):(N+H)]
     TS=TS-trnd
   }
   
   if (!is.null(XC)){
-    trnd2=pred("lin",XC[1:N,],TS,XC[1:N,],classi=FALSE)
-    trnd.ts2=pred("lin",XC[1:N,],TS,XC,classi=FALSE)[(N+1):(N+H)]
+    trnd2=pred("lin",XC[1:N,],TS,XC[1:N,],classi=FALSE,lambda=1e-2)
+    trnd.ts2=pred("lin",XC[1:N,],TS,XC,classi=FALSE,lambda=1e-2)[(N+1):(N+H)]
     TS=TS-trnd2
     trnd.ts=trnd.ts+trnd.ts2
   }
