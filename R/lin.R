@@ -42,7 +42,7 @@ regrlin<-function(X,Y,X.ts=NULL,lambda=1e-3){
   if (lambda <0){
     min.MSE.loo<-Inf
     XXX<-t(XX)%*%XX
-    for (lambdah in seq (1e-3,5,by=0.5)){
+    for (lambdah in c(seq(1e-3,0.1,length.out=5),seq(0.1,5,by=0.2))){
        H1<-ginv(XXX+lambdah*diag(p))
        beta.hat<-H1%*%t(XX)%*%Y
        H<-XX%*%H1%*%t(XX)
