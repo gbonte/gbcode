@@ -4,8 +4,17 @@
 \alias{forwardSel}
 \title{forwardSel}
 \usage{
-forwardSel(X, Y, algo = "rf", nmax = 5, nmax2 = nmax, cv = 1,
-  classi = FALSE, verbose = FALSE, ...)
+forwardSel(
+  X,
+  Y,
+  algo = "rf",
+  nmax = 5,
+  nmax2 = nmax,
+  cv = 1,
+  classi = FALSE,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{X:}{input dataset}
@@ -24,7 +33,7 @@ forwardSel(X, Y, algo = "rf", nmax = 5, nmax2 = nmax, cv = 1,
 
 \item{cv:}{number of cross-validation folds (if \code{cv=1} no cross-validation)}
 
-\item{verbose:}{if TRUE it prints out the MSE estimations}
+\item{verbose:}{if TRUE it prints out the selected variables and associated accuracy (MSE if regression and Misclassification error if classification)}
 }
 \value{
 Indices of \code{nmax} top ranked features

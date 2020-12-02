@@ -497,14 +497,36 @@ forwardSel<-function(X,Y,algo="rf",nmax=5,nmax2=nmax,cv=1,classi=FALSE,verbose=F
 }
 
 
-
+#' ranking by GS orthogonalization
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @description Ranking filter based on Gram Schmidt orthogonalization
+#' @details Ranking filter based on Gram Schmidt orthogonalization
+#' @title gsloo
+#' @name gsloo
+#' @export
+#'
+#' @param  X: input dataset
+#' @param Y: output dataset
+#' @param nmax: number of top returned features
+#' @return Indices of \code{nmax} top ranked features
+#'
+#' @examples
+#' N<-100
+#' n<-5
+#' neff<-3
+#' R<-regrDataset(N,n,neff,0.1,seed=0)
+#' X<-R$X
+#' Y<-R$Y
+#' real.features<-R$feat
+#' ranked.features<-gsloo(X,Y,nmax=3)
 
 gsloo<-function(X,
                 Y,
-                max.var=ncol(X),
-                trace=FALSE,automatic=F,class=F,shave=F,est.par=F){
+                nmax=ncol(X),
+                trace=FALSE,automatic=F,class=F,shave=F){
   # Gram-Schmidt
-
+  max.var=nmax
   if (class & (!is.factor(Y)))
     stop("Y should be a factor")
 
@@ -591,8 +613,6 @@ gsloo<-function(X,
     }
     if (length(J)>1){
       if (!class){
-        if (is.na(J.regr))
-          browser()
         if (automatic & (J.regr>J[length(J)] ) ){
           A<-A[1:(k-1),1:(k-1)]
           theta<-theta[1:k-1]
@@ -664,12 +684,9 @@ gsloo<-function(X,
     gc()
   }
 
-  if (est.par){
-    par<-solve(A,theta,LINPACK=T)
-    par<-c(muY-muX[selected]%*%par,par)
-  }
-  list(sel=corr.var,par=par,Jloo=J,NMSE=NMSE,max.cor=max.cc,pval=pval)
-
+ 
+  #list(sel=corr.var,par=par,Jloo=J,NMSE=NMSE,max.cor=max.cc,pval=pval)
+  corr.var
 }
 
 

@@ -3,9 +3,6 @@
 \name{lin.pls}
 \alias{lin.pls}
 \title{lin.pls}
-\usage{
-lin.pls(X, Y, X.ts)
-}
 \description{
 Multioutput lin PLS
 }

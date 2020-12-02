@@ -11,7 +11,7 @@ MakeEmbedded(ts, n, delay, hor = 1, w = 1)
 
 \item{delay}{[no.var]: vector of delays}
 
-\item{hor}{[no.var]: vector of predicted horizons (hor=1 boils down to one-step-ahed prediction)}
+\item{hor}{[length(w)]: vector of predicted horizons (hor=1 boils down to one-step-ahed prediction)}
 
 \item{ts:}{multivariate time series [no. observations,no. variates]}
 

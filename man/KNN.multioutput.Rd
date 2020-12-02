@@ -3,10 +3,6 @@
 \name{KNN.multioutput}
 \alias{KNN.multioutput}
 \title{KNN.multioutput}
-\usage{
-KNN.multioutput(X, Y, X.ts, k = 10, Di = NULL, dist = "euclidean",
-  C = 2, F = 0, wta = TRUE)
-}
 \arguments{
 \item{X:}{training input [N,n]}
 

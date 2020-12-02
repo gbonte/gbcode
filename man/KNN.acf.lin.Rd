@@ -3,10 +3,6 @@
 \name{KNN.acf.lin}
 \alias{KNN.acf.lin}
 \title{KNN.acf.lin}
-\usage{
-KNN.acf.lin(X, Y, X.ts, k = 10, dist = "euclidean", C = 2, F = 0, Acf,
-  Pacf, TS, del = 0)
-}
 \arguments{
 \item{X:}{training input [N,n]}
 

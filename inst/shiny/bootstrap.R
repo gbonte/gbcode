@@ -3,6 +3,7 @@ library(mvtnorm)
 library(scatterplot3d)
 library(ellipse)
 library(plot3D)
+library(latex2exp)
 
 BOUND1<-5
 BOUND2<-2

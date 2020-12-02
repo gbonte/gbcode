@@ -3,9 +3,6 @@
 \name{KNN.pls}
 \alias{KNN.pls}
 \title{KNN.pls}
-\usage{
-KNN.pls(X, Y, X.ts, k = 10, dist = "euclidean", C = 2, F = 0, del = 0)
-}
 \arguments{
 \item{X:}{training input [N,n]}
 

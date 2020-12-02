@@ -4,7 +4,7 @@
 \alias{BiasVar}
 \title{Demo of bias/variance tradeoff}
 \usage{
-BiasVar(N = 25, n = 10, R = 200, seed = 1)
+BiasVar(N = 25, n = 20, R = 200, seed = 1)
 }
 \arguments{
 \item{N:}{number of observations}

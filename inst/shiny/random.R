@@ -23,7 +23,8 @@ ui <- dashboardPage(
       menuItem("Operations on one RV", tabName = "RV1", icon = icon("th")),
       menuItem("Central limit demo", tabName = "CL", icon = icon("th")),
       menuItem("Operations on two RVs", tabName = "RV", icon = icon("th")),
-      menuItem("Linear combination of RVs", tabName = "NormalRV", icon = icon("th"))
+      menuItem("Linear combination of RVs", tabName = "NormalRV", icon = icon("th")),
+      menuItem("About", tabName = "about", icon = icon("question"))
     )
   ),
   dashboardBody(
@@ -92,9 +93,11 @@ ui <- dashboardPage(
               fluidRow(   
                 box(width=10,title = "Linear combination (a*red+b*green)",plotOutput("SumNP"))               
               )
-      )
-    )
-  )
+      ),
+      tabItem(tabName = "about",
+              fluidPage(
+                includeHTML("about/about.random.html")))
+  ))
 ) # ui
 
 D<-NULL ## Univariate dataset

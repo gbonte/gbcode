@@ -3,10 +3,6 @@
 \name{KNN.acf}
 \alias{KNN.acf}
 \title{KNN.acf}
-\usage{
-KNN.acf(X, Y, X.ts, k = 10, dist = "euclidean", C = 2, F = 0, Acf, Pacf,
-  TS, del = 0)
-}
 \arguments{
 \item{X:}{training input [N,n]}
 

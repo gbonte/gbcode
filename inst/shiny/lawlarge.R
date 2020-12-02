@@ -5,7 +5,7 @@ library(mvtnorm)
 library(scatterplot3d)
 library(ellipse)
 library(plot3D)
-
+library(markdown)
 BOUND1<-5
 BOUND2<-2
 ui <- dashboardPage(
@@ -35,8 +35,11 @@ ui <- dashboardPage(
                   min = 0,
                   max = 100,
                   value = c(0,100),step=1),
-      menuItem("Large numbers", tabName = "Pvalue", icon = icon("th"))
-    )
+      
+      menuItem("Large numbers", tabName = "Pvalue", icon = icon("th")),
+      menuItem("About", tabName = "about", icon = icon("question"))
+    ),
+    sidebarMenuOutput("menu")
   ),
   dashboardBody(
     tabItems(
@@ -48,7 +51,12 @@ ui <- dashboardPage(
                 box(width=8,title = "Frequency of success",plotOutput("frequency"))),
               fluidRow( box(width=8,title = "(number successes) - (number failures)",plotOutput("headstails"))
               #  valueBoxOutput("Statistic")
-                
+             
+              )
+      ),
+      tabItem(tabName = "about",
+              fluidPage(
+                includeHTML("about/about.lawlarge.html")
               )
       )
     )
@@ -85,12 +93,14 @@ server<-function(input, output,session) {
       d<<-c(d,2*sX[i]-i) ## # successes= sum(X[1:i]), # fails= i- sum(X[1:i])
       ns<<-c(ns,(2*sX[i]-i)/i)
     }
-    eps=pinvgauss(1.9999/2,mean=0)*sqrt(input$N*input$P*(1-input$P))/input$N
+    phat=f[length(f)]
+    alpha=0.01
+    eps=qnorm(1-alpha/2)*sqrt(input$N*phat*(1-phat))/input$N
       
     plot(1:(length(f)),f, type="l",ylim=input$Yrange,xlab="Number of trials",ylab="Frequency",xlim=input$Xrange)
     lines(1:(length(f)),numeric(length(f))+input$P,col="red")
-    lines(1:(length(f)),numeric(length(f))+input$P+eps,col="green")
-    lines(1:(length(f)),numeric(length(f))+input$P-eps,col="green")
+    lines(1:(length(f)),numeric(length(f))+phat+eps,col="green")
+    lines(1:(length(f)),numeric(length(f))+phat-eps,col="green")
     
   })
   

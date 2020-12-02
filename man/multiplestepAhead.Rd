@@ -3,10 +3,6 @@
 \name{multiplestepAhead}
 \alias{multiplestepAhead}
 \title{multiplestepAhead}
-\usage{
-multiplestepAhead(TS, n, H, D = 0, method = "direct", Kmin = 3, C = 2,
-  FF = 0, smooth = FALSE)
-}
 \arguments{
 \item{TS:}{time series}
 
@@ -22,6 +18,8 @@ multiplestepAhead(TS, n, H, D = 0, method = "direct", Kmin = 3, C = 2,
 
 \item{C:}{integer parameter which sets the maximum number of neighbours (C*k)}
 
+\item{detrend:}{real parameter (in [0,1]) which fixes the window used for detrending the series. If equal to -1, no detrending is carried out}
+
 \item{smooth:}{if TRUE, the preidction is obtained by averaging multiple windows with different starting points}
 
 \item{method:}{\itemize{
@@ -30,6 +28,8 @@ multiplestepAhead(TS, n, H, D = 0, method = "direct", Kmin = 3, C = 2,
 \item{iter}: recursive prediction based on \link{KNN.multioutput} function
 \item{lazydirect}: direct prediction based on \link{lazy.pred} function
 \item{lazyiter}: recursive prediction based on \link{lazy.pred} function
+\item{rfdirect}: direct prediction based on \link{rf.pred} function
+\item{rfiter}: recursive prediction based on \link{rf.pred} function
 \item{mimo}: MIMO prediction based on \link{KNN.multioutput} function
 \item{mimo.comb}: MIMO prediction based on \link{KNN.multioutput} function which combines a set of predictors based on different horizons and different starting points
 \item{mimo.acf}: MIMO prediction based on \link{KNN.acf} function which combines a set of predictors based on different horizons and different starting points
@@ -82,6 +82,7 @@ Y.mimo.comb=multiplestepAhead(TS.tr,n=12, H=H,method="mimo.comb")
 plot(t[(N-H+1):N],TS.ts)
 lines(t[(N-H+1):N],Y.mimo,col="red")
 lines(t[(N-H+1):N],Y.mimo.comb,col="green")
+
 
 
 }

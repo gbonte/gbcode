@@ -5,8 +5,18 @@
 \alias{mimr}
 \title{mimr}
 \usage{
-mimr(X, Y, nmax = 5, first = NULL, init = FALSE, lambda = 0.5,
-  fast.inter = 0, back = FALSE, spouse.removal = TRUE, caus = 1)
+mimr(
+  X,
+  Y,
+  nmax = 5,
+  first = NULL,
+  init = FALSE,
+  lambda = 0.5,
+  fast.inter = 0,
+  back = FALSE,
+  spouse.removal = TRUE,
+  caus = 1
+)
 }
 \arguments{
 \item{X:}{input dataset}

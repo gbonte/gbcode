@@ -4,8 +4,18 @@
 \alias{bagging.pred}
 \title{Wrapper on lazy learning algoritmhs for regression and classification}
 \usage{
-bagging.pred(algo, X, Y, X.ts, B = 10, maxN = Inf, classi = TRUE,
-  balanced = FALSE, bagvar = 0, ...)
+bagging.pred(
+  algo,
+  X,
+  Y,
+  X.ts,
+  B = 10,
+  maxN = Inf,
+  classi = TRUE,
+  balanced = FALSE,
+  bagvar = 0,
+  ...
+)
 }
 \arguments{
 \item{X:}{training input}

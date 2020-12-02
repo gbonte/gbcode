@@ -4,8 +4,17 @@
 \alias{lazy.pred}
 \title{Wrapper on lazy learning algoritmhs for regression and classification}
 \usage{
-lazy.pred(X, Y, X.ts, class = FALSE, return.more = FALSE, conPar = 3,
-  linPar = 5, cmbPar = 10)
+lazy.pred(
+  X,
+  Y,
+  X.ts,
+  class = FALSE,
+  return.more = FALSE,
+  conPar = NULL,
+  linPar = NULL,
+  cmbPar = 10,
+  scaleX = TRUE
+)
 }
 \arguments{
 \item{X:}{training input}
