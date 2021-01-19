@@ -27,7 +27,7 @@ for (i in seq(50001,100000,by=100)){
     trnd=NULL
     h=2
     for (s in (stp-h):(Ntr-h))
-      trnd=c(trnd,multiplestepAhead(TS[1:s],n=3, H=h,method=method2)[h])
+      trnd=c(trnd,multiplestepAhead(TS[1:s],n=3, H=h,method=method2,XC=cbind(1:s,1:s))[h])
     
   
     TTS.tr=sTS.tr-trnd

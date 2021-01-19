@@ -34,9 +34,14 @@ print(sum(Jo))  ## Check that the joint probability is normalized
 
 ## Jo[H,C,V]
 
+### Independence of C and V
+P.C.1.V.1=sum(Jo[,1,1])    # P(C=1 & V=1)
+cat("P(C=T)=",P.C.1, "; P(C=T|V=T)=",P.C.1.V.1/P.V.1,"\n")
 
-P.H.1=sum(Jo[1,,])    # P(B=1)
-P.C.1.H.1=sum(Jo[1,1,])  # P(A=1 & B=1)
+###
+
+P.H.1=sum(Jo[1,,])    # P(H=1)
+P.C.1.H.1=sum(Jo[1,1,])  # P(C=1 & H=1)
 cat("P(C=T|H=T)=",P.C.1.H.1/P.H.1,"\n")
 
 ###
@@ -48,5 +53,4 @@ cat("P(C=T|H=T,V=T)=",P.C.1.H.1.V.1/P.H.1.V.1,"\n")
 P.H.1.V.0=sum(Jo[1,,2])    # P(H=1 & V=1)
 P.C.1.H.1.V.0=Jo[1,1,2]  # P(H=1 & C=1 & V=1)
 cat("P(C=T|H=T,V=F)=",P.C.1.H.1.V.0/P.H.1.V.0,"\n")
-
 
