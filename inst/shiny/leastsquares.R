@@ -377,7 +377,7 @@ server<-function(input, output,session) {
     CV$I.k.ts<-CV$I[((k-1)*N.k+1):min(N,N.k*k)]
     CV$I.k.tr<-setdiff(1:N,isolate(CV$I.k.ts))
     if (any(is.na(CV$I.k.ts)))
-      browser()
+      stop("error")
     if (isolate(CV$k)>=input$folds)
       CV$k<-1
     else

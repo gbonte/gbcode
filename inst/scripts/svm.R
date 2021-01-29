@@ -1,15 +1,19 @@
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
 
 
+
+rm(list=ls())
 library("quadprog")
 library("MASS")
-rm(list=ls())
+
 set.seed(0)
 normv<-function(x,p=2){
   sum(x^p)^(1/p)
-  
 }
 
-separable<-F
+separable<-FALSE
 
 if (!separable){
   gam<-0.05
@@ -18,7 +22,7 @@ if (!separable){
 }
 eps<-0.001
 
-for ( rep in 1:10){
+for ( rep in 1:1){
   N<-150  #number of samples per class
   x1<-cbind(rnorm(N),rnorm(N))
   y1<-numeric(N)+1
@@ -51,14 +55,14 @@ for ( rep in 1:10){
   d<-array(1,c(2*N,1))
   
   A<-cbind(Y,diag(2*N))
-  b<-numeric(2*N+1)
+  b0<-numeric(2*N+1)
   
   
   
   if (! separable){
     A<-cbind(A,-diag(2*N))
-    b<-c(b,numeric(2*N))
-    b[(2*N+2):(4*N+1)]<--gam
+    b0<-c(b0,numeric(2*N))
+    b0[(2*N+2):(4*N+1)]<--gam
     
     
     ##  min_b(-d^T b + 1/2 b^T D b) with the constraints A^T b >= bvec.
@@ -70,7 +74,7 @@ for ( rep in 1:10){
   
   
   
-  S<-solve.QP(Dmat,dvec=d,Amat=A,meq=1,bvec=b)
+  S<-solve.QP(Dmat,dvec=d,Amat=A,meq=1,bvec=b0)
   ##  min_b(-d^T b + 1/2 b^T D b) with the constraints A^T b >= bvec.
   ## b-> alpha [2N,1]
   ## 1st contraint sum_i y_i*alpha_i=0

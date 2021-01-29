@@ -16,7 +16,7 @@ ui <- dashboardPage(
                   max = 200,
                   value = 50,step=2),
       sliderInput("R",
-                  "Number of trials:",
+                  "Number of MC trials:",
                   min = 100,
                   max = 5000,
                   value = 500,step=2),
@@ -30,16 +30,6 @@ ui <- dashboardPage(
                   min = 0,
                   max = 90,
                   value = 10,step=1),
-      sliderInput("dx",
-                  "X density:",
-                  min = 0.1,
-                  max = 0.3,
-                  value = 0.15,step=0.01),
-      sliderInput("dy",
-                  "Y density:",
-                  min = 0.1,
-                  max = 0.3,
-                  value = 0.15,step=0.01),
       
       menuItem("1D point estimation (Gaussian)", tabName = "Univariate", icon = icon("th")),
       menuItem("1D point estimation (Uniform)", tabName = "UUnivariate", icon = icon("th")),
@@ -48,7 +38,8 @@ ui <- dashboardPage(
       menuItem("Likelihood (2 pars)", tabName = "Likelihood2", icon = icon("th")),
       menuItem("2D point estimation (Gaussian)", tabName = "Bivariate", icon = icon("th")),
       menuItem("Linear Regression", tabName = "Linear", icon = icon("th")),
-      menuItem("Nonlinear Regression", tabName = "Nonlinear", icon = icon("th"))
+      menuItem("Nonlinear Regression", tabName = "Nonlinear", icon = icon("th")),
+      menuItem("About", tabName = "about", icon = icon("question"))
     ) # sidebar Menu
   ), # dashboard sidebar
   dashboardBody(
@@ -169,6 +160,11 @@ ui <- dashboardPage(
               fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("nlinearBV", height = 300)),
                           box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("nlinearCond", height = 300)))
               
+      ),
+      tabItem(tabName = "about",
+              fluidPage(
+                includeHTML("about/about.estimation.html")
+              )
       ) ## tabItem
     ) ## tabItems
   )# DashboardBody
@@ -295,12 +291,13 @@ server<-function(input, output,session) {
     p2<-hist(upI,freq=FALSE)
     par(mfrow=c(1,2)) 
     plot(p1,xlim=c(input$meanI-input$sdevI,input$meanI+input$sdevI),
-         main=paste("Percentage internal=",round(100*inperc/input$R,2), 
-                    " Avg width=",round(mean(wI),2) ),col=rgb(0,0,1,1/4),xlab="")
+         main=TeX(paste("100(1-$\\alpha$)=",100*(1-input$alpha), "%; internal=",
+                    round(100*inperc/input$R,2), 
+                    "%; Avg width=",round(mean(wI),2))) ,col=rgb(0,0,1,1/4),xlab="")
     plot( p2, col=rgb(1,0,0,1/4), xlim=c(input$meanI-0.5*input$sdevI,input$meanI+0.5*input$sdevI), add=T)
     
     plot(seq(loI[1],upI[1],by=0.01),0*seq(loI[1],upI[1],by=0.01),
-         main=paste("# intervals not containing (red)=",input$R-inperc),
+         main=paste("# interv. not containing (red)=",input$R-inperc),
          xlim=c(input$meanI-input$sdevI,input$meanI+input$sdevI),
          ylim=c(-0.1,1),type="l",
          xlab="conf intervals",ylab="", yaxt='n')
@@ -493,8 +490,8 @@ server<-function(input, output,session) {
   
   output$linearPlotP <- renderPlot({
     
-    x <- seq(-BOUND2, BOUND2, by= input$dx)
-    y <- seq(-BOUND2, BOUND2, by= input$dy)
+    x <- seq(-BOUND2, BOUND2, by= 0.05)
+    y <- seq(-BOUND2, BOUND2, by= 0.05)
     z<-array(0,dim=c(length(x),length(y)))
     #th : rotation angle of the first principal axis
     #ax1: length principal axis 1
@@ -689,8 +686,8 @@ server<-function(input, output,session) {
   
   output$nlinearPlotP <- renderPlot({
     
-    x <- seq(-BOUND2, BOUND2, by= input$dx)
-    y <- seq(-BOUND2, BOUND2, by= input$dy)
+    x <- seq(-BOUND2, BOUND2, by= 0.05)
+    y <- seq(-BOUND2, BOUND2, by= 0.05)
     z<-array(0,dim=c(length(x),length(y)))
     #th : rotation angle of the first principal axis
     #ax1: length principal axis 1

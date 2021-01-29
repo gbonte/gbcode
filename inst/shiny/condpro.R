@@ -32,19 +32,12 @@ ui <- dashboardPage(
                   min = 0,
                   max = 90,
                   value = 75,step=1),
-      sliderInput("dx",
-                  "X density:",
-                  min = 0.1,
-                  max = 0.3,
-                  value = 0.15,step=0.01),
-      sliderInput("dy",
-                  "Y density:",
-                  min = 0.1,
-                  max = 0.3,
-                  value = 0.15,step=0.01),
+      ## sliderInput("dx","X density:", min = 0.1, max = 0.3, value = 0.15,step=0.01),
+      ##  sliderInput("dy", "Y density:", min = 0.1, max = 0.3, value = 0.15,step=0.01),
       
       menuItem("Conditional gaussian distribution", tabName = "Bivariatemixture", icon = icon("th")),
-      menuItem("Regression function", tabName = "Regression", icon = icon("th"))
+      menuItem("Regression function", tabName = "Regression", icon = icon("th")),
+      menuItem("About", tabName = "about", icon = icon("question"))
     )
   ),
   dashboardBody(
@@ -60,23 +53,28 @@ ui <- dashboardPage(
                     sliderInput("ax21","Axis2 1:", min = 0.01, max = BOUND2, value = 0.15,step=0.05),
                     sliderInput("x","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05),
                     textOutput("textB")),
-                box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("biPlotP"))),
+                box(width=8,title = "3D joint density visualization",collapsible = TRUE,plotOutput("biPlotP"))),
               fluidRow(   box(width=6,collapsible = TRUE,title = "Data",plotOutput("biPlotD")),
-                 box(width=6,collapsible = TRUE,title = "Conditional distribution",plotOutput("biCond")))
+                          box(width=6,collapsible = TRUE,title = "Conditional distribution",plotOutput("biCond")))
       ), ## tabItem
       tabItem(tabName = "Regression",
               fluidRow(box(width=4,collapsible = TRUE,
                            sliderInput("ord","Functions:", min = -3,max = 3, 
-                                                           value = 1,step=1),
+                                       value = 1,step=1),
                            sliderInput("sdw","Cond sdev:", min = 0.5,max = 2.5, 
                                        value = 1,step=0.1),
-                    sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
-                box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("regrPlotP"))),## fluidRow
+                           sliderInput("rx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05)), 
+                       box(width=6,title = "3D joint density visualization",collapsible = TRUE,plotOutput("regrPlotP"))),## fluidRow
               fluidRow(   box(width=6,collapsible = TRUE,title = "Data",plotOutput("regrPlotD")),
-               box(width=6,collapsible = TRUE,title = "Conditional distribution",plotOutput("regrCond")))
+                          box(width=6,collapsible = TRUE,title = "Conditional distribution",plotOutput("regrCond")))
               
+      ),
+      tabItem(tabName = "about",
+              fluidPage(
+                includeHTML("about/about.condpro.html")
+              )
       ) ## tabItem
-  )
+    )
   )
 ) # ui
 
@@ -85,7 +83,7 @@ E<-NULL ## Bivariate eigenvalue matrix
 server<-function(input, output,session) {
   
   set.seed(122)
- 
+  
   
   f<-function(x,ord){
     f<-numeric(length(x))
@@ -101,12 +99,12 @@ server<-function(input, output,session) {
       f<-x^2-2
     if (ord==3)
       f<--x^2+1
-     
-      
-      f
+    
+    
+    f
   }
   
-
+  
   
   output$biPlotP <- renderPlot({
     
@@ -126,9 +124,9 @@ server<-function(input, output,session) {
     Sigma<-(Rot%*%A)%*%t(Rot)
     E<<-eigen(Sigma)
     
-   
     
-   
+    
+    
     for (i in 1:length(x)){
       for (j in 1:length(y)){
         z[i,j]<-dmvnorm(c(x[i],y[j]),sigma=Sigma)
@@ -139,7 +137,7 @@ server<-function(input, output,session) {
     prob.z<-z
     
     surface<-persp3D(x, y, prob.z, theta = input$tdt, phi = input$tdp, expand = 0.5, col = "blue",facets=FALSE)
-
+    
     
     
     lines (trans3d(x=input$x, y = seq(-BOUND2, BOUND2, by= .2), z = 0, pmat = surface), col = "red",lwd=3)
@@ -157,9 +155,9 @@ server<-function(input, output,session) {
     
     D<<-D1
     
-   
     
-    plot(D[,1],D[,2],xlim=c(-BOUND2,BOUND2),ylim=c(-BOUND2,BOUND2))
+    
+    plot(D[,1],D[,2],xlim=c(-BOUND2,BOUND2),ylim=c(-BOUND2,BOUND2),xlab="x", ylab="y")
     lines(ellipse(Sigma))
     abline(v=input$x,  col = "red",lwd=3)
     
@@ -191,21 +189,21 @@ server<-function(input, output,session) {
     input$ax2
     paste("Eigen1=", E$values[1], "\n Eigen2=", E$values[2])
   })
-
+  
   output$regrPlotP <- renderPlot({
     
-    x <- seq(-BOUND2, BOUND2, by= input$dx)
-    y <- seq(-BOUND2, BOUND2, by= input$dy)
+    x <- seq(-BOUND2, BOUND2, by= 0.1)
+    y <- seq(-BOUND2, BOUND2, by= 0.1)
     z<-array(0,dim=c(length(x),length(y)))
     #th : rotation angle of the first principal axis
     #ax1: length principal axis 1
     #ax2: length principal axis 2
     
-   
+    
     
     muy<-f(x,ord=input$ord)
-   
-   
+    
+    
     for (i in 1:length(x)){
       for (j in 1:length(y)){
         z[i,j]<-dnorm(y[j],mean=muy[i],sd=input$sdw)
@@ -214,7 +212,7 @@ server<-function(input, output,session) {
     z[is.na(z)] <- 1
     op <- par(bg = "white")
     prob.z<-z
-   
+    
     surface<-persp3D(x, y, prob.z, theta = input$tdt, phi =input$tdp, expand = 0.5, col = "blue",facets=FALSE)
     
     
@@ -230,11 +228,9 @@ server<-function(input, output,session) {
     Y=muy+rnorm(input$N,sd=input$sdw)
     
     D<<-cbind(X,Y)
-    
-    
-    
-    plot(D[,1],D[,2],xlim=c(-BOUND2,BOUND2),ylim=c(-BOUND2,BOUND2))
-    lines(D[,1],muy)
+    plot(D[,1],D[,2],xlim=c(-BOUND2,BOUND2),ylim=c(-BOUND2,BOUND2),
+         xlab="x",ylab="y")
+    lines(D[,1],muy, lwd=3)
     abline(v=input$rx,  col = "red",lwd=3)
     
   })
@@ -242,11 +238,11 @@ server<-function(input, output,session) {
   output$regrCond <- renderPlot( {
     th=input$rot1
     
-   
+    
     muy=f(input$rx,input$ord)
     x=seq(-1.5*BOUND2, 1.5*BOUND2, by= .02)
     plot(x,dnorm(x,mean=muy,sd=input$sdw),type="l",col="red",lwd=2,ylab="Conditional density")
-     
+    
   })
   
   

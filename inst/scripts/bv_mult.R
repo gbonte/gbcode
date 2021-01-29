@@ -6,12 +6,13 @@
 library(MASS)
 par(ask=TRUE)
 
-n<-3 # number input variables
+n<-4 # number input variables
 p<-n+1
 N<-100 # number training data
 X<-array(runif(N*n,min=-20,max=20),c(N,n))
 X<-cbind(array(1,c(N,1)),X)
-beta<-seq(2,p+1)
+
+beta<-sample(1:10,p) ## test with different values
 
 R<-10000
 sd.w<-5
@@ -37,12 +38,15 @@ for (i in 1:p){
   hist(beta.hat[i,], main=paste("Distribution of beta.hat.",i,": beta",i,"=", beta[i]))
 }
 
-# test unbiasedness prediction
-print(paste("Bias prediction", apply(Y.hat,2,mean)-X%*%beta))
 
-# comparison analytical and simulated variance of the prediction
+
 for (i in 1:N){
-  print(var(Y.hat[,i])-sd.w^2*(t(X[i,])%*%ginv(t(X)%*%X)%*%X[i,]))
+  # test unbiasedness prediction
+  cat("i=",i,"E[yhat_i]=",mean(Y.hat[,i]), " f(x_i)=",X[i,]%*%beta,"\n")
+  
+  # comparison analytical and simulated variance of the prediction
+  cat("i=",i,"prediction variance=",sd.w^2*(t(X[i,])%*%ginv(t(X)%*%X)%*%X[i,]),
+      "MC value=",var(Y.hat[,i]),"\n \n")
   
 }
 
