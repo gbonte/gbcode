@@ -42,9 +42,9 @@ ui <- dashboardPage(
                                 min = 10,
                                 max = 1000,
                                 value = 100,step=2),
-                    sliderInput("rot1","Rotation 1:", min = -3.14,max = 3.14, value = 0),
-                    sliderInput("ax11","Axis1 1:",min = 0.01,max = BOUND2,value = 3,step=0.05),
-                    sliderInput("ax21","Axis2 1:", min = 0.01, max = BOUND2, value = 0.15,step=0.05),
+                    sliderInput("rot1","Rotation:", min = -3.14,max = 3.14, value = 0),
+                    sliderInput("ax11",withMathJax(sprintf('$${\\lambda}_1:$$')),min = 0.01,max = BOUND2,value = 3,step=0.05),
+                    sliderInput("ax21",withMathJax(sprintf('$${\\lambda}_2:$$')), min = 0.01, max = BOUND2, value = 0.15,step=0.05),
                     
                 ),
                 box(width=4,title = "Covariance matrix",collapsible = FALSE,
@@ -156,7 +156,7 @@ server<-function(input, output,session) {
     Sigma<-(Rot%*%A)%*%t(Rot)
     E<-eigen(Sigma)
    
-    paste("Eigen1=", E$values[1], "\n Eigen2=", E$values[2])
+    paste("Eig1=", E$values[1], "\n Eig2=", E$values[2])
   })
 }
 

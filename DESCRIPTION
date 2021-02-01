@@ -13,4 +13,4 @@ RoxygenNote: 7.1.1
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
-Depends: mvtnorm, randomForest, pls, lazy, forecast, e1071, lda, MASS, ROCR,lars, gbm, mboost, gam, scatterplot3d, ellipse
+Depends: mvtnorm, randomForest, pls, lazy, forecast, e1071, lda, MASS, ROCR,lars, gbm, mboost, gam, scatterplot3d, ellipse, xgboost

@@ -13,8 +13,8 @@ ui <- dashboardPage(
       sliderInput("N",
                   "Number of samples N:",
                   min = 2,
-                  max = 200,
-                  value = 50,step=2),
+                  max = 1000,
+                  value = 50,step=1),
       sliderInput("R",
                   "Number of MC trials:",
                   min = 100,
@@ -31,12 +31,12 @@ ui <- dashboardPage(
                   max = 90,
                   value = 10,step=1),
       
-      menuItem("1D point estimation (Gaussian)", tabName = "Univariate", icon = icon("th")),
-      menuItem("1D point estimation (Uniform)", tabName = "UUnivariate", icon = icon("th")),
-      menuItem("1D confidence interval ", tabName = "UnivariateI", icon = icon("th")),
+      menuItem("point estimation (1D Gaussian)", tabName = "Univariate", icon = icon("th")),
+      menuItem("point estimation (1D Uniform)", tabName = "UUnivariate", icon = icon("th")),
+      menuItem("confidence interval (1D Gaussian)", tabName = "UnivariateI", icon = icon("th")),
       menuItem("Likelihood (1 par)", tabName = "Likelihood", icon = icon("th")),
       menuItem("Likelihood (2 pars)", tabName = "Likelihood2", icon = icon("th")),
-      menuItem("2D point estimation (Gaussian)", tabName = "Bivariate", icon = icon("th")),
+      menuItem("point estimation (2D Gaussian)", tabName = "Bivariate", icon = icon("th")),
       menuItem("Linear Regression", tabName = "Linear", icon = icon("th")),
       menuItem("Nonlinear Regression", tabName = "Nonlinear", icon = icon("th")),
       menuItem("About", tabName = "about", icon = icon("question"))
@@ -76,7 +76,7 @@ ui <- dashboardPage(
               fluidRow(
                 box(width=4,sliderInput("meanI","Mean:",min = -BOUND1, max = BOUND1 ,
                                         value = 0),
-                    sliderInput("sdevI","St Dev:",min = 0.001,max = 2, value = 0.1),
+                    sliderInput("sdevI","St Dev:",min = 0.001,max = 2, value = 0.4),
                     sliderInput("alpha","Alpha:",min = 0.001,max = 0.5, value = 0.1,step=0.001)),
                 box(width=4,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotI", height = 300))),
               
@@ -111,16 +111,18 @@ ui <- dashboardPage(
                                         value = 0.4,step=0.01))),
               #
               fluidRow(   
-                box(width=6,title = "Data",plotOutput("LikeData2", height = 400)),
-                box(width=6,title = "LogLikelihood function",plotOutput("Likelihood2", height = 400))
+                box(width=6,title = "Data, generating and estimated densities",
+                    plotOutput("LikeData2", height = 400)),
+                box(width=6,title = "Log-likelihood function",plotOutput("Likelihood2", height = 400))
               )
       ), # tabItem
       tabItem(tabName = "Bivariate",
               fluidRow(
-                box(width=4,collapsible = TRUE,sliderInput("rot1","Rotation 1:", min = -3/2,max = 3/2, 
-                                                           value = -0.75),
-                    sliderInput("ax11","Axis1 1:",min = 0.01,max = BOUND2,value = 3,step=0.05),
-                    sliderInput("ax21","Axis2 1:", min = 0.01, max = BOUND2, value = 0.15,step=0.05)
+                box(width=4,collapsible = TRUE,sliderInput("rot1","Rotation angle:", min = -3/2,max = 3/2, 
+                                                           value = -0.05),
+                    sliderInput("ax11",withMathJax(sprintf('$${\\lambda}_1:$$')),min = 0.01,max = BOUND2,value = 3,step=0.01),
+                    sliderInput("ax21",withMathJax(sprintf('$${\\lambda}_2:$$')), min = 0.01, max = BOUND2, value = 0.15,step=0.01),
+                    uiOutput('Binfo')
                 ),
                 box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("biPlotP", height = 300))),
               fluidRow(   
@@ -374,25 +376,36 @@ server<-function(input, output,session) {
     logLik<-numeric(length(xaxis))
     for (j in 1:length(xaxis)){
       Lik[j]=1
-      logLik[j]=1
+      logLik[j]=0
       for (i in 1:length(D)){
         Lik[j]=Lik[j]*dnorm(D[i],xaxis[j],sqrt(input$varL))
         logLik[j]=logLik[j]+dnorm(D[i],xaxis[j],sqrt(input$varL),log=TRUE)
       }
     }
     
+    xmax=xaxis[which.max(logLik)]
     
     eLik=1
     elogLik=0
     for (i in 1:length(D)){
-      eLik=eLik*dnorm(D[i],input$estimate,input$varL)
+      eLik=eLik*dnorm(D[i],input$estimate,sqrt(input$varL))
       elogLik=elogLik+dnorm(D[i],input$estimate,sqrt(input$varL),log=TRUE)
     }
-    #plot(xaxis,Lik,type="l")
-    plot(xaxis,logLik,type="l",main=paste("logLik=",round(elogLik,2), "maxlogLik=",round(max(logLik),2)),
+    
+    gLik=1
+    glogLik=0
+    for (i in 1:length(D)){
+      gLik=gLik*dnorm(D[i],input$mean,sqrt(input$varL))
+      glogLik=glogLik+dnorm(D[i],input$mean,sqrt(input$varL),log=TRUE)
+    }
+    
+    plot(xaxis,logLik,type="l",main=TeX(paste("logLik($\\hat{\\mu}$)=",round(elogLik,2), 
+                                          "; logLik($\\hat{\\mu}_{ml}$)=",round(max(logLik),2),
+                                          "; $\\hat{\\mu}_{ml}$=",round(xmax,2))),
          xlab="estimate")
     points(input$estimate,elogLik,col="red",lwd=8)
-    points(input$meanL,max(logLik),col="green",lwd=8)
+    points(xmax,max(logLik),col="black",lwd=8)
+    points(input$mean,glogLik,col="green",lwd=8)
   })
   
   
@@ -434,7 +447,16 @@ server<-function(input, output,session) {
   })
   
   
-  
+  output$Binfo<- renderUI({
+    th=input$rot1
+    
+    Rot<-array(c(cos(th), -sin(th), sin(th), cos(th)),dim=c(2,2)); #rotation matrix
+    A<-array(c(input$ax11, 0, 0, input$ax21),dim=c(2,2))
+    Sigma<-(Rot%*%A)%*%t(Rot)
+    withMathJax(sprintf('$$\\Sigma=\\begin{bmatrix} %f & %f \\\\ %f & %f \\end{bmatrix} $$',
+                        Sigma[1,1],Sigma[1,2],Sigma[2,1],Sigma[2,2] ))
+    
+  })
   
   output$biSamplingM <- renderPlot( {
     th=input$rot1
@@ -454,6 +476,7 @@ server<-function(input, output,session) {
     
     plot(allmeanD[,1],allmeanD[,2],xlim=c(-BOUND1/2,BOUND1/2), ylim=c(-BOUND1/2,BOUND1/2),xlab="x",ylab="y")
     lines(ellipse(cov(allmeanD)))
+    points(0,0,col="green",lwd=3)
     
     
   })
@@ -476,7 +499,7 @@ server<-function(input, output,session) {
       
     }
     
-    
+    lines(ellipse(Sigma),col="green",lwd=3)
     
   })
   
@@ -538,11 +561,18 @@ server<-function(input, output,session) {
     yaxis=seq(0.15,0.5,by=0.05)
     
     logLik<-array(0,c(length(xaxis),length(yaxis)))
+    mxLoglik=-Inf
+    
     for (j in 1:length(xaxis)){
       for (k in 1:length(yaxis)){
         
         for (i in 1:length(D)){
           logLik[j,k]=logLik[j,k]+dnorm(D[i],xaxis[j],sd=sqrt(yaxis[k]),log=TRUE)
+        }
+        if (logLik[j,k]>mxLoglik){
+          mxLoglik=logLik[j,k]
+          xmax=xaxis[j]
+          ymax=yaxis[k]
         }
       }
     }
@@ -553,20 +583,29 @@ server<-function(input, output,session) {
       elogLik=elogLik+dnorm(D[i],input$meanhatL2,sd=sqrt(input$varhatL2),log=TRUE)
     }
     
-    
-    
+    glogLik=0
+    for (i in 1:length(D)){
+      glogLik=glogLik+dnorm(D[i],input$meanL2,sd=sqrt(input$varL2),log=TRUE)
+    }
     
     op <- par(bg = "white")
-    # browser()
+    
     surface<-persp(xaxis, yaxis, logLik, 
                    theta = input$tdt, phi =input$tdp, expand = 0.5, xlim=c(min(xaxis),max(xaxis)),
                    ylim=c(min(yaxis),max(yaxis)),
-                   main=paste("logLik=",round(elogLik,2), "maxlogLik=",round(max(logLik),2)))
+                   main=TeX(paste("logLik($\\hat{\\theta}$)=",round(elogLik,2), 
+                                  "; logLik($\\hat{\\theta}_{ml}$)=",round(max(logLik),2),
+                                  "; logLik($\\theta$)=",round(glogLik,2))))
+                   
+                   #main=paste("logLik=",round(elogLik,2), "maxlogLik=",round(max(logLik),2)))
     
     points (trans3d(x=input$meanhatL2, 
                     y = input$varhatL2, z = elogLik, pmat = surface), col = "red",lwd=8)
     points (trans3d(x=input$meanL2, 
-                    y = input$varL2, z = max(c(logLik)), pmat = surface), col = "green",lwd=8)
+                    y = input$varL2, z = glogLik, pmat = surface), col = "green",lwd=8)
+    points (trans3d(x=xmax, 
+                    y = ymax, z = max(c(logLik)), pmat = surface), col = "black",lwd=8)
+    
     # lines (trans3d(y=input$varhatL2, 
     #               x = seq(-BOUND2, BOUND2, by= .2), z =elogLik, pmat = surface), col = "green",lwd=1)
     #plot(xaxis,logLik,type="l",main=paste("logLik=",round(elogLik,2)))
@@ -746,8 +785,8 @@ server<-function(input, output,session) {
     
     bvtitle=paste("Bias^2=", round(avg.bias2,2), "Var=", round(avg.var,2), "MSE=", round(avg.mse,2) )
     title(bvtitle)
-    lines(X,muy,lwd=4,col="blue")
-    lines(X,meanY.hat,lwd=4,col="green")
+    lines(X,muy,lwd=4,col="green")
+    lines(X,meanY.hat,lwd=4,col="blue")
     abline(v=input$nrx,  col = "red",lwd=1)
     
   })
@@ -771,8 +810,8 @@ server<-function(input, output,session) {
     bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,2), "Var=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2) )
     hist(Y.hat,xlab=TeX(sprintf("$\\hat{y}$")),
          xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
-    abline(v=Yq,col="blue",lwd=3)
-    abline(v=mean(Y.hat),  col = "green",lwd=3)
+    abline(v=Yq,col="green",lwd=3)
+    abline(v=mean(Y.hat),  col = "blue",lwd=3)
     
   })
   

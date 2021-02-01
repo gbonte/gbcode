@@ -23,7 +23,7 @@ ui <- dashboardPage(
                   value = 0.25,step=0.01),
       sliderInput("nrx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05),
       sliderInput("R",
-                  "Number of trials:",
+                  "Number of MC trials:",
                   min = 200,
                   max = 1000,
                   value = 200,step=2),
@@ -31,7 +31,8 @@ ui <- dashboardPage(
       menuItem("Polynomial fitting", tabName = "Modelcomparison", icon = icon("th")),
       menuItem("Local constant fitting", tabName = "LC", icon = icon("th")),
       menuItem("Local linear fitting", tabName = "LL", icon = icon("th")),
-      menuItem("Random Forest fitting", tabName = "RF", icon = icon("th"))
+      menuItem("Random Forest fitting", tabName = "RF", icon = icon("th")),
+      menuItem("About", tabName = "about", icon = icon("question"))
     ) # sidebar Menu
   ), # dashboard sidebar
   dashboardBody(
@@ -44,8 +45,8 @@ ui <- dashboardPage(
                                        value = 1,step=1)) 
                        ##  box(width=8,title = "Distribution",collapsible = TRUE,plotOutput("nlinearPlotP", height = 400))
               ),## fluidRow
-              fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("nlinearBV", height = 300)),
-                          box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("nlinearCond", height = 300)))
+              fluidRow(   box(width=6,collapsible = TRUE,title = "Predictive sampling distribution",plotOutput("nlinearBV", height = 300)),
+                          box(width=6,collapsible = TRUE,title = "Conditional sampling distribution at x",plotOutput("nlinearCond", height = 300)))
               
       ), 
       tabItem(tabName = "Modelcomparison",
@@ -92,7 +93,11 @@ ui <- dashboardPage(
               fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("nRFBV", height = 300)),
                           box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("nRFCond", height = 300)))
               
-      ) ## tabItem
+      ),
+      tabItem(tabName = "about",
+              fluidPage(
+                includeHTML("about/about.regression.html")
+              ))## tabItem
     ) ## tabItems
   )# DashboardBody
 ) # ui dashboardPage
@@ -471,7 +476,7 @@ server<-function(input, output,session) {
     
     var.hat.w<-numeric(Nts)
     muy.ts<-f(Xts,input$ord)
-    plot(Xts,muy.ts,xlim=c(-BOUND2,BOUND2),type="n")
+    plot(Xts,muy.ts,xlim=c(-BOUND2,BOUND2),type="n",xlab="x",ylab="y")
     muy.tr=f(Xtr,input$ord)
     
     for (r in 1:input$R){
@@ -548,7 +553,9 @@ server<-function(input, output,session) {
     input$ord+input$N+input$hh
     if (length(B)>=2 ){
       sO<-sort(O,index.return=TRUE)
-      plot(sO$x,M[sO$ix],col="magenta",type="l",xlab="# parameters", ylab="MISE", lwd=2)
+      bestp=O[which.min(M)]
+      plot(sO$x,M[sO$ix],col="magenta",type="l",xlab="# parameters", ylab="MISE", lwd=2, 
+           main=paste("Best p=",bestp, "; min MSE=", round(min(M),2))
     }else {
       plot(0, xaxt = 'n', yaxt = 'n', bty = 'n', pch = '', ylab = '', xlab = '')
     }

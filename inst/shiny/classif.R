@@ -14,7 +14,7 @@ library(rgl)
 BOUND1<-1.5
 BOUND2<-1.5
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: classification", titleWidth = 500),
+  dashboardHeader(title="InfoF422: classification and assessment", titleWidth = 500),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
@@ -25,7 +25,8 @@ ui <- dashboardPage(
       menuItem("Univariate mixture", tabName = "Univariatemixture", icon = icon("th")),
       menuItem("Linear Discriminant", tabName = "Discriminant", icon = icon("th")),
       menuItem("Perceptron", tabName = "perceptron", icon = icon("th")),
-      menuItem("Assessment classifier", tabName = "roc", icon = icon("th"))
+      menuItem("Assessment classifier", tabName = "roc", icon = icon("th")),
+      menuItem("About", tabName = "about", icon = icon("question"))
     )
   ),
   dashboardBody(
@@ -33,13 +34,13 @@ ui <- dashboardPage(
       # First tab content
       tabItem(tabName = "Univariatemixture",
               fluidRow(
-                box(width=3,sliderInput("mean1","Mean1:",min = -BOUND1, max = BOUND1 ,
+                box(width=3,sliderInput("mean1",withMathJax(sprintf('$$\\mu_1:$$')),min = -BOUND1, max = BOUND1 ,
                                         value = -2,step=0.1),
-                    sliderInput("variance1","Variance1:",min = 0.5,max = 1, value = 0.75,step=0.05),
-                    sliderInput("mean2","Mean2:",min = -BOUND1, max = BOUND1 ,
+                    sliderInput("variance1",withMathJax(sprintf('$$\\sigma^2_1:$$')),min = 0.5,max = 1, value = 0.75,step=0.05),
+                    sliderInput("mean2",withMathJax(sprintf('$$\\mu_2:$$')),min = -BOUND1, max = BOUND1 ,
                                 value = 2,step=0.1),
-                    sliderInput("variance2","Variance2:",min = 0.5,max = 1, value = 0.75,step=0.05),
-                    sliderInput("p1","P1:",min = 0, max = 1 ,
+                    sliderInput("variance2",withMathJax(sprintf('$$\\sigma^2_2:$$')),min = 0.5,max = 1, value = 0.75,step=0.05),
+                    sliderInput("p1",withMathJax(sprintf('$$P_1:$$')),min = 0, max = 1 ,
                                 value = 0.5)),
                 box(width=7,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotP"))),
               
@@ -49,32 +50,32 @@ ui <- dashboardPage(
       # Second tab content
       tabItem(tabName = "Discriminant",
               fluidRow(
-                box(width=3,sliderInput("sigma1","sigma1:",min = 0.01,max = 1.1,value = 1,step=0.05)),
-                box(width=3, sliderInput("mux1","x1:", min = -BOUND2, max = BOUND2, value = -BOUND2/2,step=0.05)),
-                box(width=3, sliderInput("muy1","y1:", min = -BOUND2, max = BOUND2, value = -BOUND2/2,step=0.05))
+                box(width=3,sliderInput("sigma1",withMathJax(sprintf('$$\\sigma^2_1:$$')),min = 0.01,max = 1.1,value = 1,step=0.05)),
+                box(width=3, sliderInput("mux1",withMathJax(sprintf('$$\\mu_{1x}:$$')), min = -BOUND2, max = BOUND2, value = -BOUND2/2,step=0.05)),
+                box(width=3, sliderInput("muy1",withMathJax(sprintf('$$\\mu_{1y}:$$')), min = -BOUND2, max = BOUND2, value = -BOUND2/2,step=0.05))
               ),
               fluidRow(
                 
-                box(width=3,    sliderInput("sigma2","sigma2:",min = 0.01,max = 1.1,value = 1,step=0.05)),
-                box(width=3, sliderInput("mux2","x2:", min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
-                box(width=3, sliderInput("muy2","y2:", min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
-                box(width=3,    sliderInput("P1","P1:",min = 0.01, max = 0.99 ,value = 0.5,step=0.05))
+                box(width=3,    sliderInput("sigma2",withMathJax(sprintf('$$\\sigma^2_2:$$')),min = 0.01,max = 1.1,value = 1,step=0.05)),
+                box(width=3, sliderInput("mux2",withMathJax(sprintf('$$\\mu_{2x}:$$')), min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
+                box(width=3, sliderInput("muy2",withMathJax(sprintf('$$\\mu_{2y}:$$')), min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
+                box(width=3,    sliderInput("P1",withMathJax(sprintf('$$P_1:$$')),min = 0.01, max = 0.99 ,value = 0.5,step=0.05))
               ),
               fluidRow(   box(width=9,title = "Data",plotOutput("biPlotD")))
               
       ),
       tabItem(tabName = "perceptron",
               fluidRow(
-                box(width=3,sliderInput("NLsigma1","sigma1:",min = 0.01,max = 1.1,value = 0.1,step=0.05)),
-                box(width=3, sliderInput("NLmux1","x1:", min = -BOUND2, max = BOUND2, value = -BOUND2/2,step=0.05)),
-                box(width=3, sliderInput("NLmuy1","y1:", min = -BOUND2, max = BOUND2, value = -BOUND2/2,step=0.05))
+                box(width=3,sliderInput("NLsigma1",withMathJax(sprintf('$$\\sigma^2_1:$$')),min = 0.01,max = 1.1,value = 0.1,step=0.05)),
+                box(width=3, sliderInput("NLmux1",withMathJax(sprintf('$$\\mu_{1x}:$$')), min = -BOUND2, max = BOUND2, value = -BOUND2/2,step=0.05)),
+                box(width=3, sliderInput("NLmuy1",withMathJax(sprintf('$$\\mu_{1y}:$$')), min = -BOUND2, max = BOUND2, value = -BOUND2/2,step=0.05))
               ),
               fluidRow(
                 
-                box(width=3,    sliderInput("NLsigma2","sigma2:",min = 0.01,max = 1.1,value = 0.1,step=0.05)),
-                box(width=3, sliderInput("NLmux2","x2:", min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
-                box(width=3, sliderInput("NLmuy2","y2:", min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
-                box(width=3,    sliderInput("NLP1","P1:",min = 0, max = 1 ,value = 0.5))
+                box(width=3,    sliderInput("NLsigma2",withMathJax(sprintf('$$\\sigma^2_2:$$')),min = 0.01,max = 1.1,value = 0.1,step=0.05)),
+                box(width=3, sliderInput("NLmux2",withMathJax(sprintf('$$\\mu_{2x}:$$')), min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
+                box(width=3, sliderInput("NLmuy2",withMathJax(sprintf('$$\\mu_{2y}:$$')), min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
+                box(width=3,    sliderInput("NLP1",withMathJax(sprintf('$$P_1:$$')),min = 0, max = 1 ,value = 0.5))
               ),
               fluidRow(box(width=3,collapsible = TRUE,
                            sliderInput("NLsteps","# steps", min = 1,max = 100, 
@@ -92,13 +93,13 @@ ui <- dashboardPage(
       ),
       tabItem(tabName = "roc",
               fluidRow(
-                box(width=3,sliderInput("Rmean1","Mean red (-):",min = -BOUND1, max = BOUND1 ,
+                box(width=3,sliderInput("Rmean1",withMathJax(sprintf('$$\\mu_{(-)}:$$')),min = -BOUND1, max = BOUND1 ,
                                         value = -0.5,step=0.1),
-                    sliderInput("Rvariance1","Var red (-):",min = 0.05,max = 2, value = 0.75)),
-                box(width=3,sliderInput("Rmean2","Mean green (+):",min = -BOUND1, max = BOUND1 ,
+                    sliderInput("Rvariance1",withMathJax(sprintf('$$\\sigma^2_{(-)}:$$')),min = 0.05,max = 2, value = 0.75)),
+                box(width=3,sliderInput("Rmean2",withMathJax(sprintf('$$\\mu_{(+)}:$$')),min = -BOUND1, max = BOUND1 ,
                                         value = 0.5,step=0.1),
-                    sliderInput("Rvariance2","Var green (+):",min = 0.05,max = 2, value = 0.75,step=0.05)),
-                box(width=4,    sliderInput("Rp","P (+):",min = 0, max = 1 ,
+                    sliderInput("Rvariance2",withMathJax(sprintf('$$\\sigma^2_{(+)}:$$')),min = 0.05,max = 2, value = 0.75,step=0.05)),
+                box(width=4,    sliderInput("Rp",withMathJax(sprintf('$$P_{(-)}:$$')),min = 0, max = 1 ,
                                             value = 0.5),
                     sliderInput("thr","thr:",min = -2*BOUND1, max = 2*BOUND1 ,
                                 value = 0,step=0.01))
@@ -108,7 +109,11 @@ ui <- dashboardPage(
               fluidRow(box(width=6,tableOutput('table'),htmlOutput("textB"), height=400),
                        box(width=6,title = "PR curve",plotOutput("ROCPlotPR")))
               #h3(htmlOutput("textB")))
-      )
+      ),
+      tabItem(tabName = "about",
+              fluidPage(
+                includeHTML("about/about.classif.html")
+              ))## tabItem
     )## tabItems
   ) # DashboardBody
 ) # ui
@@ -536,8 +541,8 @@ server<-function(input, output,session) {
       s<-sort(fpr,decr=FALSE,index=TRUE)$ix
       plot(fpr[s],se[s],xlim=c(0,1),ylim=c(0,1),type="l",
            xlab="FPR",ylab="SE",main=paste("FPR= FP/(TN+FP)=", round(STATS$FPR[length(STATS$FPR)],2),
-                                           "SE=TN/(FP+TN)=", round(STATS$SE[length(STATS$SE)],2),
-                                           "AUROC=",AUROC(STATS$SE,STATS$FPR)))
+                                           "\n SE=TN/(FP+TN)=", round(STATS$SE[length(STATS$SE)],2),
+                                           "\n AUROC=",round(AUROC(STATS$SE,STATS$FPR),2)))
       points(STATS$FPR[length(STATS$FPR)],STATS$SE[length(STATS$SE)],col="red",lwd=4)
       abline(a=0,b=1)
     }
@@ -550,7 +555,7 @@ server<-function(input, output,session) {
       s<-sort(se,decr=FALSE,index=TRUE)$ix
       plot(se[s],pr[s],xlim=c(0,1),ylim=c(0,1),type="l",
            xlab="Recall",ylab="PR",main=paste("PR= TP/(TP+FP)=", round(STATS$FPR[length(STATS$FPR)],2),
-                                              "RE=TN/(FP+TN)=", round(STATS$SE[length(STATS$SE)],2)))
+                                              "\n RE=TN/(FP+TN)=", round(STATS$SE[length(STATS$SE)],2)))
       points(STATS$SE[length(STATS$SE)],STATS$PR[length(STATS$PR)],col="red",lwd=4)
       abline(h=NROW(RD2())/(NROW(RD1())+NROW(RD2())),lty=2)
     }

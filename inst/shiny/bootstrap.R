@@ -17,7 +17,7 @@ ui <- dashboardPage(
                   max = 200,
                   value = 50,step=2),
       sliderInput("R",
-                  "Number of trials:",
+                  "Number of MC trials:",
                   min = 100,
                   max = 5000,
                   value = 500,step=2),
@@ -26,7 +26,8 @@ ui <- dashboardPage(
                   min = 100,
                   max = 5000,
                   value = 5,step=2),
-      menuItem("1D point estimation (Gaussian)", tabName = "Univariate", icon = icon("th"))
+      menuItem("1D point estimation (Gaussian)", tabName = "Univariate", icon = icon("th")),
+      menuItem("About", tabName = "about", icon = icon("question"))
     ) # sidebar Menu
   ), # dashboard sidebar
   dashboardBody(
@@ -50,8 +51,12 @@ ui <- dashboardPage(
                     plotOutput("uniBootM", height = 300)),
                 box(width=5,title = "Bootstrap Distribution Variance",
                     plotOutput("uniBootV", height = 300))
-              )
-      )
+              )),
+              tabItem(tabName = "about",
+                      fluidPage(
+                        includeHTML("about/about.bootstrap.html")
+                      ))
+      
     ) ## tabItems
   )# DashboardBody
 ) # ui dashboardPage
@@ -83,6 +88,7 @@ server<-function(input, output,session) {
          xlab=TeX(sprintf("$\\hat{\\mu}$")),
          main=paste("Bias=", round(mean(meanD)-input$mean,2),
                     "Variance=", round(var(meanD),2)))
+    abline(v=input$mean, col="green")
     
     
   })
@@ -95,7 +101,7 @@ server<-function(input, output,session) {
     }
     hist(varD,xlab=TeX(sprintf("$\\hat{\\sigma}^2$")),
          xlim=c(-BOUND1,BOUND1),main=paste("Bias=", round(mean(varD)-input$var,2)))
-    
+    abline(v=input$var, col="green")
     
   })
   
@@ -111,7 +117,7 @@ server<-function(input, output,session) {
     hist(meanD,xlab=TeX(sprintf("$\\hat{\\mu}_{(b)}$")),
          xlim=c(-BOUND1,BOUND1),main=paste("Bootstrap bias=", round(mean(meanD)-mean(D),2), 
                                            "; Bootstrap variance=", round(var(meanD),2)))
-    
+    abline(v=input$mean, col="green")
     
   })
   
@@ -128,7 +134,7 @@ server<-function(input, output,session) {
     hist(varD,xlab=TeX(sprintf("$\\hat{\\sigma^2}_{(b)}$")),
          xlim=c(-BOUND1,BOUND1),main=paste("Bootstrap bias=", round(mean(varD)-var(D),2)))
     
-    
+    abline(v=input$var, col="green")
   })
   
   output$EVar <- renderUI({

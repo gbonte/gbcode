@@ -35,7 +35,7 @@ ui <- dashboardPage(
       ## sliderInput("dx","X density:", min = 0.1, max = 0.3, value = 0.15,step=0.01),
       ##  sliderInput("dy", "Y density:", min = 0.1, max = 0.3, value = 0.15,step=0.01),
       
-      menuItem("Conditional gaussian distribution", tabName = "Bivariatemixture", icon = icon("th")),
+      menuItem("Bivariate gaussian distribution", tabName = "Bivariatemixture", icon = icon("th")),
       menuItem("Regression function", tabName = "Regression", icon = icon("th")),
       menuItem("About", tabName = "about", icon = icon("question"))
     )
@@ -119,7 +119,7 @@ server<-function(input, output,session) {
     th=input$rot1
     
     ax2<-input$ax21
-    Rot<-array(c(cos(th), -sin(th), sin(th), cos(th)),dim=c(2,2)); #rotation matrix
+    Rot<-array(c(cos(th), sin(th), -sin(th), cos(th)),dim=c(2,2)); #rotation matrix
     A<-array(c(ax1, 0, 0, ax2),dim=c(2,2))
     Sigma<-(Rot%*%A)%*%t(Rot)
     E<<-eigen(Sigma)
@@ -147,7 +147,7 @@ server<-function(input, output,session) {
   output$biPlotD <- renderPlot( {
     th=input$rot1
     
-    Rot<-array(c(cos(th), -sin(th), sin(th), cos(th)),dim=c(2,2)); #rotation matrix
+    Rot<-array(c(cos(th), sin(th), -sin(th), cos(th)),dim=c(2,2)); #rotation matrix
     A<-array(c(input$ax11, 0, 0, input$ax21),dim=c(2,2))
     Sigma<-(Rot%*%A)%*%t(Rot)
     
@@ -166,7 +166,7 @@ server<-function(input, output,session) {
   output$biCond <- renderPlot( {
     th=input$rot1
     
-    Rot<-array(c(cos(th), -sin(th), sin(th), cos(th)),dim=c(2,2)); #rotation matrix
+    Rot<-array(c(cos(th), sin(th), -sin(th), cos(th)),dim=c(2,2)); #rotation matrix
     A<-array(c(input$ax11, 0, 0, input$ax21),dim=c(2,2))
     Sigma<-(Rot%*%A)%*%t(Rot)
     

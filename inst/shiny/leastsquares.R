@@ -7,7 +7,7 @@ library(latex2exp)
 BOUND1<-5
 BOUND2<-2
 ui <- dashboardPage(
-  dashboardHeader(title="InfoF422: Least squares parameter identification", titleWidth = 500),
+  dashboardHeader(title="InfoF422: Parameter identification and validation", titleWidth = 1000),
   dashboardSidebar(
     sidebarMenu(
       sliderInput("N",
@@ -28,8 +28,9 @@ ui <- dashboardPage(
                   max = 90,
                   value = 10,step=1),
       menuItem("Linear Least squares", tabName = "LS", icon = icon("th")),
-      menuItem("Nonlinear LS ", tabName = "NLS", icon = icon("th")),
-      menuItem("CV ", tabName = "CV", icon = icon("th"))
+      menuItem("NNET LS ", tabName = "NLS", icon = icon("th")),
+      menuItem("KNN CV ", tabName = "CV", icon = icon("th")),
+      menuItem("About", tabName = "about", icon = icon("question"))
     ) # sidebar Menu
   ), # dashboard sidebar
   dashboardBody(
@@ -69,7 +70,7 @@ ui <- dashboardPage(
               
       ),
       tabItem(tabName = "CV",
-              fluidRow(box(width=6,collapsible = TRUE,title = "CV",
+              fluidRow(box(width=6,collapsible = TRUE,title = "KNN CV",
                            sliderInput("folds","# folds", min = 2,max = 10, 
                                        value = 5,step=1),
                            sliderInput("neigh","# neighbours", min = 1,max = 10, 
@@ -79,7 +80,11 @@ ui <- dashboardPage(
                        box(width=6,collapsible = TRUE,title = "CV sum of squares",
                            plotOutput("CVErr", height = 300)))
               
-      )
+      ),
+      tabItem(tabName = "about",
+              fluidPage(
+                includeHTML("about/about.leastsquares.html")
+              ))
     ) ## tabItems
   )# DashboardBody
 ) # ui dashboardPage
@@ -198,7 +203,7 @@ server<-function(input, output,session) {
   }
   W<-reactiveValues(W=rnorm(10))
   allE<-reactiveValues(allE=NULL)
-  CV<-reactiveValues(k=1,I.k.tr=NULL,I.k.ts=NULL,E=NULL,I=NULL )
+  CV<-reactiveValues(k=0,I.k.tr=NULL,I.k.ts=NULL,E=NULL,I=NULL )
   
   Xtr<-reactive({allE$allE<-NULL
   CV$I.k.tr=1:input$N
@@ -351,7 +356,7 @@ server<-function(input, output,session) {
     plot(Xtr,Ytr,
          xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y")
     points(Xts,Yts,
-           xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y",col="yellow")
+           xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y",col="green",lwd=3)
     
     if (length(Yts)>0){
       Yhat=NULL
@@ -365,23 +370,26 @@ server<-function(input, output,session) {
       CV$E[CV$I.k.ts]=Yts-Yhat
       points(Xts,Yhat,
              xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2),xlab="x",ylab="y",col="red")
-      title(paste("Fold=",isolate(CV$k)))
+      title(paste("Fold=",isolate(CV$k),"/",input$folds))
+      legend(x=-BOUND2,y=-BOUND2,legend=c("prediction","test"), col=c("red","green"),pch="o")
       
     }
   })
   
   observeEvent(input$CVdo,{
     N<-NROW(Xtr())
+    if (isolate(CV$k)>=input$folds){
+      CV$k<-1
+      CV$E=CV$E*0
+    } else
+      CV$k<-(isolate(CV$k)+1)
     k<-min(input$folds,isolate(CV$k))
     N.k<-round(N/input$folds)
     CV$I.k.ts<-CV$I[((k-1)*N.k+1):min(N,N.k*k)]
     CV$I.k.tr<-setdiff(1:N,isolate(CV$I.k.ts))
     if (any(is.na(CV$I.k.ts)))
       stop("error")
-    if (isolate(CV$k)>=input$folds)
-      CV$k<-1
-    else
-      CV$k<-(isolate(CV$k)+1)
+    
    
     
   })
