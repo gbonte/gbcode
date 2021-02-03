@@ -14,7 +14,7 @@ vignette: >
   
   Let us import the data from the dataset NN5 containing all the series of the NN5 competition
   
-```{echo=FALSE}
+```{r,echo=TRUE}
   rm(list=ls())
   library(devtools)
   library(gbcode) ## install_github("gbonte/gbcode")
@@ -31,10 +31,10 @@ vignette: >
   Let us now compare several forecasting techniques for different prediction horizons $H$ 
  
   
-```{echo=TRUE}
+```{r,echo=TRUE}
   
 
-M.arima<-NULL
+M.naive<-NULL
 M.direct<-NULL
 M.mimo<-NULL
 M.mimo.comb<-NULL
@@ -44,6 +44,11 @@ M.mimo.pls<-NULL
 M.iter<-NULL
 M.iter.direct<-NULL
 
+S=1
+D=0
+Kmin=3
+C=5
+FF=1
 
 for (f in 1:(NCOL(NN5)-1)){
   TS<-remNA(NN5[,f+1]) ## removing NA
@@ -63,9 +68,9 @@ for (f in 1:(NCOL(NN5)-1)){
 
       fut<-TS[i:(i+H-1),1]  ## test set
 
-      ## ARIMA
-      p.arima<-multiplestepAhead(TimeSer,n,H,D,"arima")
-      M.arima<-c(M.arima,MASE(fut,p.arima))
+      ## NAIVE
+      p.naive<-multiplestepAhead(TimeSer,n,H,D,"stat_naive")
+      M.naive<-c(M.naive,MASE(fut,p.arima))
 
       ## DIRECT
       p.direct<-multiplestepAhead(TimeSer,n,H,D,"direct",Kmin,C,FF)
@@ -103,7 +108,7 @@ for (f in 1:(NCOL(NN5)-1)){
 
       ##########
 
-      cat("\n  f= ", f, " i=", i, "H=", H, " M.arima=",mean(M.arima), " M.direct=",mean(M.direct), " M.mimo=",mean(M.mimo),
+      cat("\n  f= ", f, " i=", i, "H=", H, " M.arima=",mean(M.naive), " M.direct=",mean(M.direct), " M.mimo=",mean(M.mimo),
           " M.mimo.comb=",mean(M.mimo.comb), " M.mimo.acf=",mean(M.mimo.acf), " M.mimo.acf.lin=",mean(M.mimo.acf.lin),
           " M.mimo.pls=",mean(M.mimo.pls), " M.iter=",mean(M.iter), " M.iter.direct=",mean(M.iter.direct),"\n")
 

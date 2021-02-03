@@ -10,7 +10,7 @@ library(shinydashboard)
 library(mvtnorm)
 library(scatterplot3d)
 library(ellipse)
-library(rgl)
+#library(rgl)
 BOUND1<-1.5
 BOUND2<-1.5
 ui <- dashboardPage(
