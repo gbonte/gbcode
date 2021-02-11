@@ -1,0 +1,219 @@
+
+# Shiny dashboard "Statistical foundations of machine learning"
+
+
+## Estimation
+
+
+Common left panel: 
+
+* Number of samples: number of samples of observed dataset
+* Number of MC trials: number of Monte Carlo trials used to simulate the data generating process
+* 3D theta: angle defining the azimuthal direction in the 3D visualization
+* 3D phi: angle defining the colatitude in the 3D visualization
+
+
+## point estimation (1D Gaussian)
+Goal: visualize the bias/variance of the sample average and sample variance estimators. 
+
+Data generating process: normal random variable ${\bf z} \sim {\mathcal N} (\mu,\sigma^2)$.
+Estimation of mean and variance. 
+
+
+* Slider $\mu$: mean parameter 
+* Slider $\sigma^2$: variance parameter 
+* Top right panel: visualization of density probability and sampled dataset
+* Bottom left panel: visualization of sampling distribution of the estimator of the mean (including the estimator's mean and variance)
+* Bottom right panel: visualization of sampling distribution of the estimator of the variance (including the estimator's mean and variance)
+
+
+Suggested manipulations:
+
+* verify by simulation the unbiasedness of the sampled mean and variance
+* verify by simulation the validity of the formula of the variance of sample average
+by manipulating the number of samples $N$ and the variance $\sigma^2$
+
+
+##  point estimation (1D Uniform)
+
+Goal: visualize the bias/variance of the sample average and sample variance estimators. Show that the unbiasedness
+of those estimators is independent of the distribution.
+
+
+Data generating process: uniform random variable ${\bf z} \sim {\mathcal U} (a,b)$.
+Estimation of mean and variance. 
+
+
+* Slider: range $[a,b]$ of uniform distribution, visualizing the correspondent mean and variance 
+* Top right panel: visualization of density probability and sampled dataset
+* Bottom left panel: visualization of sampling distribution of the estimator of the mean (including the estimator's mean and variance)
+* Bottom right panel: visualization of sampling distribution of the estimator of the variance (including the estimator's mean and variance)
+
+Suggested manipulations:
+
+* change the range of the uniform density, check the corresponding variance and the quality of
+the variance estimator
+* change the number of samples $N$ and verify the change of variance of the sampling distribution 
+wrt theoretical formula
+* change the range of the uniform density (and the corresponding variance) and verify the change of variance of the sampling distribution wrt theoretical formula
+
+## confidence interval (1D Gaussian)
+Goal: visualize the notion of confidence interval
+
+Data generating process: normal random variable ${\bf z} \sim {\mathcal N} (\mu,\sigma^2)$.
+Estimation of confidence interval of the mean. 
+
+* Slider $\mu$: mean parameter 
+* Slider $\sigma^2$: variance parameter 
+* Bottom left panel: histogram of lower and upper bound. The title shows the theoretical probability 
+that the confidence interval contains $\mu$, the MC  probability 
+that the confidence interval contains $\mu$ and the average width of the confidence interval.
+* Bottom right panel: it shows the confidence interval for each MC trial (generation of dataset): the intervals not containing $\mu$ are shown in red
+
+
+Suggested manipulations:
+
+* study the impact of $\alpha$ and $N$ on probability of containing $\mu$ and the width
+of the confidence interval
+* check the similarity between theoretical probability 
+that the confidence interval contains $\mu$ and the MC  probability 
+that the confidence interval contains $\mu$. Study the impact of the number of MC trials on this similarity. 
+
+
+## Likelihood (1 par)
+
+Goal: visualize the relation between accuracy of the estimation and log-likelihood
+
+
+Data generating process: normal random variable ${\bf z} \sim {\mathcal N} (\mu,\sigma^2)$.
+Maximum likelihood estimation of the mean (known $\sigma^2$). We denote $\hat{\mu}_{ml}$ the m.l. estimator.
+
+* Slider $\mu$: mean parameter 
+* Slider $\sigma^2$: variance parameter 
+* Slider $\hat{\mu}$: mean estimation 
+* Bottom left panel: visualization of $N$ samples, generating probability density (green) and estimated probability density (red)
+* Bottom right panel: log likelihood function. The three dots represent
+  1. $L(\mu)$: log likelihood of $\mu$ (green)
+  2. $L(\hat{\mu})$: log likelihood of $\hat{\mu}$ (red)
+  3. $L(\hat{\mu}_{ml})$: log likelihood of max-likelihood estimator $\hat{\mu}_{ml}$ (black)
+
+Suggested manipulations:
+
+* change the value $\hat{\mu}$ to see the relation between the accuracy and the value of the log-likelihood function:
+in particular the closer $\hat{\mu}$ to $\mu$, the higher the log-likelihood
+* by reducing the number of samples ($N < 10$), the dashboard shows that the max-likelihood estimator $\hat{\mu}_{ml}$ does not coincide with $\mu$ (gap between green and black dots). This is due to the increased variance of 
+the m.l. estimator.
+
+
+
+## Likelihood (2 pars)
+
+Goal: visualize the relation between accuracy of the estimation and log-likelihood
+
+Data generating process: normal random variable ${\bf z} \sim {\mathcal N} (\mu,\sigma^2)$.
+Maximum likelihood estimation of both mean and variance. 
+We denote $\theta=[\mu,\sigma^2]$ the  parameter vector and $\hat{\theta}_{ml}$ the m.l. estimator.
+
+* Slider $\mu$: mean parameter 
+* Slider $\sigma^2$: variance parameter 
+* Slider $\hat{\mu}$: mean estimation
+* Slider $\hat{\sigma}^2$: variance estimation
+* Bottom left panel: visualization of $N$ samples, generating probability density (green) and estimated probability density (red)
+* Bottom right panel: 3D visualization of a bivariate log likelihood function $L(\hat{\mu},\hat{\mu})=L(\theta)$. The three dots represent
+  1. $L(\theta)$: log likelihood of $\theta$ (green)
+  2. $L(\hat{\theta})$: log likelihood of $\hat{\theta}$ (red)
+  3. $L(\hat{\theta}_{ml})$:log likelihood of max-likelihood estimator $\hat{\theta}_{ml}$ (black)
+
+Suggested manipulations:
+
+* change the value $\hat{\theta}$ to see the relation between the accuracy and the value of the log-likelihood function:
+in particular the closer $\hat{\theta}$ to $\theta$, the higher the log-likelihood
+* by reducing the number of samples ($N < 10$), the dashboard shows that the max-likelihood estimator $\hat{\theta}_{ml}$ does not coincide with $\theta$ (gap between green and black dots).
+
+
+
+
+## point estimation (2D Gaussian)
+Goal: visualization of the multivariate variance of the sampling distribution of a multivariate estimator
+
+Data generating process: Normal random 2D vector ${\bf z} \sim {\mathcal N} (\mu,\Sigma^2)$ where $\mu=[0,0]^T$ is a [2,1] vector
+and the covariance $\Sigma^2$ is a [2,2] matrix.
+
+
+* Slider $\lambda_1$: 1st eigenvalue of covariance matrix (variance along first axis) 
+* Slider $\lambda_2$: 2nd eigenvalue of covariance matrix (variance along second axis) 
+* Slider rotation : rotation angle $\alpha$ of  covariance matrix
+
+Note that the diagonal matrix corresponds to $\lambda_1=\lambda_2=1$ and $\theta=0$.
+
+* Bottom left panel: sampling distribution of the sample mean [2,1] vector $\hat{\mu}$ 
+* Bottom right panel: sampling distribution of the sample covariance [2,2] matrix $\hat{\Sigma}$ represented by contour lines
+
+
+Suggested manipulations:
+
+* change the covariance parameters to visualize that the estimation remains unbiased.
+* change the number of samples $N$  to visualize the impact on variance of the sampling distribution.
+
+
+## Linear Regression
+
+Goal: visualization of the sampling distribution (bias/variance) of least-squares estimators vs. real parameters to
+illustrate the unbiasedness of least-squares. 
+
+
+Generating data process: ${\bf y}=\beta_0+\beta_1 x+{\bf w}$ where ${\bf w} \sim {\mathcal N} (0,\sigma^2)$.
+
+Top left sliders:
+
+* $\beta_0$: intercept parameter
+* $\beta_1$: slope parameter
+* $\sigma^2_{w}$: conditional variance $\sigma$ of the noise 
+* x: value used to visualize $p({\bf y}=y|x)$ in the top right plot 
+
+Top middle: 3D visualization of the joint density $p({\bf x}=x,{\bf y}=y)$
+Top left: sampling distribution of fitting lines, function $f$ and value 
+
+Bottom left: sampling distribution of the estimator of the conditional expectation $E[{\bf y}|x]$ (in green)
+Bottom right: sampling distribution of the estimators of 
+
+1. $\beta_0$ 
+2. $\beta_1$ 
+3. $\sigma^2_{w}$
+
+
+Suggested manipulations:
+
+* change the number of samples $N$ and the conditional variance $\sigma^2_{w}$ to visualize the impact on variance
+of the sampling distributions. Does this have impact on the bias?
+* change the parameters $\beta_0$ and $\beta_1$ to see that the estimation remain unbiased.
+
+
+## Nonlinear Regression
+
+Goal: visualization of the sampling distribution (bias/variance) of predicted vs. real conditional expectation.
+
+
+Generating data process: ${\bf y}=f(x)+{\bf w}$ where ${\bf w} \sim {\mathcal N} (0,\sigma_w^2)$
+Estimator: $h(x)=\hat{\beta}_0 +\sum_{i=1}^m \hat{\beta_i}_i x^i$. Parameters are estimated by least-sqaures.
+
+Top left sliders:
+
+* Functions: by changing its value the user may change the function $f$: for  values $p \ge 0$,  
+$f(x)=x^p$; for $p<0$,  $f(x)$ is a sinusoidal function with different frequencies. 
+* Degree polynomial hypothesis: degree $m$ in $h(x)=\hat{\beta}_0 +\sum_{i=1}^m \hat{\beta_i}_i x^i$
+* $\sigma^2_{w}$: conditional variance $\sigma$ of the noise 
+* x: value used to visualize $p({\bf y}=y|x)$ in the bottom right plot 
+
+Top right: 3D visualization of the joint density $p({\bf x}=x,{\bf y}=y)$
+
+
+Bottom left: sampling distribution of the estimator of the conditional expectation $E[{\bf y}|x]$ (in green) for different $x$ values. Mean of the estimated conditional expectation is in blue.
+
+Bottom right: sampling distribution of estimator of the conditional expectation $E[{\bf y}|x]$ for given $x$
+
+
+Suggested manipulations:
+
+* change the number of samples $N$ and the conditional variance to visualize the impact on variance.
+* manipulate the degree of polynomial hypothesis to visualize the impact on bias

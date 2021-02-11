@@ -1,0 +1,28 @@
+
+# Shiny dashboard "Statistical foundations of machine learning"
+
+
+## Gaussian visualization
+
+### Univariate standard
+Goal: computation of the probability mass associated to the interval (inner or outer).
+
+
+
+
+### Bivariate
+
+Goal: computation of the probability mass associated to the interval (inner or outer).
+
+* Slider $\lambda_1$: 1st eigenvalue of covariance matrix (variance along first axis) 
+* Slider $\lambda_2$: 2nd eigenvalue of covariance matrix (variance along second axis) 
+* Slider rotation : rotation angle $\alpha$ of  covariance matrix
+
+Note that the diagonal matrix corresponds to $\lambda_1=\lambda_2=1$ and $\theta=0$.
+
+
+
+Suggested manipulations:
+
+* by acting on the sliders, you can change the axis size and the rotation of the bivariate gaussian distribution.
+The associate covariance matrix and the eigenvalues change accordingly.

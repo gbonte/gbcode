@@ -1,0 +1,13 @@
+name: bootstrap
+title: bootstrap
+username:
+account: gbonte
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3552160
+bundleId: 4161619
+url: https://gbonte.shinyapps.io/bootstrap/
+when: 1612041696.21303
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: bimodal.R|cart.R|classif.R|condind.R|condpro.R|estimation.R|gaussian.R|lawlarge.R|leastsquares.R|random.R|regression.R|server.R|ui.R|unimodal.R

@@ -1,0 +1,39 @@
+
+# Shiny dashboard "Statistical foundations of machine learning"
+
+
+## Bootstrap
+
+Goal: show that bootstrap is an effective resampling strategy to approximate the sampling distribution
+of the estimators
+
+Common left panel: 
+
+* Number of samples: number of samples of observed dataset
+* Number of MC trials: number of Monte Carlo trials used to simulate the data generating process
+* Number of bootstrap repetitions: number of resampling repetitions with replacement
+
+
+## point estimation (1D Gaussian)
+
+Data generating process: normal random variable ${\bf z} \sim {\mathcal N} (\mu,\sigma^2)$.
+Estimation of mean and variance. 
+
+
+* Slider $\mu$: mean parameter 
+* Slider $\sigma^2$: variance parameter 
+* Top right panel: visualization of density probability and sampled dataset
+* Center left panel: MC sampling distribution of the estimator of the mean (including the estimator's mean and variance)
+* Center right panel: MC sampling distribution of the estimator of the variance (including the estimator's mean and variance)
+* Bottom left panel: bootstrap approximation of sampling distribution of the estimator of the mean (including the bootstrap estimation of estimator's bias and variance)
+* Center right panel: bootstrap approximation of sampling distribution of the estimator of the variance (including the bootstrap estimation of estimator's bias and variance)
+
+
+
+
+Suggested manipulations:
+
+* change $\sigma^2$ and see the impact on the accuracy of the bias/variance bootstrap estimation 
+* change the number of bootstrap samples and see the impact on the accuracy of the bias/variance bootstrap estimation
+* change number of MC trials and see that it affects only the center panels
+* change number of bootstrap repetitions and see that it affects only the bottom panels
