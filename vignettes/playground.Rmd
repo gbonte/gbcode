@@ -278,7 +278,7 @@ lslearn2<-function(D,Xts){
 ```
 
 
-The third regressor uses all original variables and add as feature some transformations of the original variables
+The third regressor uses all original variables and add as feature some transformations of the original variables (rasise them to the 2nd and 3rd power)
 ```{r, lslearn3}
 
 lslearn3<-function(D,Xts){
@@ -427,6 +427,7 @@ Now you could:
 * try different values of $N$, $n$, $\sigma_w^2$ and discuss the impact on final generalization,
 * compare a number of linear least-squares with different $\lambda$ parameters, 
 * change the test distribution wrt training data distribution and assess the impact,
-* add a feature selection step and see the impact on bias and variance.
+* add a feature selection step and see the impact on bias and variance,
+* implement a gradient-based version of least-squares and check the impact on variance.
 
 

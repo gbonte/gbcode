@@ -17,6 +17,9 @@ regrDataset(N, n, neff, sdn, seed = 0)
 
 \item{seed:}{seed random generator}
 }
+\description{
+Generator of nonlinear regression dataset
+}
 \examples{
 
 N<-100

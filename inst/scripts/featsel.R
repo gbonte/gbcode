@@ -1,5 +1,6 @@
-## script featsel.R
-
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
 
 KNN<- function(X,Y,k,q){
   
@@ -27,8 +28,9 @@ KNN<- function(X,Y,k,q){
 
 
 
-load("golub.Rdata")
-
+data(golub)
+X<-golub$X
+Y=golub$Y
 n<-ncol(X)
 N<-nrow(X)
 set.seed(0)

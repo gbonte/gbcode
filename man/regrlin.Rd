@@ -39,7 +39,6 @@ n<-10
 X<-array(rnorm(N*n),c(N,n))
 Y<-sin(X[,1]*X[,2])
 R<-regrlin(X,Y,X)
-R2<-regrlin.d(X,Y,X,lambda=1e-5)
 
 
 }

@@ -1188,7 +1188,7 @@ make.netw<-function(X){
   MSE<-numeric(n)
   for (i in 1:(n)){
     ind<-setdiff(1:n,i)
-    G<-gsloo(X[,ind],X[,i],max.var=min(c(length(ind),NCOL(X)-1)),
+    G<-gsloo(X[,ind],X[,i],nmax=min(c(length(ind),NCOL(X)-1)),
              automatic=T,trace=F)
     sel<-ind[G$sel]
     Adj[i,sel]<-Adj[i,sel]+1

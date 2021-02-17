@@ -7,7 +7,7 @@
 pred(algo = "svm", X, Y, X.ts, classi = TRUE, ...)
 }
 \arguments{
-\item{algo:}{learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}, \code{"nb"}: \pkg{e1071}, \code{"lasso"}: \pkg{lars}}
+\item{algo:}{learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}, \code{"nb"}: \pkg{e1071}, \code{"lasso"}: \pkg{lars},\code{"mboost"}: \pkg{mboost}}
 
 \item{X:}{training input}
 

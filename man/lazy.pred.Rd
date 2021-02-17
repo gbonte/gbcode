@@ -12,7 +12,7 @@ lazy.pred(
   return.more = FALSE,
   conPar = NULL,
   linPar = NULL,
-  cmbPar = 10,
+  cmbPar = 5,
   scaleX = TRUE
 )
 }
