@@ -1,3 +1,6 @@
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
 
 J<-function(a){
   return(a^2-2*a+3)

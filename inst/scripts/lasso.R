@@ -6,13 +6,13 @@ library(quadprog)
 
 ## min_x 1/2 x^T D x-d^Tx subject to A^Tx>=b
 
-N=20
+N=25
 n=15
 
 LAM=seq(7,0.01,by=-0.05)
 Remp=NULL
 X=array(rnorm(N*n),c(N,n))
-Y=3*X[,1]+3*X[,2]+X[,n]+rnorm(N,sd=0.1)
+Y=3*X[,1]+X[,2]-X[,n]+rnorm(N,sd=0.1)
 
 
 
