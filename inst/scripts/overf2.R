@@ -1,4 +1,3 @@
-Overf2<-function(){
 
   rm(list=ls())
   rea<-TRUE
@@ -76,4 +75,4 @@ Overf2<-function(){
     par(ask=TRUE)
   }
 
-}
+

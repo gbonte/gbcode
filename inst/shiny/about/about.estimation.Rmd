@@ -162,7 +162,7 @@ Goal: visualization of the sampling distribution (bias/variance) of least-square
 illustrate the unbiasedness of least-squares. 
 
 
-Generating data process: ${\bf y}=\beta_0+\beta_1 x+{\bf w}$ where ${\bf w} \sim {\mathcal N} (0,\sigma^2)$.
+Generating data process: conditional distribution given by ${\bf y}=\beta_0+\beta_1 x+{\bf w}$ where ${\bf w} \sim {\mathcal N} (0,\sigma^2)$ and ${\bf x}$ is uniformly distributed.
 
 Top left sliders:
 
@@ -172,7 +172,7 @@ Top left sliders:
 * x: value used to visualize $p({\bf y}=y|x)$ in the top right plot 
 
 Top middle: 3D visualization of the joint density $p({\bf x}=x,{\bf y}=y)$
-Top left: sampling distribution of fitting lines, function $f$ and value 
+Top right: sampling distribution of fitting lines, function $f$ and value 
 
 Bottom left: sampling distribution of the estimator of the conditional expectation $E[{\bf y}|x]$ (in green)
 Bottom right: sampling distribution of the estimators of 

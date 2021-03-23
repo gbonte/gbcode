@@ -239,6 +239,31 @@ preproc<-function(X,remove.nan=TRUE,remove.const=TRUE,
 
 }
 
+
+#' preproc2
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} 
+#' @description Preprocesses a training and a test dataset
+#' @details It performs hierarchical clustering to reduce the number of features
+#' @title preproc2
+#' @name preproc2
+#' @export
+#'
+#' @param  X1: training dataset
+#' @param  X2: test dataset
+#' @param  remove.nan: TRUE/FALSE. It removes NaN
+#' @param  remove.const: TRUE/FALSE. It removes constant columns.
+#' @param  to.scale: TRUE/FALSE. It normalizes columns
+#' @param  cluster: Number of feature clusters. If =0 it does nothing.
+#' @return A list with:
+#' \itemize{
+#' \item{X1:} preprocessed training dataset
+#' \item{X2:} preprocessed training dataset
+#' \item{remcol:} indices of remaining columns
+#' \item{groups:} indices of clusters components
+#' }
+#' @export
+#' 
 preproc2<-function(X1,X2,remove.nan=TRUE,remove.const=TRUE,to.scale=TRUE,verbose=T,cluster=0){
   groups<-NULL
   ind.rem<-1:NCOL(X1)

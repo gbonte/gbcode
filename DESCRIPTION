@@ -1,7 +1,7 @@
 Package: gbcode
 Type: Package
 Title: Code from the handbook "Statistical foundations of machine learning"
-Version: 1.0
+Version: 2.0
 Date: 2016-02-19
 Author: Gianluca Bontempi
 Maintainer: Gianluca Bontempi <gbonte@ulb.ac.be>
@@ -13,4 +13,21 @@ RoxygenNote: 7.1.1
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
-Depends: mvtnorm, randomForest, pls, lazy, forecast, e1071, lda, MASS, ROCR,lars, gbm, mboost, gam, scatterplot3d, ellipse, xgboost
+Depends: 
+    mvtnorm,
+    randomForest,
+    pls,
+    lazy,
+    forecast,
+    e1071,
+    lda,
+    MASS,
+    ROCR,
+    lars,
+    gbm,
+    mboost,
+    gam,
+    scatterplot3d,
+    ellipse,
+    xgboost,
+    R (>= 2.10)

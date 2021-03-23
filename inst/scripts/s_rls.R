@@ -1,3 +1,4 @@
+library(gbcode)
 par(ask=TRUE)
 n<-1;
 X<-seq(-pi,pi,by=.02)

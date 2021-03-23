@@ -47,10 +47,10 @@ ui <- dashboardPage(
       # Second tab content
       tabItem(tabName = "Bivariatemixture",
               fluidRow(
-                box(width=4,collapsible = TRUE,sliderInput("rot1","Rotation 1:", min = -3/2,max = 3/2, 
+                box(width=4,collapsible = TRUE,sliderInput("rot1","Rotation:", min = -3/2,max = 3/2, 
                                                            value = -0.75),
-                    sliderInput("ax11","Axis1 1:",min = 0.01,max = BOUND2,value = 3,step=0.05),
-                    sliderInput("ax21","Axis2 1:", min = 0.01, max = BOUND2, value = 0.15,step=0.05),
+                    sliderInput("ax11","Axis1:",min = 0.01,max = BOUND2,value = 3,step=0.05),
+                    sliderInput("ax21","Axis2:", min = 0.01, max = BOUND2, value = 0.15,step=0.05),
                     sliderInput("x","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05),
                     textOutput("textB")),
                 box(width=8,title = "3D joint density visualization",collapsible = TRUE,plotOutput("biPlotP"))),

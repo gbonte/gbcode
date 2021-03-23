@@ -14,7 +14,7 @@ ui <- dashboardPage(
                   "Number of samples N:",
                   min = 2,
                   max = 1000,
-                  value = 50,step=1),
+                  value = 20,step=1),
       sliderInput("R",
                   "Number of MC trials:",
                   min = 100,
@@ -91,7 +91,7 @@ ui <- dashboardPage(
                 box(width=4,sliderInput("varL",withMathJax(sprintf('$$\\sigma^2:$$')),min = 0.5, max = 1,
                                         value = 0.6,step=0.01)),
                 box(width=4,sliderInput("estimate",withMathJax(sprintf('$$\\hat{\\mu}:$$')),min = -BOUND1/2, max = BOUND1/2 ,
-                                        value = 0,step=0.01))),
+                                        value = 0.5,step=0.01))),
               #
               fluidRow(   
                 box(width=6,title = "Data",plotOutput("LikeData", height = 400)),
@@ -366,7 +366,7 @@ server<-function(input, output,session) {
     lines(xaxis,xaxis*0)
     lines(xaxis,dnorm(xaxis,input$estimate,input$varL),lwd=1,col="red")
     lines(xaxis,dnorm(xaxis,input$meanL,input$varL),lwd=1,col="green")
-    legend(x=median(xaxis),y=-0.5,legend=c("estimate","parameter"), col=c("red","green"),pch="-")
+    legend(x=median(xaxis),y=-0.5,legend=c("estimate","parameter"), col=c("red","green"),lty=1)
   })
   
   output$Likelihood <- renderPlot( {
@@ -395,8 +395,8 @@ server<-function(input, output,session) {
     gLik=1
     glogLik=0
     for (i in 1:length(D)){
-      gLik=gLik*dnorm(D[i],input$mean,sqrt(input$varL))
-      glogLik=glogLik+dnorm(D[i],input$mean,sqrt(input$varL),log=TRUE)
+      gLik=gLik*dnorm(D[i],input$meanL,sqrt(input$varL))
+      glogLik=glogLik+dnorm(D[i],input$meanL,sqrt(input$varL),log=TRUE)
     }
     
     plot(xaxis,logLik,type="l",main=TeX(paste("logLik($\\hat{\\mu}$)=",round(elogLik,2), 
@@ -405,7 +405,9 @@ server<-function(input, output,session) {
          xlab="estimate")
     points(input$estimate,elogLik,col="red",lwd=8)
     points(xmax,max(logLik),col="black",lwd=8)
-    points(input$mean,glogLik,col="green",lwd=8)
+    points(input$meanL,glogLik,col="green",lwd=8)
+    legend(x=input$meanL,y=quantile(logLik,0.1),legend=c("estimate","ml estimate", "parameter"), 
+           col=c("red","black","green"),pch=19)
   })
   
   
@@ -550,7 +552,7 @@ server<-function(input, output,session) {
     lines(xaxis,xaxis*0)
     lines(xaxis,dnorm(xaxis,input$meanhatL2,sd=sqrt(input$varhatL2)),lwd=1,col="red")
     lines(xaxis,dnorm(xaxis,input$meanL2,sd=sqrt(input$varL2)),lwd=1,col="green")
-    legend(x=median(xaxis),y=-0.5,legend=c("estimate","parameter"), col=c("red","green"),pch="-")
+    legend(x=median(xaxis),y=-0.5,legend=c("estimate","parameter"), col=c("red","green"),lty=1)
   })
   
   output$Likelihood2 <- renderPlot( {
@@ -606,6 +608,7 @@ server<-function(input, output,session) {
     points (trans3d(x=xmax, 
                     y = ymax, z = max(c(logLik)), pmat = surface), col = "black",lwd=8)
     
+   
     # lines (trans3d(y=input$varhatL2, 
     #               x = seq(-BOUND2, BOUND2, by= .2), z =elogLik, pmat = surface), col = "green",lwd=1)
     #plot(xaxis,logLik,type="l",main=paste("logLik=",round(elogLik,2)))

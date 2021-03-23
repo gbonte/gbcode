@@ -52,7 +52,7 @@ ui <- dashboardPage(
       tabItem(tabName = "Modelcomparison",
               fluidRow(box(width=4,collapsible = TRUE,
                            sliderInput("hh","Order polynomial model:", min = 0,max = 20, 
-                                       value = 0,step=1), height = 300) 
+                                       value = 0,step=1), height = 100) 
               ),## fluidRow
               fluidRow(   box(width=6,collapsible = TRUE,title = "Sampling distribution",plotOutput("nlinearBV2", height = 300)),
                           box(width=6,collapsible = TRUE,title = "Conditional sampling distribution",plotOutput("nlinearCond2", height = 300))),
@@ -227,7 +227,7 @@ server<-function(input, output,session) {
     mseY.hat=apply(E.hat^2,2,mean)
     avg.mse=mean(mseY.hat)
     
-    bvtitle=paste("Bias^2=", round(avg.bias2,2), "Var=", round(avg.var,2), "MSE=", round(avg.mse,2) )
+    bvtitle=paste("Bias^2=", round(avg.bias2,3), "Var=", round(avg.var,3), "MSE=", round(avg.mse,3) )
     title(bvtitle)
     lines(X,muy,lwd=4,col="blue")
     lines(X,meanY.hat,lwd=4,col="green")
@@ -251,7 +251,7 @@ server<-function(input, output,session) {
     
     
     Yq=f(input$nrx,input$ord)
-    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,2), "Var=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2) )
+    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,3), "Var=", round(var(Y.hat),3), "MSE=", round(mean((Yq-Y.hat)^2),3) )
     hist(Y.hat,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)
@@ -290,7 +290,7 @@ server<-function(input, output,session) {
     mseY.hat=apply(E.hat^2,2,mean)
     avg.mse=mean(mseY.hat)
     
-    bvtitle=paste("Bias^2=", round(avg.bias2,2), "Var=", round(avg.var,2), "MSE=", round(avg.mse,2) )
+    bvtitle=paste("Bias^2=", round(avg.bias2,3), "Var=", round(avg.var,3), "MSE=", round(avg.mse,3) )
     title(bvtitle)
     lines(X,muy,lwd=4,col="blue")
     lines(X,meanY.hat,lwd=4,col="green")
@@ -314,7 +314,7 @@ server<-function(input, output,session) {
     
     
     Yq=f(input$nrx,input$ord)
-    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,2), "Var=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2) )
+    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,3), "Var=", round(var(Y.hat),3), "MSE=", round(mean((Yq-Y.hat)^2),3) )
     hist(Y.hat,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)
@@ -352,7 +352,7 @@ server<-function(input, output,session) {
     mseY.hat=apply(E.hat^2,2,mean)
     avg.mse=mean(mseY.hat)
     
-    bvtitle=paste("Bias^2=", round(avg.bias2,2), "Var=", round(avg.var,2), "MSE=", round(avg.mse,2) )
+    bvtitle=paste("Bias^2=", round(avg.bias2,3), "Var=", round(avg.var,3), "MSE=", round(avg.mse,3) )
     title(bvtitle)
     lines(X,muy,lwd=4,col="blue")
     lines(X,meanY.hat,lwd=4,col="green")
@@ -376,7 +376,8 @@ server<-function(input, output,session) {
     
     
     Yq=f(input$nrx,input$ord)
-    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,2), "Var=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2) )
+    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,3),
+                  "Var=", round(var(Y.hat),3), "MSE=", round(mean((Yq-Y.hat)^2),3) )
     hist(Y.hat,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)
@@ -414,7 +415,8 @@ server<-function(input, output,session) {
     mseY.hat=apply(E.hat^2,2,mean)
     avg.mse=mean(mseY.hat)
     
-    bvtitle=paste("Bias^2=", round(avg.bias2,2), "Var=", round(avg.var,2), "MSE=", round(avg.mse,2) )
+    bvtitle=paste("Bias^2=", round(avg.bias2,3),
+                  "Var=", round(avg.var,3), "MSE=", round(avg.mse,3) )
     title(bvtitle)
     lines(X,muy,lwd=4,col="blue")
     lines(X,meanY.hat,lwd=4,col="green")
@@ -438,7 +440,8 @@ server<-function(input, output,session) {
     
     
     Yq=f(input$nrx,input$ord)
-    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,2), "Var=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2) )
+    bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,3),
+                  "Var=", round(var(Y.hat),3), "MSE=", round(mean((Yq-Y.hat)^2),3) )
     hist(Y.hat,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)
@@ -512,7 +515,7 @@ server<-function(input, output,session) {
     M<<-c(M,avg.mse)
     
     
-    bvtitle=paste("B2=", round(avg.bias2,2), "V=", round(avg.var,2), "MSE=", round(avg.mse,2) ,
+    bvtitle=paste("B2=", round(avg.bias2,3), "V=", round(avg.var,3), "MSE=", round(avg.mse,3) ,
                   "MSemp=",round(Remp,3),"FPE=",round(Remp+2*input$hh/input$N*sdw.hat,3) )
     title(bvtitle)
     lines(Xts,muy.ts,lwd=4,col="blue")
@@ -555,7 +558,7 @@ server<-function(input, output,session) {
       sO<-sort(O,index.return=TRUE)
       bestp=O[which.min(M)]
       plot(sO$x,M[sO$ix],col="magenta",type="l",xlab="# parameters", ylab="MISE", lwd=2, 
-           main=paste("Best p=",bestp, "; min MSE=", round(min(M),2))
+           main=paste("Best p=",bestp, "; min MSE=", round(min(M),3)))
     }else {
       plot(0, xaxt = 'n', yaxt = 'n', bty = 'n', pch = '', ylab = '', xlab = '')
     }
@@ -582,7 +585,8 @@ server<-function(input, output,session) {
     
     Yq=f(input$nrx,input$ord)
     
-    bvtitle=paste("B2=", round((Yq-mean(Y.hat))^2,2), "V=", round(var(Y.hat),2), "MSE=", round(mean((Yq-Y.hat)^2),2))
+    bvtitle=paste("B2=", round((Yq-mean(Y.hat))^2,3), "V=", round(var(Y.hat),3),
+                  "MSE=", round(mean((Yq-Y.hat)^2),3))
     hist(Y.hat,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)

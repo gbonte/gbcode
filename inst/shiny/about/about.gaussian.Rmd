@@ -16,10 +16,22 @@ Goal: computation of the probability mass associated to the interval (inner or o
 
 * Slider $\lambda_1$: 1st eigenvalue of covariance matrix (variance along first axis) 
 * Slider $\lambda_2$: 2nd eigenvalue of covariance matrix (variance along second axis) 
-* Slider rotation : rotation angle $\alpha$ of  covariance matrix
+* Slider rotation : rotation angle $\theta$ of  covariance matrix
 
-Note that the diagonal matrix corresponds to $\lambda_1=\lambda_2=1$ and $\theta=0$.
+Note that the diagonal matrix corresponds to $\lambda_1=\lambda_2$ and $\theta=0$.
 
+
+
+A generic bivariate covariance matrix may be written as 
+$$ \Sigma= R S R^T $$ where $S$ and $R$ denote the scaling and rotation of 
+a diagonal covariance matrix.
+The scaling matrix 
+$$ S=\begin{bmatrix} \lambda_1 & 0 \\ 0 & \lambda_2  \end{bmatrix}$$ stretches the x-axis and the y-axis by the
+factors $\lambda_1>0$ and $\lambda_1>0$ respectively.
+
+The matrix 
+$$ R=\begin{bmatrix} \cos(\theta) & -\sin(\theta) \\ sin(\theta) &\cos(\theta)  \end{bmatrix}$$ 
+performs a rotation of angle $\theta$.
 
 
 Suggested manipulations:

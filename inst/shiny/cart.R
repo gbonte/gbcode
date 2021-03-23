@@ -19,12 +19,12 @@ ui <- dashboardPage(
                   min = 2,
                   max = 200,
                   value = 50,step=2),
-      sliderInput("x0","x0:",min = -1,max = 1,value = 0.3,step=0.01),
-      sliderInput("y0","y0:",min = -1,max = 1, value = 0.3,step=0.01),
-      sliderInput("x1","x1:",min = -1,max = 1,value = -0.3,step=0.01),
-      sliderInput("y1","y1:",min = -1,max = 1, value = -0.3,step=0.01),
-      sliderInput("sd0","sd0:",min = 0.001,max = 1, value = 0.5,step=0.01),
-      sliderInput("sd1","sd1:",min = 0.001,max = 1, value = 0.5,step=0.01),
+      sliderInput("x0","x (red):",min = -1,max = 1,value = 0,step=0.01),
+      sliderInput("y0","y (red):",min = -1,max = 1, value = 0.6,step=0.01),
+      sliderInput("x1","x (black):",min = -1,max = 1,value = 0,step=0.01),
+      sliderInput("y1","y (black):",min = -1,max = 1, value = -0.6,step=0.01),
+      sliderInput("sd0","sd (red):",min = 0.001,max = 1, value = 0.1,step=0.01),
+      sliderInput("sd1","sd (black):",min = 0.001,max = 1, value = 0.1,step=0.01),
       menuItem("Classification", tabName = "Classification", icon = icon("th"))
     )
   ),
@@ -33,9 +33,9 @@ ui <- dashboardPage(
       #
       tabItem(tabName = "Classification",
               fluidRow(  
-                box(width=2,sliderInput("thx","split X:", min = -1, max = 1,
+                box(width=2,sliderInput("thx","split feature x1:", min = -1, max = 1,
                                         value = 0,step=STEP)),
-                box(width=2,sliderInput("thy","split Y:", min = -1, max = 1,
+                box(width=2,sliderInput("thy","split feature x2:", min = -1, max = 1,
                                         value = 0,step=STEP))),
               fluidRow( 
                 box(width=4,title = "Data",plotOutput("Scatter")),
@@ -57,7 +57,7 @@ server<-function(input, output,session) {
     cbind(rnorm(input$N,input$x0,sd=input$sd0),rnorm(input$N,input$y0,sd=input$sd0)),
     cbind(rnorm(input$N,input$x1,sd=input$sd1),rnorm(input$N,input$y1,sd=input$sd1))
   )
-    })
+  })
   Y<-reactive({ y<-numeric(2*input$N)
   w1<-1:input$N
   y[w1]=1
@@ -104,16 +104,16 @@ server<-function(input, output,session) {
     for (y in yaxis){
       
       R1<-which(X()[,2]<=y)
-      R2<-which(X()[,1]>y)
+      R2<-which(X()[,2]>y)
       if (length(R1)>0  & length(R2)>0){
-      Y1=Y()[R1]
-      yhat1=mean(Y1)
-      e1=Y1-yhat1
-      
-      Y2=Y()[R2]
-      yhat2=mean(Y2)
-      e2=Y2-yhat2
-      Deltay<-c(Deltay, sum(e^2)-(sum(e1^2)+sum(e2^2)))
+        Y1=Y()[R1]
+        yhat1=mean(Y1)
+        e1=Y1-yhat1
+        
+        Y2=Y()[R2]
+        yhat2=mean(Y2)
+        e2=Y2-yhat2
+        Deltay<-c(Deltay, sum(e^2)-(sum(e1^2)+sum(e2^2)))
       } else {
         Deltay<-c(Deltay, 0)
       }

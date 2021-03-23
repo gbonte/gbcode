@@ -1,5 +1,5 @@
 
-Overf<-function(){
+
   library(nnet)
   data(rock)
   attach(rock)
@@ -28,4 +28,4 @@ Overf<-function(){
   Y.hat.ts <- predict(model.nn,X.ts)
   test.MSE <- mean((Y.ts-Y.hat.ts)^2)
   test.MSE
-}
+

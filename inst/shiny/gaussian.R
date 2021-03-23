@@ -42,9 +42,9 @@ ui <- dashboardPage(
                                 min = 10,
                                 max = 1000,
                                 value = 100,step=2),
-                    sliderInput("rot1","Rotation:", min = -3.14,max = 3.14, value = 0),
-                    sliderInput("ax11",withMathJax(sprintf('$${\\lambda}_1:$$')),min = 0.01,max = BOUND2,value = 3,step=0.05),
-                    sliderInput("ax21",withMathJax(sprintf('$${\\lambda}_2:$$')), min = 0.01, max = BOUND2, value = 0.15,step=0.05),
+                    sliderInput("rot1",withMathJax(sprintf('$$\\text{Rotation } {\\theta}:$$')), min = -3.14/2,max = 3.14/2, value = 0),
+                    sliderInput("ax11",withMathJax(sprintf('$$\\text{Eigenvalue } {\\lambda}_1:$$')),min = 0.01,max = BOUND2,value = 3,step=0.05),
+                    sliderInput("ax21",withMathJax(sprintf('$$\\text{Eigenvalue } {\\lambda}_2:$$')), min = 0.01, max = BOUND2, value = 0.15,step=0.05),
                     
                 ),
                 box(width=4,title = "Covariance matrix",collapsible = FALSE,
@@ -126,7 +126,7 @@ server<-function(input, output,session) {
   
   output$biPlotD <- renderPlot( {
     th=input$rot1
-    Rot<-array(c(cos(th), -sin(th), sin(th), cos(th)),dim=c(2,2)); #rotation matrix
+    Rot<-array(c(cos(th), sin(th), -sin(th), cos(th)),dim=c(2,2)); #rotation matrix
     A<-array(c(input$ax11, 0, 0, input$ax21),dim=c(2,2))
     Sigma<-(Rot%*%A)%*%t(Rot)
     E<<-eigen(Sigma)
