@@ -22,6 +22,7 @@
 #'R<-regrDataset(N,n,neff,0.1)
 #'X<-R$X
 #'Y<-R$Y
+#'feat<-R$feat
 #'@name regrDataset
 #'
 #'
