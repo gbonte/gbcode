@@ -34,19 +34,20 @@ nonlinfct<-function(X,f=1){
     y=apply(abs(X[,fy]),1,mean)
   }
   switch(f,
-         {Yhat=log(x^2+y^2)},
+         {Yhat=log(x^2+y^2+0.01)},
          {Yhat=sqrt(abs(sin(x^2+y^2)))},
-         {Yhat=log(x*y^2+x^2*y)},
+         {Yhat=log(x*y^2+x^2*y+0.01)},
          {Yhat=sqrt(abs(x^2/(y+1)))},
          {Yhat=1/(x^2+y^2+1)},
          {Yhat=(x*sin(x*y))/(x^2+y^2+1)},
          {Yhat=y*exp(2*x^2)},
          {Yhat=y*sin(x)+x*sin(y)},
          {Yhat=(x^3-2*x*y+y^2)/(x^2+y^2+1)},
-         {Yhat=x+y+log(abs(x*y))},
-         {Yhat=sin(x)+log(y)},
+         {Yhat=x+y+log(abs(x*y)+0.01)},
+         {Yhat=sin(x)+log(y+0.01)},
          {Yhat=sin(pi*x*y)})
-  
+  if (any(is.na(Yhat)))
+    browser()
   return(Yhat)
 }
 
@@ -82,6 +83,8 @@ nonlinfct<-function(X,f=1){
 #'
 regrDataset<-function(N,n,neff,sdn,seed=0){
   set.seed(seed)
+  n=max(n,4)
+  neff=max(neff,3)
   Sigma=Posdef(n)
   X<-scale(rmvnorm(N,sigma=Sigma ))
   feat<-sample(n,neff)
