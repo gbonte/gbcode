@@ -81,11 +81,13 @@ nonlinfct<-function(X,f=1){
 #'
 #'
 #'
-regrDataset<-function(N,n,neff,sdn,seed=0){
+regrDataset<-function(N,n,neff,sdn,seed=0,diag=TRUE){
   set.seed(seed)
   n=max(n,4)
   neff=max(neff,3)
-  Sigma=Posdef(n)
+  Sigma=diag(n)
+  if (!diag)
+    Sigma=Posdef(n)
   X<-scale(rmvnorm(N,sigma=Sigma ))
   feat<-sample(n,neff)
   XX=X[,feat]
