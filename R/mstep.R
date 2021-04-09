@@ -173,12 +173,12 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
       N.ts<-nrow(X.ts)
   }
   
-  if (scaleX){
+  if (scaleX & all(apply(X,2,sd)>0.1)){
     X=scale(X)
     X.ts=scale(X.ts,attr(X,"scaled:center"), attr(X,"scaled:scale"))
   }
   
-  if ( k >=NROW(X)){
+  if ( k >=NROW(X) ){
     return (array(mean(Y),c(N.ts,1)))
   }
   
@@ -697,15 +697,23 @@ lin.pls<- function(X,Y,X.ts){
 #' @param TS: time series
 #' @param n: embedding order
 #' @param H: horizon
-#' @param  Kmin: min number of neighbours
-#' @param  dist: type of distance: \code{euclidean, cosine}
+#' @param  Kmin: min number of neighbours for lazy methods
+#' @param  dist: type of distance: \code{euclidean, cosine} for lazy methods
 #' @param  F: forgetting factor
-#' @param  C: integer parameter which sets the maximum number of neighbours (C*k)
+#' @param  C: integer parameter which sets the maximum number of neighbours (C*k) for lazy methods
 #' @param  detrend: real parameter (in [0,1]) which fixes the window used for detrending the series. If equal to -1, no detrending is carried out
-#' @param  smooth: if TRUE, the preidction is obtained by averaging multiple windows with different starting points
+#' @param  smooth: if TRUE, the prediction is obtained by averaging multiple windows with different starting points
 #' @param  method:
 #' \itemize{
 #' \item{arima}: prediction based on the \pkg{forecast} package
+#' \item{stat_naive}: naive predictor based on the M4 competition code
+#' \item{stat_ses_naive}: prediction based on the M4 competition code
+#' \item{stat_naive2}: naive predictor based on the M4 competition code
+#' \item{stat_ses}: SES predictor based on the M4 competition code
+#' \item{stat_holt}: Holt predictor based on the M4 competition code
+#' \item{stat_damped}: prediction based on the M4 competition code
+#' \item{stat_theta}: Theta predictor based on the M4 competition code
+#' \item{stat_comb}: prediction based on the M4 competition code
 #' \item{direct}: direct prediction based on \link{KNN.multioutput} function
 #' \item{iter}: recursive prediction based on \link{KNN.multioutput} function
 #' \item{lazydirect}: direct prediction based on \link{lazy.pred} function
