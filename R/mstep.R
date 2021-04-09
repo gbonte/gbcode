@@ -770,6 +770,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             XC=NULL,detrend=-1, forget=-1){
   N<-length(TS)
   
+  if ((N-n-H)<10)
+    method="stat_naive"
   if (forget>0){
     I=min(N-10,max(1,round(N*forget))):N
     TS=TS[I]
@@ -868,6 +870,10 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     if (length(ws)>0)
       select.var<-setdiff(select.var,ws)
   }
+  
+  if (length(select.var)<1)
+    return(numeric(H)+mean(Y))
+  
   if (length(select.var)==1)
     if (sd(X)<0.01)
       return(numeric(H)+mean(Y))
@@ -1010,6 +1016,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            }
          },
          lindirect={
+           
            p<-numeric(H)
            for (h  in 1:H){
              wna=which(!is.na(Y[,h]))
