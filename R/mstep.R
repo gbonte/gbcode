@@ -701,7 +701,7 @@ lin.pls<- function(X,Y,X.ts){
 #' @param  dist: type of distance: \code{euclidean, cosine} for lazy methods
 #' @param  F: forgetting factor
 #' @param  C: integer parameter which sets the maximum number of neighbours (C*k) for lazy methods
-#' @param  detrend: real parameter (in [0,1]) which fixes the window used for detrending the series. If equal to -1, no detrending is carried out
+#' @param  detrend: real parameter (in [0,1]) which fixes the size of window used for linear detrending the series (0 corresponds to all series and 1 to ten latest terms). If detrend<0  no detrending is carried out
 #' @param  smooth: if TRUE, the prediction is obtained by averaging multiple windows with different starting points
 #' @param  method:
 #' \itemize{
@@ -782,8 +782,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   
   trnd.ts=numeric(H)
   trnd.ts2=numeric(H)
-  if (detrend>0){
-    I=min(N-10,max(1,round(N*detrend))):N
+  if (detrend>=0){
+    I=max(1,min(N-10,max(1,round(N*detrend)))):N
     trnd=pred("lin",I,TS[I],seq(c(TS)),classi=FALSE,lambda=1e-3) 
     trnd.ts=pred("lin",I,TS[I],seq(c(TS,1:H)),classi=FALSE,lambda=1e-3)[(N+1):(N+H)]
     TS=TS-trnd
