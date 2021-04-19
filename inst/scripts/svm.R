@@ -13,7 +13,7 @@ normv<-function(x,p=2){
   sum(x^p)^(1/p)
 }
 
-separable<-FALSE
+separable<-TRUE
 
 if (!separable){
   gam<-0.05
@@ -24,10 +24,10 @@ eps<-0.001
 
 for ( rep in 1:1){
   N<-150  #number of samples per class
-  x1<-cbind(rnorm(N),rnorm(N))
+  x1<-cbind(rnorm(N,0,sd=0.2),rnorm(N,0,sd=0.2))
   y1<-numeric(N)+1
   
-  x2<-cbind(rnorm(N,2.5),rnorm(N,2.5))
+  x2<-cbind(rnorm(N,3,sd=0.5),rnorm(N,3,sd=0.5))
   y2<-numeric(N)-1
   
   X<-rbind(x1,x2)
@@ -57,8 +57,6 @@ for ( rep in 1:1){
   A<-cbind(Y,diag(2*N))
   b0<-numeric(2*N+1)
   
-  
-  
   if (! separable){
     A<-cbind(A,-diag(2*N))
     b0<-c(b0,numeric(2*N))
@@ -72,14 +70,11 @@ for ( rep in 1:1){
     ## (2N+2):(4N+1) constraint -alpha_i>=-gam
   }
   
-  
-  
   S<-solve.QP(Dmat,dvec=d,Amat=A,meq=1,bvec=b0)
   ##  min_b(-d^T b + 1/2 b^T D b) with the constraints A^T b >= bvec.
   ## b-> alpha [2N,1]
   ## 1st contraint sum_i y_i*alpha_i=0
   ## 2:(2N+1) constraint alpha_i >=0
-  
   
   alpha<-S$solution
   alpha[alpha<eps]<-0
@@ -88,8 +83,7 @@ for ( rep in 1:1){
     cat("min value=",S$value,"\n")
     cat("min value2=",-t(d)%*%alpha+(1/2*t(alpha)%*%Dmat%*%alpha),"\n")
     cat("sum_i y_i*alpha_i=0:",alpha%*%Y,"\n")
-    
-    
+  
     beta<-numeric(2)
     for ( i in 1:(2*N))
       beta<-beta+alpha[i]*Y[i]*X[i,]
@@ -100,7 +94,6 @@ for ( rep in 1:1){
     ## PLOT Support Vector
     points(X[ind1,1],X[ind1,2],col="black")
     points(X[(N+ind2),1],X[(N+ind2),2],col="black")
-    
     
     if (separable){
       beta0<--0.5*(beta%*%X[ind1[1],]+beta%*%X[N+ind2[1],])
@@ -114,11 +107,8 @@ for ( rep in 1:1){
         }
       }
       
-      
       beta0<-0
-      
       beta0<-(1-Y[ind.j[1]]*beta%*%X[ind.j[1],])/Y[ind.j[1]]
-      
       marg<-1/sqrt(L)
       
       ## points whose slack variable is positive
@@ -126,11 +116,6 @@ for ( rep in 1:1){
       ind4<-which(abs(alpha[(N+1):(2*N)]-gam)<eps)
       points(X[ind3,1],X[ind3,2],col="yellow") ## red->yellow
       points(X[(N+ind4),1],X[(N+ind4),2],col="green")
-      
-      
-      
-      
-      
       
     }
     cat("beta=",beta,"\n")
@@ -141,10 +126,10 @@ for ( rep in 1:1){
     
     ## PLOT Margin
     abline(b=-beta[1]/beta[2],
-           a=-beta0/beta[2]+ marg/(cos(pi-theta)))
+           a=-beta0/beta[2]+ marg/(cos(pi-theta)),lty=2)
     
     abline(b=-beta[1]/beta[2],
-           a=-beta0/beta[2]- marg/(cos(pi-theta)))
+           a=-beta0/beta[2]- marg/(cos(pi-theta)),lty=2)
     
     title(paste("margin=",marg, ", gamma=",gam))
     print(marg)

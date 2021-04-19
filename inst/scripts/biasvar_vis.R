@@ -31,7 +31,7 @@ Y<-f(x,ord=O)+rnorm(N,sd=sd.w)
 data.tr<-cbind(Y,x)
 
 
-R<-20
+R<-10
 
 Remp<-numeric(R)
 MSE.loo<-numeric(R)
@@ -87,12 +87,12 @@ for (r in 1:R){
 par(ask=FALSE)
 mR=13
 plot(1:mR,Remp[1:mR],type="l",main="Bias-variance tradeoff",
-     lwd=1, xlab="degree",ylab="",col="yellow",ylim=c(0,4))
+     lwd=3, xlab="degree",ylab="",col="yellow",ylim=c(0,3))
 lines(1:mR,B2[1:mR]+V[1:mR],col="black",lwd=3)
-lines(1:mR,B2[1:mR],col="green")
-lines(1:mR,V[1:mR],col="red")
-lines(1:mR,PR[1:mR],col="orange")
-lines(1:mR,FPE[1:mR],col="cyan")
+lines(1:mR,B2[1:mR],col="green",lwd=3)
+lines(1:mR,V[1:mR],col="red",lwd=3)
+lines(1:mR,PR[1:mR],col="orange",lwd=3)
+lines(1:mR,FPE[1:mR],col="cyan",lwd=3)
 legend("topright", legend=c("Remp","MSE","Bias","Variance","LOO","FPE"),
 col = c("yellow","black","green","red","orange","cyan"),
        lty = c(1,1,1,1,1))
