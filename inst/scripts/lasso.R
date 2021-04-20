@@ -8,6 +8,7 @@ library(quadprog)
 
 N=25
 n=15
+# number of inoput features
 
 LAM=seq(7,0.01,by=-0.05)
 Remp=NULL

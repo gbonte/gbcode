@@ -1,5 +1,5 @@
 ---
-title: "INFOF422 exercise."
+title: "Exercise 3"
 subtitle: "Bias/variance analysis in regression"
 author: "G. Bontempi"
 #date: "3/4/2021"
@@ -17,9 +17,10 @@ Let us consider the dependency where the conditional distribution of ${\mathbf y
 $$
 {\mathbf y}= \sin(2 \pi x_1 x_2 x_3)+{\mathbf w}
 $$
-where ${\mathbf w}\sim N(0,\sigma^2)$, ${\mathbf x} \in {\mathbb R}^3$
-has a 3D normal distribution with an identity covariance matrix, $N=100$
-and $\sigma=0.25$.
+and ${\mathbf w}\sim N(0,\sigma^2)$ with $\sigma=0.25$.
+Suppose that ${\mathbf x} \in {\mathbb R}^3$
+has a 3D normal distribution with an identity covariance matrix.
+The number of observed input/output samples is $N=100$.
 
 Consider the following families of learners:
 

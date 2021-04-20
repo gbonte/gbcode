@@ -32,7 +32,7 @@ for (r in 1:R){
   Y.hat[r,]<-beta.hat.0[r]+beta.hat.1[r]*X
   
   EE[r]<-mean((Y-Y.hat[r,])^2) #empirical error
-  var.hat.w[r]<-EE[r]/(N-2)
+  var.hat.w[r]<-sum((Y-Y.hat[r,])^2)/(N-2)
   
   Yts<-beta0+beta1*X+rnorm(N,sd=sd.w) #test set
   MISE[r]<-mean((Yts-Y.hat[r,])^2)

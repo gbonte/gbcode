@@ -1,5 +1,5 @@
 ---
-title: "INFOF422 exercise."
+title: "Exercise 2"
 subtitle: "Linear regression: bias of empirical risk"
 author: "G. Bontempi"
 #date: "3/4/2021"

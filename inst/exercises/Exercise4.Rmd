@@ -1,5 +1,5 @@
 ---
-title: "INFOF422 bonus 4"
+title: "Exercise 4"
 subtitle: "Strongly and weakly relevant features"
 author: "G. Bontempi"
 #date: "3/4/2021"
