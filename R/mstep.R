@@ -767,8 +767,9 @@ lin.pls<- function(X,Y,X.ts){
 #'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             Kmin=3,C=2,FF=0,smooth=FALSE,
-                            XC=NULL,detrend=-1, forget=-1){
+                            XC=NULL,detrend=-1, forget=-1, engin=TRUE){
   N<-length(TS)
+  qu=seq(0.1,1,by=0.1)
   
   if ((N-n-H)<10)
     method="stat_naive"
@@ -853,14 +854,17 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   NX=NROW(X)
   select.var=1:NCOL(X)
   if (length(select.var)>10 ) {
+    if (engin){
+      X<-cbind(X,t(apply(X,1,quantile,qu)))
+    }
     rfs=numeric(NCOL(X))
     for (j in 1:NCOL(Y)){
-      fs=mrmr(X,Y[,j],nmax=min(NCOL(X)-1,5))
+      fs=mrmr(X,Y[,j],nmax=min(NCOL(X)-1,10))
       
       rfs[fs]=rfs[fs]+1
     }
     
-    select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:min(5,NCOL(X))]
+    select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:min(10,NCOL(X))]
     
   }
   
@@ -880,6 +884,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   
   
     q<-TS[seq(N-D,N-n+1-D,by=-1),1]
+    if (engin)
+      q=c(q,quantile(q,qu))
  
   
   ## TS=[TS(1), TS(2),....., TS(N)]
@@ -1024,7 +1030,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                p[h]=0
              }else{
                if (length(wna)>9){
-                 p[h]<-lin.pred(X[,select.var],array(Y[,h],c(NX,1)),q[select.var],
+                 p[h]<-lin.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
                                 class=FALSE,lambda=1e-3*C)
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
