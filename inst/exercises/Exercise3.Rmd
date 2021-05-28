@@ -132,7 +132,7 @@ for (s in 1:S){
   YH[s,,2]=Yhats2
   
   Yhats3=linearL(Xtr,Ytr,Xts)
-  YH[s,,3]=Yhats3
+  YH[s,,3]=Yhats3 
   
   Yhats4=knnL(Xtr,Ytr,Xts,K=1)
   YH[s,,4]=Yhats4
