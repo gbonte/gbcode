@@ -125,7 +125,7 @@ for (s in 1:S){
   Xtr=array(rnorm(N*n),c(N,n))
   Ytr=sin(2*pi*Xtr[,1]*Xtr[,2]*Xtr[,3])+rnorm(N,sd=sdw)
   
-  Yhats1=zeroL(Xtr,Ytr,Xts)
+  Yhats1=zeroL(Xtr,Ytr,Xts) 
   YH[s,,1]=Yhats1
   
   Yhats2=constantL(Xtr,Ytr,Xts)
