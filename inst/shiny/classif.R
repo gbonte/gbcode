@@ -6,10 +6,13 @@
 #
 library("quadprog")
 library("MASS")
+require(shiny)
+library(plotly)
 library(shinydashboard)
 library(mvtnorm)
-library(scatterplot3d)
-library(ellipse)
+#library(scatterplot3d)
+##library(ellipse)
+
 #library(rgl)
 BOUND1<-1.5
 BOUND2<-1.5
@@ -23,6 +26,7 @@ ui <- dashboardPage(
                   max = 1000,
                   value = 500,step=2),
       menuItem("Univariate mixture", tabName = "Univariatemixture", icon = icon("th")),
+ #     menuItem("Bivariate mixture", tabName = "Bivariatemixture", icon = icon("th")),
       menuItem("Linear Discriminant", tabName = "Discriminant", icon = icon("th")),
       menuItem("Perceptron", tabName = "perceptron", icon = icon("th")),
       menuItem("Assessment classifier", tabName = "roc", icon = icon("th")),
@@ -44,8 +48,28 @@ ui <- dashboardPage(
                                 value = 0.5)),
                 box(width=7,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotP"))),
               
-              fluidRow(   box(width=6,title = "Data",plotOutput("uniPlotD"))                
+              fluidRow(   box(width=6,title = "Dataset (1:red, 2:green)",plotOutput("uniPlotD"))                
               )
+      ),
+      tabItem(tabName = "Bivariatemixture",
+              fluidRow(
+                box(width=3,
+                    sliderInput("mean11",withMathJax(sprintf('$$\\mu_{11}:$$')),min = -BOUND1, max = BOUND1 ,
+                                        value = -2,step=0.1),
+                    sliderInput("mean12",withMathJax(sprintf('$$\\mu_{12}:$$')),min = -BOUND1, max = BOUND1 ,
+                                value = -2,step=0.1),
+                   sliderInput("variance11",withMathJax(sprintf('$$\\sigma^2_1:$$')),min = 0.5,max = 1, value = 0.75,step=0.05),
+                    sliderInput("mean21",withMathJax(sprintf('$$\\mu_{21}:$$')),min = -BOUND1, max = BOUND1 ,
+                                value = 2,step=0.1),
+                    sliderInput("mean22",withMathJax(sprintf('$$\\mu_{22}:$$')),min = -BOUND1, max = BOUND1 ,
+                                value = 2,step=0.1),
+                    sliderInput("variance22",withMathJax(sprintf('$$\\sigma^2_2:$$')),min = 0.5,max = 1, value = 0.75,step=0.05),
+                    sliderInput("p11",withMathJax(sprintf('$$P_1:$$')),min = 0, max = 1 ,
+                                value = 0.5)),
+                box(width=7,title = "Distribution",collapsible = TRUE,
+                    plotOutput("plot")))
+                    ##plotlyOutput("biPlotP")))#,
+     #         fluidRow(   box(width=6,title = "Data",plotOutput("biPlotD"))                )
       ),
       # Second tab content
       tabItem(tabName = "Discriminant",
@@ -61,7 +85,8 @@ ui <- dashboardPage(
                 box(width=3, sliderInput("muy2",withMathJax(sprintf('$$\\mu_{2y}:$$')), min = -BOUND2, max = BOUND2, value = BOUND2/2,step=0.05)),
                 box(width=3,    sliderInput("P1",withMathJax(sprintf('$$P_1:$$')),min = 0.01, max = 0.99 ,value = 0.5,step=0.05))
               ),
-              fluidRow(   box(width=9,title = "Data",plotOutput("biPlotD")))
+              fluidRow(   box(width=9,title = "Dataset (1: red, 2:green)",
+                              plotOutput("biPlotD")))
               
       ),
       tabItem(tabName = "perceptron",
@@ -86,7 +111,7 @@ ui <- dashboardPage(
                            actionButton("NLdo", "Gradient step NNet"),
                            actionButton("NLreset", "Reset weights"))
               ),
-              fluidRow(box(width=8,collapsible = TRUE,title = "Data set",plotOutput("NLData", height = 600)),
+              fluidRow(box(width=8,collapsible = TRUE,title = "Dataset (1: red, 2:green)",plotOutput("NLData", height = 600)),
                        box(width=4,collapsible = TRUE,title = "Misclassification",
                            plotOutput("NLEmpErr", height = 600)))
               
@@ -104,7 +129,7 @@ ui <- dashboardPage(
                     sliderInput("thr","thr:",min = -2*BOUND1, max = 2*BOUND1 ,
                                 value = 0,step=0.01))
               ),
-              fluidRow( box(width=6,title = "Scores classifier",plotOutput("ROCPlotD")) ,
+              fluidRow( box(width=6,title = "Scores classifier (-: red, +: green)",plotOutput("ROCPlotD")) ,
                         box(width=6,title = "ROC curve",plotOutput("ROCPlotROC"))),
               fluidRow(box(width=6,tableOutput('table'),htmlOutput("textB"), height=400),
                        box(width=6,title = "PR curve",plotOutput("ROCPlotPR")))
@@ -124,15 +149,14 @@ server<-function(input, output,session) {
   
   set.seed(122)
   
-  SVM<-function(X1,Y1,X2,Y2,separable=FALSE){
+  SVM<-function(X1,Y1,X2,Y2,separable=TRUE){
     normv<-function(x,p=2){
       sum(x^p)^(1/p)
       
     }
     
-    
     if (!separable){
-      gam<-0.05
+      gam<-0.01
     } else {
       gam<-Inf
     }
@@ -143,8 +167,6 @@ server<-function(input, output,session) {
     N1<-length(Y1)
     N2<-length(Y2)
     N<-N1+N2
-    
-    
     
     
     ##########################################
@@ -172,7 +194,7 @@ server<-function(input, output,session) {
       ## b-> alpha [2N,1]
       ## 1st constraint sum_i y_i*alpha_i=0
       ## 2:(2N+1) constraint alpha_i >=0
-      ## (2N+2):(4N+1) constraint -alpha_i>=-gam
+      ## (2N+2):(4N+1) constraint -alpha_i>=-gam  -> alpha_i <= gam
     }
     
     S<-solve.QP(Dmat,dvec=d,Amat=A,meq=1,bvec=b)
@@ -181,28 +203,18 @@ server<-function(input, output,session) {
     ## 1st contraint sum_i y_i*alpha_i=0
     ## 2:(N+1) constraint alpha_i >=0
     
-    
     alpha<-S$solution
     alpha[alpha<eps]<-0
     ind.j<-which(alpha>eps & alpha<gam-eps)
     if (all(alpha<=gam+eps) & length(ind.j)>0){
-      #cat("min value=",S$value,"\n")
-      #cat("min value2=",-t(d)%*%alpha+(1/2*t(alpha)%*%Dmat%*%alpha),"\n")
-      #cat("sum_i y_i*alpha_i=0:",alpha%*%Y,"\n")
-      
-      
       beta<-numeric(2)
       for ( i in 1:(N))
         beta<-beta+alpha[i]*Y[i]*X[i,]
-      
       ind1<-which(alpha[1:N1]>eps)
       ind2<-which(alpha[(N1+1):(N)]>eps)
-      
-      
       if (separable){
-        beta0<--0.5*(beta%*%X[ind1[1],]+beta%*%X[N+ind2[1],])
+        beta0<--0.5*(beta%*%X[ind1[1],]+beta%*%X[N1+ind2[1],])
         marg<-1/normv(beta)
-        
       } else {
         L<-0
         for (i in 1:(N)){
@@ -210,28 +222,16 @@ server<-function(input, output,session) {
             L=L+Y[i]*Y[j]*alpha[i]*alpha[j]*(X[i,]%*%X[j,])
           }
         }
-        
-        
         beta0<-0
-        
         beta0<-(1-Y[ind.j[1]]*beta%*%X[ind.j[1],])/Y[ind.j[1]]
-        
         marg<-1/sqrt(L)
-        
-        
-        
-        
-        
-        
       }
       
-      
-      
       theta<-atan(-beta[1]/beta[2])
-      
-      
+     
       return(list(b=-beta[1]/beta[2],a=-beta0/beta[2], 
-                  a1=-beta0/beta[2]+ marg/(cos(pi-theta)), a2= -beta0/beta[2]- marg/(cos(pi-theta))))
+                  a1=-beta0/beta[2]+ marg/(cos(pi-theta)), 
+                  a2= -beta0/beta[2]- marg/(cos(pi-theta))))
     }
   }
   
@@ -285,6 +285,36 @@ server<-function(input, output,session) {
     
     
   })
+  output$plot <- renderPlot({
+    plot_ly(mtcars, x = ~mpg, y = ~wt)
+  })
+  
+  output$biPlotP <- renderPlotly({
+    
+    x <- seq(-BOUND2, BOUND2, by= .2)
+    y <- x
+    z1<-array(0,dim=c(length(x),length(y)))
+    z2<-array(0,dim=c(length(x),length(y)))
+      
+    for (i in 1:length(x)){
+      for (j in 1:length(y)){
+        z1[i,j]<-(input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean11, input$mean21))
+        z2[i,j]<-(input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean11, input$mean21))
+      }
+    }
+    z1[is.na(z1)] <- 1
+    z2[is.na(z2)] <- 1
+    op <- par(bg = "white")
+    
+ 
+   
+   #fig <- plot_ly(z = ~volcano)
+  #  fig <- fig %>% add_surface()
+     
+   #   fig
+    
+  })
+  
   
   discr<-function(x,y,mu,Sigma,p=0.5){
     n=2
@@ -324,7 +354,8 @@ server<-function(input, output,session) {
     P=c(input$P1,1-input$P1)
     w<-mu.1-mu.2
     x0<-0.5*(mu.1+mu.2)-sigma2/(norm(mu.1-mu.2)^2)*(mu.1-mu.2)*log(P[1]/P[2])
-    
+    if (abs(w[2])<0.001)
+      w[2]=0.01
     m<--w[1]/w[2]
     intc<-w[1]/w[2]*x0[1]+x0[2]
     abline(a=intc,b=m)
