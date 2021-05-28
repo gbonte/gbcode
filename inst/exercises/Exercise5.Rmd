@@ -25,7 +25,7 @@ and $p(x | {\mathbf y}=1)={\mathcal N}(\mu_1,\Sigma_1)$
 where 
 
 * $\mu_0=[0,0]^T$
-* $\mu_1=[1,1]^T$
+* $\mu_1=[2,2]^T$
 
 and both $\Sigma_0$ and $\Sigma_1$ are diagonal identity matrices.
 
