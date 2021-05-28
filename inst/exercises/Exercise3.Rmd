@@ -112,7 +112,7 @@ Nts=1000
 n=3
 S=100 ## number of MC trials
 models=c("zero","const","lin","1NN","3NN","5NN","7NN")
-sdw=0.25 ## stanard deviation of noise
+sdw=0.25 ## standard deviation of noise
 M=length(models)
 Xts=array(rnorm(Nts*n),c(Nts,n))
 
@@ -121,7 +121,7 @@ YH=array(0,c(S,Nts,M))
 Ytrue=NULL
 
 for (s in 1:S){
-  Yts=sin(2*pi*Xts[,1]*Xts[,2]*Xts[,3])+rnorm(N,sd=sdw)
+  Yts=sin(2*pi*Xts[,1]*Xts[,2]*Xts[,3])+rnorm(Nts,sd=sdw)
   Xtr=array(rnorm(N*n),c(N,n))
   Ytr=sin(2*pi*Xtr[,1]*Xtr[,2]*Xtr[,3])+rnorm(N,sd=sdw)
   

@@ -23,8 +23,8 @@ Z=Xtilde%*%V1
 Dc=Z%*%t(V1)
 
 plot(Xtilde[Ig,1],Xtilde[Ig,2],xlab="x1",ylab="x2",col="green",
-     cex=.5,xlim=c(-3,3),ylim=c(-3,3))
-points(Xtilde[Ir,1],Xtilde[Ir,2],xlab="x1",ylab="x2",col="red",cex=.5)
+     cex=1.5,xlim=c(-3,3),ylim=c(-3,3),pch=1)
+points(Xtilde[Ir,1],Xtilde[Ir,2],xlab="x1",ylab="x2",col="red",cex=1.5,pch=4)
 lines(X1,V1[2]/V1[1]*X1,col="black",lwd=2)
 points(Dc[Ig,1],Dc[Ig,2]-0.05,col="green",lwd=3,pch=20)
 points(Dc[Ir,1],Dc[Ir,2]+0.05,col="red",pch=20)
