@@ -126,7 +126,7 @@ M=6  ## max order of the polynomial model
 sdw=0.5 ## stanard deviation of noise
 
 Emp<-numeric(M+1)
-FPE<-numeric(M+1)
+PSE<-numeric(M+1)
 
 X=seq(-1,1,length.out=N)
 Y=1-X+X^2-X^3+rnorm(N,sd=sdw)
@@ -143,18 +143,18 @@ Y=1-X+X^2-X^3+rnorm(N,sd=sdw)
     Yhat=DX%*%betahat
     Emp[m+1]=mean((Y-Yhat)^2)
     sdw=sd(Y-Yhat)
-    FPE[m+1]=Emp[m+1]+2*sdw^2/N*(m+1)
+    PSE[m+1]=Emp[m+1]+2*sdw^2/N*(m+1)
    
   }
   
 bestEmp=which.min(Emp)-1
-bestFPE=which.min(FPE)-1
+bestPSE=which.min(PSE)-1
   
-print(bestFPE)
+print(bestPSE)
 plot(Emp,type="l")
-lines(FPE,col="red")
+lines(PSE,col="red")
  
-legend(x=4,y=1,c("Empirical risk","FPE"),lty=1, col=c("black","red"))
+legend(x=4,y=1,c("Empirical risk","PSE"),lty=1, col=c("black","red"))
 
 ```
 
@@ -162,4 +162,4 @@ legend(x=4,y=1,c("Empirical risk","FPE"),lty=1, col=c("black","red"))
 The  model degree **`r bestEmp`** returned by minimizing the empirical risk corresponds to the
 highest order considered.
 
-The  model degree **`r bestFPE`** returned by minimizing the empirical risk corresponds to the real degree of the regression function $E[{\mathbf y}| x]$.
+The  model degree **`r bestPSE`** returned by minimizing the empirical risk corresponds to the real degree of the regression function $E[{\mathbf y}| x]$.
