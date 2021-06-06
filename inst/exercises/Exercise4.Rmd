@@ -223,7 +223,7 @@ of if their difference is smaller than zero.
 
 Since those values are only estimated the fact that 
 $$\hat{H}({\mathbf y}| {\mathbf S_1}) < \hat{H}({\mathbf y}| {\mathbf S_2}) $$
-does ot necessarily provide enough evidence to draw a conclusion. Given the stochastic setting
+does not necessarily provide enough evidence to draw a conclusion. Given the stochastic setting
 a solution could be the adoption of statistical tests. For instance 
 if $H$ is approximated by $\widehat{\text{MISE}}$ we could use a statistical test
 to check whether the mean $\widehat{\text{MISE}_1}$ is significantly smaller than $\widehat{\text{MISE}_2}$. 

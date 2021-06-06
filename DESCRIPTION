@@ -30,4 +30,6 @@ Depends:
     scatterplot3d,
     ellipse,
     xgboost,
+    latex2exp,
+    shinydashboard,
     R (>= 2.10)
