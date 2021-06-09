@@ -19,6 +19,11 @@ x2 <- x1
 
 
 S=svd(Xtilde)
+
+E=eigen(t(Xtilde)%*%(Xtilde))
+## check that t(Xtilde)%*%(Xtilde) = E$vectors%*%diag(E$values)%*%t(E$vectors)
+## and that S$d^2=S$d
+
 V2=S$v[,1:2]
 
 EV=eigen(t(Xtilde)%*%Xtilde)$vectors
@@ -31,7 +36,11 @@ b=solve(VX)%*%VY
 
 Z=Xtilde%*%V2
 
-Dc=Z%*%t(V2)
+Xtilde2=Z%*%t(V2)
+RecE=(Xtilde-Xtilde2) ## reconstruction error
+
+cat("Reconstruction error=",mean(apply(RecE^2,1,sum)), ":",S$d[3]^2/N,"\n")
+
 
 f <- function(x1, x2,a,b) { a*x1+b*x2 }
 z <- outer(x1, x2, f,b[2],b[1])
@@ -44,7 +53,7 @@ fig <- fig %>% add_markers(x=Xtilde[,1],y=Xtilde[,2],z=Xtilde[,3],
                            color = I('red'),
                            size = 120)
 
-fig <- fig %>% add_markers(x=Dc[,1],y=Dc[,2],z=Dc[,3],
+fig <- fig %>% add_markers(x=Xtilde2[,1],y=Xtilde2[,2],z=Xtilde2[,3],
                            color = I('black'),
                            size = 120)
 

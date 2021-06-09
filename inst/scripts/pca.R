@@ -12,8 +12,12 @@ V1=array(S$v[,1],c(2,1))
 
 Z=Xtilde%*%V1
 
-Dc=Z%*%t(V1)
+Xtilde2=Z%*%t(V1)
 
 plot(Xtilde[,1],Xtilde[,2],xlab="x1",ylab="x2")
 lines(X1,V1[2]/V1[1]*X1,col="red",lwd=2)
-points(Dc[,1],Dc[,2],col="red")
+points(Xtilde2[,1],Xtilde2[,2],col="red")
+
+RecE=(Xtilde-Xtilde2) ## reconstruction error
+
+cat("Reconstruction error=",mean(apply(RecE^2,1,sum)), ":",S$d[2]^2/N,"\n")
