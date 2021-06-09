@@ -1,14 +1,14 @@
-##INFO-F-528 Machine learning methods for bioinformatics
-## Exercise session 6
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
 
 rm(list=ls())
 source("kNN.R")
-n.max<-40
-load("golub.Rdata")
-load("golub.filter.Rout")
-source("KNNforward.R")
-KNN.wrap<-function(X,Y,size,K=1){
+set.seed(0)
 
+
+KNN.wrap<-function(X,Y,size,K=1){
+## leave-one-out wrapper based on forward selection and KNN
   n<-ncol(X)
   N<-nrow(X)
   selected<-NULL
@@ -30,33 +30,51 @@ KNN.wrap<-function(X,Y,size,K=1){
       }
     }
     selected<-c(selected,which.min(miscl.tt))
-    print(selected)
+    cat(".")
     
   }
+  cat("\n")
   selected
 }
 
 
+
+K=3 ## number of neighbours in KNN
+data(golub)  ## dataset upload
+
+X<-golub$X
 N<-nrow(X)
-set.seed(0)
+Y=factor(golub$Y)
+
+
 I<-sample(N)
-X<-X[I,ind.filter3]
+X<-scale(X)
+
+
+X<-X[I,]
 Y<-Y[I]
 
-
+## Training/test partition
 N.tr<-40
 X.tr<-X[1:N.tr,]
 Y.tr<-Y[1:N.tr]
-
-wrap.var<-KNNforward(X.tr,Y.tr,nmax=10)
-
 N.ts<-32
 X.ts <- X[(N.tr+1):N,]
 Y.ts<-Y[(N.tr+1):N]
 
-K=1
+
+## preliminary dimensionality reduction by ranking
+ind.filter<-rankrho(X.tr,Y.tr,100)
+X.tr=X.tr[,ind.filter]
+X.ts=X.ts[,ind.filter]
+
+
+## wrapper feature selection 
+wrap.var<-KNN.wrap(X.tr,Y.tr,size=20,K)
+
+
 ###########################################
-# Training-and-test
+# Assessement of classification in the testset
 
 for ( size in c(2:length(wrap.var))){
   
@@ -70,14 +88,16 @@ for ( size in c(2:length(wrap.var))){
   }
   
   miscl.tt<-mean(miscl)
-  Conf.tt[1,1]<-length(which(Y.hat.ts=="ALL" & Y.ts =="ALL"))
-  Conf.tt[1,2]<-length(which(Y.hat.ts=="ALL" & Y.ts =="AML"))
-  Conf.tt[2,1]<-length(which(Y.hat.ts=="AML" & Y.ts =="ALL"))
-  Conf.tt[2,2]<-length(which(Y.hat.ts=="AML" & Y.ts =="AML"))
+  rownames(Conf.tt)=c("pred=0","pred=1")
+  colnames(Conf.tt)=c("real=0","real=1")
+  Conf.tt[1,1]<-length(which(Y.hat.ts=="0" & Y.ts =="0"))
+  Conf.tt[1,2]<-length(which(Y.hat.ts=="0" & Y.ts =="1"))
+  Conf.tt[2,1]<-length(which(Y.hat.ts=="1" & Y.ts =="0"))
+  Conf.tt[2,2]<-length(which(Y.hat.ts=="1" & Y.ts =="1"))
   
   
-  print(paste("K=",K, "size=",size,"; Miscl tt=",miscl.tt))
-  
+  print(paste("K=",K, "size=",size,"; Misclass %=",miscl.tt))
+  print(Conf.tt)
   
 }
 

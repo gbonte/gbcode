@@ -1,9 +1,11 @@
-##INFO-F-528 Machine learning methods for bioinformatics
-## Exercise session 4
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
 
 KNN<- function(X,Y,k,q){
   l<-levels(Y)
   N<-nrow(X)
+  
   d<-sqrt(apply((X-array(1,c(N,1))%*%q)^2,1,sum)) ## Euclidean metric
   ## d<-sqrt(apply(abs(X-array(1,c(N,1))%*%q),1,sum)) ## Manhattan metric
   ##  d<-1/cor(t(X),q)           ## correlation metric
