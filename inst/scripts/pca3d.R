@@ -22,7 +22,7 @@ S=svd(Xtilde)
 
 E=eigen(t(Xtilde)%*%(Xtilde))
 ## check that t(Xtilde)%*%(Xtilde) = E$vectors%*%diag(E$values)%*%t(E$vectors)
-## and that S$d^2=S$d
+## and that S$d^2=E$values
 
 V2=S$v[,1:2]
 
