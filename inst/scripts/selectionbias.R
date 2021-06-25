@@ -4,7 +4,7 @@
 
 
 rm(list=ls())
-
+library(gbcode)
 f<- function(x){
   return(0.15*x)
 } 
