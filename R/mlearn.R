@@ -142,7 +142,7 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
 
 
 rf.pred<- function(X,Y,X.ts,class=FALSE,...){
-  
+  save.seed <- get(".Random.seed", .GlobalEnv)
   n<-NCOL(X)
   N<-NROW(X)
   if (is.vector(X.ts) & n>1){
@@ -159,7 +159,7 @@ rf.pred<- function(X,Y,X.ts,class=FALSE,...){
     X<-array(X,c(N,1))
     X.ts<-array(X.ts,c(N.ts,1))
   }
-  #set.seed(N*n)
+  set.seed(N*n)
   d<-data.frame(Y,X)
   names(d)[1]<-"Y"
   
@@ -167,7 +167,7 @@ rf.pred<- function(X,Y,X.ts,class=FALSE,...){
   d.ts<-data.frame(X.ts)
   names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
   p<-predict(mod.rf,d.ts,type="response")
-  
+  assign(".Random.seed", save.seed, .GlobalEnv)
   if (class){
     P<-predict(mod.rf,d.ts,type="prob")
     return(list(pred=p,prob=P))
