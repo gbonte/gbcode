@@ -12,7 +12,7 @@ TS.tr=array(TS.tr,c(length(TS.tr),1))
 Y.cont=multiplestepAhead(TS.tr,n=10, H=H,method="lazydirect",
                          detrend=0.5,XC=cbind(array(1:(N.tr+H),c(N.tr+H,1))))#,
                                                                         # (1:(N.tr+H))))
-Y.cont2=multiplestepAhead(TS.tr,n=10, H=H,method="lazydirect",detrend=0.1)
+Y.cont2=multiplestepAhead(TS.tr,n=30, H=H,method="mimo")
 
 plot(t[(N-H+1):N],TS.ts)
 lines(t[(N-H+1):N],c(Y.cont),col="green")
