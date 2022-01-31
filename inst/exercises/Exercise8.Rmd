@@ -1,0 +1,41 @@
+---
+title: "Probability of correct estimation"
+author: "G. Bontempi"
+date: "5/31/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question
+Consider a Normal random variable ${\mathbf z}$ with
+mean $1$ and variance $\sigma^2=4$.
+Let $\hat{{\boldsymbol \mu}}$ denote the sample average estimator.
+How many i.i.d. samples should I observe to guarantee that the following relation holds? 
+$$
+\text{Prob}\{ 0.9 \le \hat{{\boldsymbol \mu}} \le 1.1\} \ge 0.85
+$$
+
+## Solution
+Since ${\mathbf z}$ is Normal, the distribution of $\hat{{\boldsymbol \mu}}$ is Normal as well,
+with mean $1$ and variance $\sigma^2/N$.
+
+```{r }
+varz=4
+muhat=1
+
+for (N in 1:200){
+  varhat=varz/N
+  P=pnorm(1.1,muhat,varhat)-pnorm(0.9,muhat,varhat)
+  ##cat("N=",N,"P=",P,"\n")
+  if (P>=0.85)
+    break;
+}
+
+```
+
+
+The required number of samples is **`r N`**
