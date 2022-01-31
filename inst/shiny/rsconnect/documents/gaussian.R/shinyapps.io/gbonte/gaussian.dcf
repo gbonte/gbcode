@@ -1,0 +1,13 @@
+name: gaussian
+title: gaussian
+username:
+account: gbonte
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3683366
+bundleId: 4261151
+url: https://gbonte.shinyapps.io/gaussian/
+when: 1614077638.01171
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: bimodal.R|bootstrap.R|cart.R|classif.R|condind.R|condpro.R|estimation.R|lawlarge.R|leastsquares.R|mcarlo.R|regression.R|server.R|ui.R|unimodal.R

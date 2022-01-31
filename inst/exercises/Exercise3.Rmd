@@ -107,6 +107,7 @@ knnL<-function(Xtr,Ytr,Xts,K=1){
 
 
 ```{r run MC, run=FALSE}
+set.seed(0)
 N=100 ## number of samples
 Nts=1000
 n=3

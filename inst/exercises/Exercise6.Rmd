@@ -1,5 +1,5 @@
 ---
-title: "INFOF422: bonus 6"
+title: "Exercise 6"
 subtitle: "Classification and ROC CURVE"
 author: "G. Bontempi"
 #date: "3/4/2021"
