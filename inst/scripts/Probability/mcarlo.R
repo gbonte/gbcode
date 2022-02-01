@@ -1,3 +1,9 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
+
 ## Monte Carlo estimation of parameters
 
 R=1000000
@@ -31,8 +37,8 @@ Ek=sqrt(2/pi)
 Vk=1-2/pi
 ## https://www.quora.com/If-Y-X-where-X-has-normal-distribution-N-0-1-what-is-the-density-function-expectation-and-variance-of-Y
 
-cat(paste("E[k]=",Ek, "; MC est E[k=|z|] =",mean(k), "\n"))
+cat(paste("E[k]=",Ek, "; MC estimate E[k=|z|] =",mean(k), "\n"))
 # MonteCarlo estimation of E[k]
 
-cat(paste("V[k]=",Vk, "; MC est V[k=|z|] =",var(k), "\n"))
+cat(paste("V[k]=",Vk, "; MC estimate V[k=|z|] =",var(k), "\n"))
 # MonteCarlo estimation of E[k]

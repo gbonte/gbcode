@@ -1,3 +1,8 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
 ## Samping distribution of sample correlation 
 
 ## 2 variables x and y are sampled where y=K*x

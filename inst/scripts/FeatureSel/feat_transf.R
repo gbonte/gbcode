@@ -1,3 +1,9 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
+
 # x^+y^2=1
 rm(list=ls())
 sdw=0.1

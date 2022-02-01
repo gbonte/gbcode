@@ -1,6 +1,7 @@
-## "INFOF422 Statistical foundations of machine learning" course
+## "Statistical foundations of machine learning" software
 ## R package gbcode 
 ## Author: G. Bontempi
+
 
 # script sam_dis2.R
 # it visualizes the distribution of the estimator

@@ -26,10 +26,12 @@ $$h^{(m)}(x)=\beta_0 +\sum_{j=1}^m \beta_j x^j$$
 where $p$ denote the number of weights of the polynomial model $h^{(m)}$ of degree $m$.
 
 Let $\widehat{\text{MISE}}_{\text{emp}}^{(m)}$ denote the least-squares empirical risk
-and MISE the mean integrated empirical risk.
+and MISE the mean integrated empirical risk. We make the assumption
+that a Monte Carlo simulation with $S=10000$ repetitions returns an
+accurate computation of the expectation terms (notably the MISE term).
 
 
-By using Monte Carlo simulation and for $m=0,\dots,6$
+By using Monte Carlo simulation (with $S=10000$ repetitions) and for $m=0,\dots,6$
 
 *  plot
 $E[\widehat{\textbf{MISE}}_{\text{emp}}^{(m)}]$ as a function of $p$,

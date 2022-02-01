@@ -1,3 +1,7 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
 
 rm(list=ls())
 library(abind)

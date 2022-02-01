@@ -1,3 +1,8 @@
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
+
 M=100 # number of alternatives
 
 x=rnorm(M)

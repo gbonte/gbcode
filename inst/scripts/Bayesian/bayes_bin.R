@@ -1,6 +1,7 @@
-## "INFOF422 Statistical foundations of machine learning" course
+## "Statistical foundations of machine learning" software
 ## R package gbcode 
 ## Author: G. Bontempi
+
 # bayes_bin.R
 # Bayesian parametric estimation of the binomila probability 
 ######################################################

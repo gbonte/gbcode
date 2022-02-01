@@ -1,6 +1,7 @@
-## "INFOF422 Statistical foundations of machine learning" course
+## "Statistical foundations of machine learning" software
 ## R package gbcode 
 ## Author: G. Bontempi
+
 # bayes_gau.R
 # Bayesian parametric estimation of the mean of a normal variable with known variance 
 ######################################################

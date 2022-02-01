@@ -1,3 +1,8 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
 # script s_f.R
 N1<-10
 N2<-20

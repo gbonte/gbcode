@@ -1,3 +1,8 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
 
 
 q=10  ## order of MA(q)

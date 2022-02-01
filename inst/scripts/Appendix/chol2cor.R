@@ -1,3 +1,8 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
 rm(list=ls())
 N=1000
 Sigma=rbind(c(1,0.5,0.3),

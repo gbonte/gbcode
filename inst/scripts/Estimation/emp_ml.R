@@ -1,6 +1,7 @@
-## "INFOF422 Statistical foundations of machine learning" course
+## "Statistical foundations of machine learning" software
 ## R package gbcode 
 ## Author: G. Bontempi
+
 # Script: shows the use of maximum likelihood for parameter estimation
 
 

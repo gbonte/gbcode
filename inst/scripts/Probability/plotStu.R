@@ -1,3 +1,8 @@
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
+
 #### plotStu ####
 #' Plot Student distribution
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}

@@ -1,14 +1,11 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
 ######################################################
 # movie.R
-# Estimation de la "cote" d'un film, cette cote ?tant d?finie
-# comme un entier entre 1 et 10 (voir cours).
-# Cette cote, theta, est vu comme la moyenne inconnue d'une distribution
-# normale d'?cart-type 2.
-# La distribution a priori de theta est donn?e par:
-# {0, 0, 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0, 0}
-# et l'?chantillon DN est {6,7,8,9}.
-# Le script calcule et affiche les distributions a priori
-# et a posteriori.
+# Estimation of a movie rating 
 ######################################################
 
 Movie<-function(){

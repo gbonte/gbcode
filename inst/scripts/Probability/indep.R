@@ -1,6 +1,7 @@
-## "INFOF422 Statistical foundations of machine learning" course
+## "Statistical foundations of machine learning" software
 ## R package gbcode 
 ## Author: G. Bontempi
+
 # indep.R
 # Script: shows the realization of independent and dependent random
 # variables

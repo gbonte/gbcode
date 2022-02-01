@@ -1,3 +1,10 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
+rm(list=ls())
+library(gbcode)
 N<-100000
 
 X1<-rnorm(N,sd=0.5)

@@ -1,3 +1,9 @@
+## "Statistical foundations of machine learning" software
+## R package gbcode 
+## Author: G. Bontempi
+
+
+
 N=1000
 X1=runif(N,-1,1)
 X2=runif(N,-1,1)
