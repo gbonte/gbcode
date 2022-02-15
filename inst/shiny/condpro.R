@@ -98,7 +98,7 @@ server<-function(input, output,session) {
     if (ord==2)
       f<-x^2-2
     if (ord==3)
-      f<--x^2+1
+      f<- x^3
     
     
     f

@@ -34,12 +34,11 @@ ui <- dashboardPage(
       # First tab content
       tabItem(tabName = "RV1",
               fluidRow(
-                box(width=4,sliderInput("low","Lower (red):",min = -BOUND1, max = 0 ,
-                                        value = -1,step=0.01),
-                    sliderInput("up","Upper (red):",min = 0,max = BOUND1, value = 0.5,step=0.01)
+                box(width=4,sliderInput("rangeU","Range (red):",min = -BOUND1, max = BOUND1 ,
+                                        value = c(-1,1),step=0.05)
                     
                 ),
-                box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotP1"))),
+                box(width=6,title = "Distribution of r.v. z",collapsible = TRUE,plotOutput("uniPlotP1"))),
               
               fluidRow(   
                 box(width=4,title = "Histogram Z^2",plotOutput("uniPowH1")),
@@ -49,13 +48,12 @@ ui <- dashboardPage(
       ),
       tabItem(tabName = "CL",
               fluidRow(
-                box(width=4,sliderInput("lowC","Lower (red):",min = -BOUND1, max = 0 ,
-                                        value = -1,step=0.01),
-                    sliderInput("upC","Upper (red):",min = 0,max = BOUND1, value = 0.5,step=0.01),
+                box(width=4,sliderInput("rangeU2","Range (red):",min = -BOUND1, max = BOUND1 ,
+                                        value = c(-1,1),step=0.05),
                     sliderInput("NN","Number terms:",min = 1,max = 100, value = 1,step=1)
                     
                 ),
-                box(width=6,title = "Distribution",collapsible = TRUE,plotOutput("uniPlotCL"))),
+                box(width=6,title = "Distribution of a single term",collapsible = TRUE,plotOutput("uniPlotCL"))),
               
               fluidRow(   
                 box(width=5,title = "Histogram sum",plotOutput("sumCL")),
@@ -64,9 +62,9 @@ ui <- dashboardPage(
       ),
       tabItem(tabName = "RV",
               fluidRow(
-                box(width=4,sliderInput("mean1","Lower (red):",min = -BOUND1, max = 0 ,
-                                        value = -1,step=0.01),
-                    sliderInput("variance1","Upper (red):",min = 0,max = BOUND1, value = 0.5),
+                box(width=4,sliderInput("rangeU3","Range (red):",min = -BOUND1, max = BOUND1 ,
+                                        value = c(-1,1),step=0.01),
+                    #sliderInput("variance1","Upper (red):",min = 0,max = BOUND1, value = 0.5),
                     sliderInput("mean2","Mean (green):",min = -BOUND1, max = BOUND1 ,
                                 value = 2,step=0.01),
                     sliderInput("variance2","Variance (green):",min = 0.001,max = 2, value = 0.5)
@@ -131,9 +129,9 @@ server<-function(input, output,session) {
   histdata <- rnorm(500)
   output$uniPlotP1 <- renderPlot( {
     
-    xaxis=seq(input$low-BOUND1,input$up+BOUND1,by=0.01)
+    xaxis=seq(input$rangeU[1]-BOUND1,input$rangeU[2]+BOUND1,by=0.01)
     
-    dred=dunif(xaxis,input$low,input$up)
+    dred=dunif(xaxis,input$rangeU[1],input$rangeU[2])
     
     plot(xaxis, dred,col="red",type="l")
     
@@ -144,10 +142,10 @@ server<-function(input, output,session) {
   
   output$uniPlotP <- renderPlot( {
     
-    xaxis=seq(min(input$mean1,input$mean2)-BOUND1,max(input$mean1,input$mean2)+BOUND1,by=0.01)
+    xaxis=seq(min(input$rangeU3[1],input$mean2)-BOUND1,max(input$rangeU3[2],input$mean2)+BOUND1,by=0.01)
     
     dgreen=dnorm(xaxis,input$mean2,input$variance2)
-    dred=dunif(xaxis,input$mean1,input$variance1)
+    dred=dunif(xaxis,input$rangeU3[1],input$rangeU3[2])
     
     plot(xaxis, dgreen,col="green",type="l",ylim=c(0,max(c(dgreen,dred))))
     lines(xaxis,dred,col="red",type="l")
@@ -155,7 +153,7 @@ server<-function(input, output,session) {
   
   output$uniPowH1 <- renderPlot( {
     
-    D1<-runif(input$N,input$low,input$up)
+    D1<-runif(input$N,input$rangeU[1],input$rangeU[2])
     D<-D1^2
     hist(D,xlim=c(0,BOUND2*BOUND2),freq=FALSE,main="")
     
@@ -164,7 +162,7 @@ server<-function(input, output,session) {
   
   output$uniPow3H1 <- renderPlot( {
     
-    D1<-runif(input$N,input$low,input$up)
+    D1<-runif(input$N,input$rangeU[1],input$rangeU[2])
     D<-D1^3
     hist(D,xlim=c(-BOUND2^3,BOUND2^3),freq=FALSE,main="")
     
@@ -173,7 +171,7 @@ server<-function(input, output,session) {
   
   output$uniSqrtH1 <- renderPlot( {
     
-    D1<-runif(input$N,input$low,input$up)
+    D1<-runif(input$N,input$rangeU[1],input$rangeU[2])
     D<-sqrt(abs(D1))
     hist(D,xlim=c(0,sqrt(1.5*BOUND2)),freq=FALSE,main="")
     
@@ -184,9 +182,9 @@ server<-function(input, output,session) {
   
   output$uniPlotCL <- renderPlot( {
     
-    xaxis=seq(input$low-BOUND1,input$up+BOUND1,by=0.01)
+    xaxis=seq(input$rangeU[1]-BOUND1,input$rangeU[2]+BOUND1,by=0.01)
     
-    dred=dunif(xaxis,input$lowC,input$upC)
+    dred=dunif(xaxis,input$rangeU2[1],input$rangeU2[2])
     
     plot(xaxis, dred,col="red",type="l")
     
@@ -196,11 +194,11 @@ server<-function(input, output,session) {
   output$sumCL <- renderPlot( {
     
     
-    D=runif(input$N,input$lowC,input$upC)
+    D=runif(input$N,input$rangeU2[1],input$rangeU2[2])
     if (input$NN>1)
       for (i in 2:input$NN)
-        D<-D+runif(input$N,input$lowC,input$upC)
-      vth=1/12*(input$upC-input$lowC)^2
+        D<-D+runif(input$N,input$rangeU2[1],input$rangeU2[2])
+      vth=1/12*(input$rangeU2[2]-input$rangeU2[1])^2
       hist(D,freq=FALSE,main=paste("Th Var= ",round(vth*input$NN,2),
                                    "; MC Var=", round(var(D),2)))
       
@@ -209,12 +207,12 @@ server<-function(input, output,session) {
   output$meanCL <- renderPlot( {
     
     
-    D=runif(input$N,input$lowC,input$upC)
+    D=runif(input$N,input$rangeU2[1],input$rangeU2[2])
     
     if (input$NN>1)
       for (i in 2:input$NN)
-        D<-D+runif(input$N,input$lowC,input$upC)
-      vth=1/12*((input$upC-input$lowC)^2)
+        D<-D+runif(input$N,input$rangeU2[1],input$rangeU2[2])
+      vth=1/12*((input$rangeU2[2]-input$rangeU2[1])^2)
       D=D/input$NN
       hist(D,xlim=c(-BOUND1,BOUND1),freq=FALSE,main=paste("Th Var= ",round(vth/input$NN,4),
                                                           "; MC Var=", round(var(D),4)))
@@ -223,7 +221,7 @@ server<-function(input, output,session) {
   
   output$uniSumH <- renderPlot( {
     
-    D1<-runif(input$N,input$mean1,input$variance1)
+    D1<-runif(input$N,input$rangeU3[1],input$rangeU3[2])
     D2<-rnorm(input$N,input$mean2,input$variance2)
     
     D<<-D1+D2
@@ -234,7 +232,7 @@ server<-function(input, output,session) {
   
   output$uniDiffH <- renderPlot( {
     
-    D1<-runif(input$N,input$mean1,input$variance1)
+    D1<-runif(input$N,input$rangeU3[1],input$rangeU3[2])
     D2<-rnorm(input$N,input$mean2,input$variance2)
     
     D<<-D1-D2
@@ -245,7 +243,7 @@ server<-function(input, output,session) {
   
   output$uniPowH <- renderPlot( {
     
-    D1<-runif(input$N,input$mean1,input$variance1)
+    D1<-runif(input$N,input$rangeU3[1],input$rangeU3[2])
     D2<-rnorm(input$N,input$mean2,sqrt(input$variance2))
     
     D<<-D1*D2
@@ -255,10 +253,8 @@ server<-function(input, output,session) {
   })
   
   output$uniPlotD <- renderPlot( {
-    xl=min(input$mean1,input$mean2)-BOUND1
-    xu=max(input$mean1,input$mean2)+BOUND1
-    input$variance1+input$variance2+input$p1libra
-    input$N
+    xl=min(input$rangeU3[1],input$mean2)-BOUND1
+    xu=max(input$rangeU3[2],input$mean2)+BOUND1
     
     plot(D,0*D,xlim=c(xl,xu))
     
@@ -309,7 +305,7 @@ server<-function(input, output,session) {
     
     hist(D,xlim=c(-BOUND2*BOUND2,BOUND2*BOUND2),
          main=TeX(sprintf("Th Mean= %.02f  ; MC Mean= %.02f ;  
-                          Th Var= $a^2 V[x]+b^2V[y]+2ab Cov[x,y]$=%.02f ;
+                          Th $V(ax+by)=a^2 V (x) +b^2V (y)+2ab Cov(x,y)$=%.02f ;
                           MC Var= %.02f",
                           round(meanD,2),round(input$Da*input$DmeanN1+input$Db*input$DmeanN2,2),
                           round((input$Da^2)*Sigma[1,1]+(input$Db^2)*Sigma[2,2]+
