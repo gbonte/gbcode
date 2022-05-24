@@ -328,7 +328,7 @@ ksvm.pred<- function(X,Y,X.ts,proba=TRUE,class=TRUE,degree=1,...){
   }
 }
 
-lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,return.more=F){
+lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,lambda=1e3,return.more=F){
   n<-NCOL(X)
   N<-NROW(X)
   
@@ -339,7 +339,8 @@ lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,return.more=F){
   mod<-lazy(Y~.,d,control=lazy.control(distance="euclidean",
                                        conIdPar=conPar,
                                        linIdPar=linPar,
-                                       cmbPar=cmbPar))
+                                       cmbPar=cmbPar,
+                                       lambda=lambda))
   if (is.vector(X.ts) & n>1)
     X.ts<-array(X.ts,c(1,n))
   d.ts<-data.frame(X.ts)
@@ -376,7 +377,8 @@ lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,return.more=F){
 #' \item{ \code{prob}:} posteriori probability
 #'}
 lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
-                     conPar=NULL,linPar=NULL,cmbPar=5,scaleX=TRUE){
+                     conPar=NULL,linPar=NULL,cmbPar=5,
+                     lambda=1e3,scaleX=TRUE){
   if (is.vector(X)){
     n<-1
     N<-length(X)
@@ -418,14 +420,16 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
       YY[ind.ll]<-1
       YY[setdiff(1:N,ind.ll)]<-0
       
-      pp<-lazy.pred.bin(X,YY,X.ts,conPar=conPar,linPar=linPar,cmbPar=cmbPar)
+      pp<-lazy.pred.bin(X,YY,X.ts,conPar=conPar,
+                        linPar=linPar,cmbPar=cmbPar,lambda=lambda)
       colnames(pp)<-l.Y
       
       return(list(pred=factor(l.Y[apply(pp,1,which.max)],levels=l.Y), prob=pp))
     } else {
       algo="lazy"
       
-      out.hat<-multiclass(X,Y,X.ts,algo=algo,strategy="oo",conPar=conPar,linPar=linPar,cmbPar=cmbPar)
+      out.hat<-multiclass(X,Y,X.ts,algo=algo,strategy="oo",
+                          conPar=conPar,linPar=linPar,cmbPar=cmbPar)
       return(list(pred=out.hat$class, prob=out.hat$posterior))
       
     }
@@ -439,7 +443,8 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
     mod<-lazy(Y~.,d,control=lazy.control(distance="euclidean",
                                          conIdPar=conPar,
                                          linIdPar=linPar,
-                                         cmbPar=cmbPar))
+                                         cmbPar=cmbPar,
+                                         lambda=lambda))
     
     d.ts<-data.frame(X.ts)
     
