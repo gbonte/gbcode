@@ -1609,7 +1609,8 @@ gbm.pred<-function(X,Y,X.ts,classi,ntrees=1000,...){
     d<-data.frame(Y,X)
     names(d)[1]<-"Y"
     
-    gbmodel<-gbm(Y~.,data=d,n.trees=ntrees,verbose=FALSE,...)
+    gbmodel<-gbm(Y~.,data=d,distribution="gaussian",
+                 n.trees=ntrees,verbose=FALSE,...)
     
     d.ts<-data.frame(X.ts)
     
@@ -1689,7 +1690,7 @@ xgboost.pred<-function(X,Y,X.ts,classi,...){
     X<-data.matrix(X)
     X.ts<-data.matrix(X.ts)
   
-    bst <- xgboost(data =X, label = Y,verbose=0,...)
+    bst <- xgboost(data =X, nrounds=10, label = Y,verbose=0,...)
     Yhat<-predict(bst,X.ts)
     
    return(Yhat)
