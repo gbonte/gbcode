@@ -1,8 +1,8 @@
 
 #### rls ####
 #' Recursive least-squares step
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#'  @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @title Recursive least-squares step with forgetting factor
 #'@name rls
 #'@param x: new input

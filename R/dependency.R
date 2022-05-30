@@ -58,7 +58,7 @@ nonlinfct<-function(X,f=1){
 #' Generator of nonlinear regression dataset
 #'
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references \url{mlg.ulb.ac.be}
+#' @references \url{https://tinyurl.com/sfmlh}
 #' @title Generator of nonlinear regression dataset
 #'@export
 #'

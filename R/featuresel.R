@@ -1,6 +1,6 @@
 #' ranking
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlhf}
 #' @description Ranking filter based on mutual information
 #' @details Ranking filter based on mutaul information
 #' @title rankrho
@@ -43,8 +43,8 @@ rankrho<-function(X,Y,nmax=5,regr=FALSE){
 
 
 #' rfrank
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @description rfrank filter based on importance of Random Forest
 #' @details rfrank based on importance of Random Forest
 #' @title rfrank
@@ -80,8 +80,8 @@ rfrank<-function(X,Y,nmax=5,type=1){
 }
 
 #' mrmr
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @description mRMR filter based on mutual information
 #' @details mRMR (minimum redundancy maximum relevance) filter based on mutual information
 #' @title mrmr
@@ -160,8 +160,8 @@ mrmr<-function(X,Y,nmax=5,back=FALSE){
 
 
 #' cmim
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @description cmim filter based on mutual information
 #' @details cmim (Fleuret) filter based on mutual information
 #' @title cmim
@@ -243,8 +243,8 @@ cmim<-function(X,Y,nmax=5,back=TRUE){
 
 
 #' rankregr
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @description Feature ranking based on linear least squares regression coefficients
 #' @details Feature ranking based on linear least squares regression coefficients
 #' @title rankregr
@@ -275,8 +275,8 @@ rankregr<-function(X,Y,lambda=0.01,nmax=5){
 
 
 #' linearFsel
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @description Wrapper feature selection based on forward selection and linear regression
 #' @details Wrapper feature selection based on forward selection and linear regression
 #' @title linearFsel
@@ -418,8 +418,8 @@ eval.acc<-function(X,Y,algo=c("svm.lin"),cv=1,classi=TRUE,...){
 }
 
 #' forwardSel
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}. For
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}. For
 #' blocking see \emph{Bontempi G. A blocking strategy to improve gene selection for classification of gene expression data. IEEE/ACM Trans Comput Biol Bioinform. 2007 Apr-Jun;4(2):293-300.}
 #' @description Wrapper feature selection based on forward selection and a generic predictor
 #' @details Wrapper feature selection based on forward selection and a generic predictor
@@ -500,8 +500,8 @@ forwardSel<-function(X,Y,algo="rf",nmax=5,nmax2=nmax,cv=1,classi=FALSE,verbose=F
 
 
 #' ranking by GS orthogonalization
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @description Ranking filter based on Gram Schmidt orthogonalization
 #' @details Ranking filter based on Gram Schmidt orthogonalization
 #' @title gsloo
@@ -713,8 +713,8 @@ strimmer.rank<-function(X,Y,nmax){
 
 
 #' mimr
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @description mimr filter based on mutual information
 #' @details mimr (minimum interaction maximum relevance) filter based on mutual information
 #' @title mimr

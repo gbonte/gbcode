@@ -2,7 +2,7 @@
 #### pred ####
 #' Wrapper on learning algoritmhs
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references \url{mlg.ulb.ac.be}
+#' @references \url{https://tinyurl.com/sfmlh}
 #' @title Wrapper on learning algoritmhs for regression and classification
 #' @name pred
 #' @export

@@ -90,7 +90,7 @@ which.min.mat<-function(W,diag=TRUE){
 
 #' imputeDataset
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 #' @description Impute data set by removing constant columns and replacing NA samples with the mean
 #' @details Impute data set by removing constant columns and replacing NA samples with the mean
 #' @title impute
