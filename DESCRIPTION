@@ -4,9 +4,9 @@ Title: Code from the handbook "Statistical foundations of machine learning"
 Version: 2.0
 Date: 2016-02-19
 Author: Gianluca Bontempi
-Maintainer: Gianluca Bontempi <gbonte@ulb.ac.be>
+Maintainer: Gianluca Bontempi <Gianluca.Bontempi@ulb.be>
 Description: Code from the handbook "Statistical foundations of machine
-    learning"
+    learning" https://tinyurl.com/sfmlh
 License: Common Sense
 LazyData: TRUE
 RoxygenNote: 7.1.1
