@@ -260,11 +260,15 @@ star<-function(Y,number=1,loc=4,linear=TRUE,mix=NULL){
 #'
 #'
 genar<-function(N,s=0.1,number=1){
-  Y<-rnorm(10)
-  for (i in length(Y):(2*N)){
-    NAR<-nar(Y,number)
-    nY<-NAR$y
-    Y<-c(Y,nY+s*rnorm(1))
+  Y=Inf
+  while(max(abs(Y))>10){
+    Y<-rnorm(10,sd=s)
+    for (i in length(Y):(2*N)){
+      NAR<-nar(Y,number)
+      nY<-NAR$y
+      Y<-c(Y,nY+s*rnorm(1))
+    }
+    s=s/10
   }
   return(Y[(length(Y)-N+1):length(Y)])
 }
