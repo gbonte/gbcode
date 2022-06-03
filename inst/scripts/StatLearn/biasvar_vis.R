@@ -21,7 +21,7 @@ PRESS <- function(linear.model) {
 set.seed(1)
 
 n<-1
-N<-25
+N<-20
 
 x<-seq(-2,2,length.out=N)
 N<-length(x)
@@ -77,9 +77,10 @@ for (r in 1:R){
   }
   lines(x.ts,Y.ts,type="l",ylim=c(min(Y),max(Y)),lwd=5)
   lines(x.ts,apply(Pr,1,mean),type="l",ylim=c(min(Y),max(Y)),lwd=5,col="green")
-  title(paste("N=", N, "; degree=",r, "\n Bias=",round(mean(abs(Y.ts-apply(Pr,1,mean))),2),
+  title(paste("N=", N, "; degree=",r, 
+              "\n Bias=",round(mean(abs(Y.ts-apply(Pr,1,mean))),2),
               "; Var=",round(mean(apply(Pr,1,var)),2), 
-              "; Emp risk=",round(Remp[r],2)))
+              "; Emp risk=",round(Remp[r],3)))
   B2[r]=mean((Y.ts-apply(Pr,1,mean))^2)
   V[r]=mean(apply(Pr,1,var))
   par(ask=TRUE)

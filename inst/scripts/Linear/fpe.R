@@ -9,13 +9,18 @@ set.seed(0)
 
 n<-3 # number input variables
 p<-n+1
-p.max<-8
-N<-100 # number training data
+p.max<-15
+N<-30 # number training data
 x<-sort(runif(N,min=-1,max=1))
 
 X<-array(1,c(N,1))
 for (j in 1:p.max)
   X<-cbind(X,x^j)
+
+xts=seq(-1,1,by=0.01)
+Xts<-array(1,c(length(xts),1))
+for (j in 1:p.max)
+  Xts<-cbind(Xts,xts^j)
 
 beta<-c(1,array(seq(1,n),c(n,1)))
 
@@ -37,6 +42,8 @@ for (i in 2:p.max){
   beta.hat<-invX%*%t(XX)%*%Y
   Y.hat<-XX%*%beta.hat
   
+  XXts<-Xts[,1:i]
+  Y.hats<-XXts%*%beta.hat
   no.par<-c(no.par,i)
   
   e<-Y-Y.hat
@@ -44,14 +51,14 @@ for (i in 2:p.max){
   
   plot(x,f,type="l",ylim=c(min(Y),max(Y)))
   points(x,Y)
-  lines(x,Y.hat,col="red")
+  lines(xts,Y.hats,col="red")
    
   
   e.ts<-Yts-Y.hat
   MISE<-c(MISE,(t(e.ts)%*%e.ts)/N)
   FPE<-c(FPE,(1+i/N)/(1-i/N)* (t(e)%*%e)/N)
   title(paste("degree=", i-1, "; 
-              MISE_emp=",round(Remp[i-1],2), "; FPE=",round(FPE[i-1],2)))
+              MISE_emp=",round(R.emp[i-1],2), "; FPE=",round(FPE[i-1],2)))
   
 }
 
@@ -66,5 +73,5 @@ plot(no.par-1,FPE,type="l",
 
 cat("which.min(R.emp)=",which.min(R.emp),"\n")
 cat("which.min(MISE)=",which.min(MISE),"\n")
-cat("which.min(FPE)=",which.min(FPE),"\n")
+cat("which.min(FPE)=",which.min(FPE),"\n") 
 

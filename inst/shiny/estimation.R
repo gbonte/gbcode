@@ -299,7 +299,7 @@ server<-function(input, output,session) {
     plot( p2, col=rgb(1,0,0,1/4), xlim=c(input$meanI-0.5*input$sdevI,input$meanI+0.5*input$sdevI), add=T)
     
     plot(seq(loI[1],upI[1],by=0.01),0*seq(loI[1],upI[1],by=0.01),
-         main=paste("# interv. not containing (red)=",input$R-inperc),
+         main=paste("% interv. not containing (red)=",round((input$R-inperc)/input$R,2)),
          xlim=c(input$meanI-input$sdevI,input$meanI+input$sdevI),
          ylim=c(-0.1,1),type="l",
          xlab="conf intervals",ylab="", yaxt='n')

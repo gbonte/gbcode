@@ -21,7 +21,7 @@ $f(x)=x^f$; for $f<0$,  $f(x)$ is a sinusoidal function with different frequenci
 
 Top slider:
 
-* Order polynomial model: degree $p$ in $h(x)=\hat{\beta}_0 +\sum_{i=1}^pm \hat{\beta_i}_i x^i$
+* Order polynomial model: degree $p$ in $h(x)=\hat{\beta}_0 +\sum_{i=1}^p \hat{\beta}_i x^i$
 
 
 Center left: regression function (in green), sampling distribution of polynomial prediction and  value $x$. Title reports 

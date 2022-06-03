@@ -3,6 +3,7 @@ library(mvtnorm)
 library(scatterplot3d)
 library(ellipse)
 library(plot3D)
+#devtools::install_github("https://github.com/gbonte/gbcode")
 library(gbcode)
 
 options(warn=-1)
@@ -19,7 +20,7 @@ ui <- dashboardPage(
                   value = 100,step=2),
       sliderInput("ord","Target Function:", min = -4,max = 4, 
                   value = 3,step=1),
-      sliderInput("nvdw","Cond var:", min = 0.1,max = 1, 
+      sliderInput("nvdw","Cond var:", min = 0.1,max = 2, 
                   value = 0.25,step=0.01),
       sliderInput("nrx","x:", min = -BOUND2, max = BOUND2, value = 0.15,step=0.05),
       sliderInput("R",

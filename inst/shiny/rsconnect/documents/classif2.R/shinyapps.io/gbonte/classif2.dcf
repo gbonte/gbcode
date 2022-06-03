@@ -5,9 +5,9 @@ account: gbonte
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3971300
-bundleId: 4494577
+bundleId: 5813330
 url: https://gbonte.shinyapps.io/classif2/
-when: 1618908875.29158
+when: 1650367844.51194
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: bimodal.R|bootstrap.R|cart.R|classif.R|condind.R|condpro.R|estimation.R|gaussian.R|lawlarge.R|leastsquares.R|mcarlo.R|regression.R|server.R|ui.R|unimodal.R

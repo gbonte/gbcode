@@ -22,9 +22,10 @@ Top sliders:
 
 * $\beta_0$: intercept parameter
 * $\beta_1$: slope parameter
-* $\hat{beta}_0$: estimation intercept parameter 
+* $\hat{\beta}_0$: estimation intercept parameter 
 * $\hat{\beta}_1$: estimation slope parameter
 * $\eta$: gradient learning rate
+
 
 
 
