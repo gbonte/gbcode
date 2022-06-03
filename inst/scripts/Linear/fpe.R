@@ -51,7 +51,7 @@ for (i in 2:p.max){
   MISE<-c(MISE,(t(e.ts)%*%e.ts)/N)
   FPE<-c(FPE,(1+i/N)/(1-i/N)* (t(e)%*%e)/N)
   title(paste("degree=", i-1, "; 
-              MISE_emp=",round(Remp[i-1],2), "; FPE=",round(FPE[i-1],2)))
+              MISE_emp=",round(R.emp[i-1],2), "; FPE=",round(FPE[i-1],2)))
   
 }
 
