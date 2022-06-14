@@ -222,7 +222,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
     for (kk in k:(min(NROW(X),C*k))){
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
       ## tricube kernel
-      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1),numeric(Reg)+1)
+      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1))##,numeric(Reg)+1)
       wd<-wd/sum(wd)
       if (any(is.na(wd)))
         wd<-numeric(length(wd))+1/length(wd)
@@ -726,7 +726,8 @@ lin.pls<- function(X,Y,X.ts){
 #' \item{stat_comb}: prediction based on the M4 competition code
 #' \item{direct}: direct prediction based on \link{KNN.multioutput} function
 #' \item{iter}: recursive prediction based on \link{KNN.multioutput} function
-#' \item{lazydirect}: direct prediction based on \link{lazy.pred} function
+#' \item{lazydirect}: locally linear  direct prediction based on \link{lazy.pred} function
+#' \item{clazydirect}: locally constant direct prediction based on \link{lazy.pred} function
 #' \item{lazyiter}: recursive prediction based on \link{lazy.pred} function
 #' \item{rfdirect}: direct prediction based on \link{rf.pred} function
 #' \item{rfiter}: recursive prediction based on \link{rf.pred} function
@@ -860,8 +861,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   
   X<-M$inp
   Y<-M$out
+  if (n==1)
+    X<-array(X,c(length(X),1))
   
   NX=NROW(X)
+  
   select.var=1:NCOL(X)
   if (length(select.var)>maxfs ) {
     if (engin){
@@ -893,10 +897,10 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
       return(numeric(H)+mean(Y))
   
   
-    q<-TS[seq(N-D,N-n+1-D,by=-1),1]
-    if (engin)
-      q=c(q,quantile(q,qu))
- 
+  q<-TS[seq(N-D,N-n+1-D,by=-1),1]
+  if (engin)
+    q=c(q,quantile(q,qu))
+  
   
   ## TS=[TS(1), TS(2),....., TS(N)]
   ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
@@ -911,6 +915,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            
          },
          direct={
+           
            p<-numeric(H)
            for (h  in 1:H){
              I<-1:(NROW(X))
@@ -918,11 +923,13 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              if (length(which(!is.na(Yh)))<1)
                p[h]=0
              else {
-               if (length(which(!is.na(Yh)))<NROW(X) )
+               if (length(which(!is.na(Yh)))<NROW(X) ){
                  p[h]<-mean(Yh,na.rm=TRUE)
-               else
+               }else{
+                 
                  p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),
                                        q[select.var],k=Kmin,C=C,F=FF,Reg=2)
+               }
              }
            }   
          },
@@ -934,8 +941,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                p[h]=0
                
              }else{
+               
                if (length(wna)>9){
-                 Xw=X[wna,select.var]
+                 Xw=array(X[wna,select.var],c(length(wna),length(select.var)))
                  Yw=array(Y[wna,h],c(length(wna),1))
                  LPar=c(Kmin,(C+1)*Kmin)*length(select.var)
                  LPar[1]=min(LPar[1],NROW(Xw)-2)
@@ -1130,7 +1138,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            for (h  in round(H/2):(H)){
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
-            
+             
              KK<-KNN.acf.lin(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
                              Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
                              Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D,Reg=5)
@@ -1194,7 +1202,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              piter[h]<-KNN.multioutput(X[,select.var],array(Y[,1],c(NROW(X),1)),
                                        q[select.var],k=Kmin,C=C,F=FF)
              q<-c(piter[h],q[1:(length(q)-1)])
-            
+             
            }
            p<-piter
          },
@@ -1227,7 +1235,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
                                  conPar=CPar,linPar=LPar,cmbPar=10)
              q<-c(piter[h],q[1:(length(q)-1)])
-            
+             
            }
            p<-piter
          },
