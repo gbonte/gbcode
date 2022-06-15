@@ -40,6 +40,7 @@ export(timefit)
 export(MASE)
 export(SMAPE)
 export(multiplestepAhead)
+export(MmultiplestepAhead)
 export(genar)
 
 import(forecast) #Requires v8.2
