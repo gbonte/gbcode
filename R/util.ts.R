@@ -280,7 +280,7 @@ dfmldesign<-function(TS,m0,H,p0=2,CC=1,lambda=0,Lcv=10,Kmin=3,
   C=cov(Xtr) 
   V=t(eigen(C,TRUE)$vectors[,1:maxp])
   Z=(TS%*%t(V))
-  
+  eps=1e-3
   
   Ehat<-array(0,c(CC,maxm,maxp,nm))
   for (mm in 1:nm){
@@ -290,16 +290,21 @@ dfmldesign<-function(TS,m0,H,p0=2,CC=1,lambda=0,Lcv=10,Kmin=3,
         ZZ<-NULL
         for (s in seq(1,Nts-H-1,length.out=Lcv)){
           Zhat<-array(NA,c(H,maxp))
-          
-          Zhat[,1]=multiplestepAhead(Z[1:(Ntr+s),1],n=m, H=H,method=mod,Kmin=Kmin,C=cc)
+          muZ=mean(Z[1:(Ntr+s),1])
+          stdZ=sd(Z[1:(Ntr+s),1])+eps
+          sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
+          Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod,Kmin=Kmin,C=cc)
           Xts=X[(Ntr+s+1):(Ntr+s+H),]
-          Xhat=Zhat[,1]%*%array(V[1,],c(1,n))
+          Xhat=(Zhat[,1]*stdZ+muZ)%*%array(V[1,],c(1,n))
           
           Ehat[cc,m,1,mm]<-Ehat[cc,m,1,mm]+mean(apply((Xts-Xhat)^2,2,mean))
           
           for (p in 2:maxp){
-            Zhat[,p]=multiplestepAhead(Z[1:(Ntr+s),p],n=m, H=H,method=mod,Kmin=Kmin,C=cc)
-            Xhat=Zhat[,1:p]%*%V[1:p,]
+            muZ=mean(Z[1:(Ntr+s),p])
+            stdZ=sd(Z[1:(Ntr+s),p])+eps
+            sZ=(Z[1:(Ntr+s),p]-muZ)/stdZ
+            Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod,Kmin=Kmin,C=cc)
+            Xhat=(Zhat[,1:p]*stdZ+muZ)%*%V[1:p,]
             Ehat[cc,m,p,mm]<-Ehat[cc,m,p,mm]+mean(apply((Xts-Xhat)^2,2,mean))
           } ## for p
           ZZ<-rbind(ZZ,Zhat)

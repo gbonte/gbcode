@@ -512,7 +512,10 @@ unscalin<- function(scale.data,mean.data,std.data){
 }
 
 
-
+unscale<-function(sX){
+  return(t(apply(sX, 1, function(r)r*attr(sX,'scaled:scale') + attr(sX, 'scaled:center'))))
+  
+}
 
 
 normv<-function(x,p=2){

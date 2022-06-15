@@ -2,7 +2,7 @@
 
 Code from the handbook and book
 "Statistical foundations of machine learning"
-
+https://leanpub.com/statisticalfoundationsofmachinelearning
 
 
 
