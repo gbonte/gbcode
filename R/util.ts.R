@@ -404,7 +404,56 @@ rnnpred<-function(TS,m,H){
   
 }
 
- 
+
+lstmpred<-function(TS,m,H){
+  require(keras)
+  n=NCOL(TS)
+  
+  M=MakeEmbeddedrev(TS,numeric(n)+m,numeric(n),numeric(n)+H,1:n)
+  
+  I=which(!is.na(apply(M$out,1,sum)))
+  M$inp=M$inp[I,]
+  M$out=M$out[I,]
+  N=NROW(M$inp)
+  n1=NCOL(M$inp)
+  p<-NCOL(M$out)
+  
+  trainX=array(M$inp,c(NROW(M$inp),m,n))
+  trainY=M$out
+  
+  model <- keras_model_sequential() %>%
+    layer_lstm(units = 6,input_shape=c(m,n))%>%
+    layer_dropout(0.2) %>%
+    layer_dense(ncol(trainY))
+  
+  model %>% compile(loss = 'mse',
+                    optimizer = 'RMSprop',
+                    metrics = c('accuracy'))
+  
+  
+  model %>% fit(
+    x = trainX, # sequence we're using for prediction                                                          
+    y = trainY, # sequence we're predicting                                                                    
+    epochs = 100, # how many times we'll look @ the whole dataset                                           
+    validation_split = 0.1,verbose=0)
+  
+  lmodel=model
+  q<-NULL
+  D=0
+  for (j in 1:n)
+    q<-c(q,rev(TS[seq(N-D,N-m+1-D,by=-1),j]))
+  
+  Xts=array(q,c(1,1,length(q)))
+  trainXts=array(Xts,c(1,m,n))
+  Yhat<-array(NA,c(H,n))
+  
+  Yhat  <- lmodel%>% predict(trainXts,verbose=0)
+  return(array(Yhat,c(H,n)))
+  
+  
+}
+
+
 multifs<-function(TS,n,H,mod="rf"){
   
   m=NCOL(TS)

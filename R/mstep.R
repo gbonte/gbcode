@@ -1328,6 +1328,8 @@ MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
       Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod)
   if (multi=="rnn")
     Yhat=rnnpred(TS,n,H)
+  if (multi=="lstm")
+    Yhat=lstmpred(TS,n,H)
   if (multi=="dfm")
     Yhat=dfml(TS,n,H,p0=3,mod="lindirect")
   if (multi=="dfml"){
