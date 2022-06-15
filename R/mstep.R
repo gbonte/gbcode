@@ -715,6 +715,7 @@ lin.pls<- function(X,Y,X.ts){
 #' @param  C: integer parameter which sets the maximum number of neighbours (C*k) for lazy methods
 #' @param  detrend: real parameter (in [0,1]) which fixes the size of window used for linear detrending the series (0 corresponds to all series and 1 to ten latest terms). If detrend<0  no detrending is carried out
 #' @param  smooth: if TRUE, the prediction is obtained by averaging multiple windows with different starting points
+#' @param  engin: if TRUE, a number of additional features (related to the quantiles) are engineered and added
 #' @param  method:
 #' \itemize{
 #' \item{arima}: prediction based on the \pkg{forecast} package
@@ -781,11 +782,12 @@ lin.pls<- function(X,Y,X.ts){
 #'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             Kmin=5,C=3,FF=0,smooth=FALSE,maxfs=6,
-                            XC=NULL,detrend=-1, forget=-1, engin=TRUE){
+                            XC=NULL,detrend=-1, forget=-1, engin=FALSE){
   if (NCOL(TS)>1)
     stop("Only for univariate time series")
   
   N<-length(TS)
+  
   qu=seq(0.1,1,by=0.1)
   
   if ((N-n-H)<10)
@@ -819,56 +821,56 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   
   if (method=="stat_naive"){
     p=StatPredictors1(TS, H , index=1,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   if (method=="stat_ses_naive"){
     p=StatPredictors1(TS, H , index=2,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   if (method=="stat_naive2"){
     p=StatPredictors1(TS, H , index=3,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   
   if (method=="stat_ses"){
     p=StatPredictors1(TS, H , index=4,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   
   if (method=="stat_holt"){
     p=StatPredictors1(c(TS), H , index=5,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   
   if (method=="stat_damped"){
     p=StatPredictors1(c(TS), H , index=6,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   
   if (method=="stat_theta"){
     p=StatPredictors1(c(TS), H , index=7,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   
   if (method=="stat_avg"){
     p=numeric(H)+mean(c(TS))
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   
   if (method=="stat_comb"){
     p=StatPredictors1(c(TS), H , index=8,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   if (method=="stat_4theta"){
     p=StatPredictors1(c(TS), H , index=9,verbose=F)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   
   
   ### keras based RNN: it requires keras
   if (method=="rnn"){
     p=rnnpred(array(TS,c(length(TS),1)), n, H)
-    return(array(p+trnd.ts,c(1,length(p))))
+    return(c(p+trnd.ts))
   }
   
   if (sd_trim(TS)<0.001 && method !="timefit" )
@@ -896,7 +898,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
       rfs[fs]=rfs[fs]+1
     }
     
-    select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:min(maxfs,NCOL(X))]
+    select.var=sort(rfs,decr=TRUE,index=TRUE)$ix[1:min(maxfs,NCOL(X)-1)]
     
   }
   
@@ -944,7 +946,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                if (length(which(!is.na(Yh)))<NROW(X) ){
                  p[h]<-mean(Yh,na.rm=TRUE)
                }else{
-                 
+                
                  p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),
                                        q[select.var],k=Kmin,C=C,F=FF,Reg=2)
                }
@@ -1084,10 +1086,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              for (h  in round(H/2):(H)){ 
                p2<-numeric(H)+NA
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
-               
+               if (engin)
+                 q2=c(q2,quantile(q2,qu))
                ## TS=[TS(1), TS(2),....., TS(N)]
                ##  D=0:  q2=[TS(N-H+h), TS(N-1-H+h),...,TS(N-n+1-H+h)]
                ##        pred=  [TS(N-H+h+1),...TS(N+h+1)]
+              
                KK<-KNN.multioutput(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF)
                p2[1:h]<-KK[(H-h+1):H]
                pdirect2<-rbind(pdirect2,p2)
@@ -1096,7 +1100,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            for (h  in round(H/2):(H)){ ## start at the end of the series with different horizons h=[H/2,...H]
              p2<-numeric(H)+NA
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
-             
+             if (engin)
+               q2=c(q2,quantile(q2,qu))
              KK<-KNN.multioutput(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF)
              p2[1:h]<-KK
              pdirect2<-rbind(pdirect2,p2)
