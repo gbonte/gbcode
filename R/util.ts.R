@@ -204,6 +204,42 @@ MakeEmbedded<-function(ts, n, delay,hor=1,w=1){
 }
 
 
+MakeEmbeddedrev<-function(ts, n, delay, hor = 1, w = 1) 
+{
+  no.data <- NROW(ts)
+  no.var <- NCOL(ts)
+  a <- NROW(n)
+  b <- NCOL(n)
+  if (a != no.var) 
+    stop("Error in the size of embedding n")
+  if (length(delay) != no.var) 
+    stop("Error in the size of delay")
+  if (length(hor) != length(w)) 
+    stop("Error in the size of horizon hor")
+  N <- no.data - max(n) - max(delay)
+  Input <- array(0, c(N, sum(n)))
+  Output <- array(0, c(N, sum(hor)))
+  for (i in 1:N) {
+    for (j in 1:no.var) {
+      k <- 1:n[j]
+      Input[i, sum(n[1:j - 1]) + k] <- rev(ts[i + n[j] - k + 
+                                                max(n) - n[j] + max(delay) - delay[j], j])
+      for (ww in 1:length(w)) {
+        if (ww == 1) 
+          iw <- 0
+        else iw <- sum(hor[1:(ww - 1)])
+        Output[i, (iw + 1):(sum(hor[1:ww]))] <- numeric(hor[ww]) + 
+          NA
+        M <- min(no.data, (i + max(n) + max(delay) + 
+                             hor[ww] - 1))
+        Output[i, (iw + 1):(iw + M - (i + max(n) + max(delay)) + 
+                              1)] <- ts[(i + max(n) + max(delay)):M, w[ww]]
+      }
+    }
+  }
+  list(inp = Input, out = Output)
+}
+
 
 #### constloo ####
 #' Leave-one-out Mean Squared Error of a weighted mean estimator
@@ -224,4 +260,165 @@ constloo<-function(x,w=rep(1,length(x))){
   n<-length(x)
   eloo<-n*(x-m)/(n-1)
   max(1e-4,mean(eloo^2))
+}
+
+
+dfmldesign<-function(TS,m0,H,p0=2,CC=1,lambda=0,Lcv=10,
+                     models=c("stat_naive","lindirect")){
+  
+  n<-NCOL(TS)
+  maxp=min(n,p0)
+  maxm=m0
+  nm=length(models)
+  
+  N<-NROW(TS)
+  Xtr<-TS[1:min(N-H-1,floor(8*N/10)),]
+  Ntr<-NROW(Xtr)
+  Xts<-TS[(Ntr+1):N,]
+  Nts<-NROW(Xts)
+  
+  C=cov(Xtr) 
+  V=t(eigen(C,TRUE)$vectors[,1:maxp])
+  Z=(TS%*%t(V))
+  
+  
+  Ehat<-array(0,c(CC,maxm,maxp,nm))
+  for (mm in 1:nm){
+    mod=models[mm]
+    for (cc in 1:CC){
+      for (m in 1:maxm){
+        ZZ<-NULL
+        for (s in seq(1,Nts-H-1,length.out=Lcv)){
+          Zhat<-array(NA,c(H,maxp))
+          
+          Zhat[,1]=multiplestepAhead(Z[1:(Ntr+s),1],n=m, H=H,method=mod,Kmin=Kmin,C=cc)
+          Xts=X[(Ntr+s+1):(Ntr+s+H),]
+          Xhat=Zhat[,1]%*%array(V[1,],c(1,n))
+          
+          Ehat[cc,m,1,mm]<-Ehat[cc,m,1,mm]+mean(apply((Xts-Xhat)^2,2,mean))
+          
+          for (p in 2:maxp){
+            Zhat[,p]=multiplestepAhead(Z[1:(Ntr+s),p],n=m, H=H,method=mod,Kmin=Kmin,C=cc)
+            Xhat=Zhat[,1:p]%*%V[1:p,]
+            Ehat[cc,m,p,mm]<-Ehat[cc,m,p,mm]+mean(apply((Xts-Xhat)^2,2,mean))
+          } ## for p
+          ZZ<-rbind(ZZ,Zhat)
+        } ## for s
+        if (lambda>0)
+          for (p in 2:maxp){
+            cZ=1-cor.prob(ZZ[,1:p])
+            cZ= mean(c(cZ[upper.tri(cZ)]))
+            Ehat[cc,m,p,mm]<-Ehat[cc,m,p,mm]/Lcv+lambda*cZ ## criterion for decorrelation of factor predictions 
+          }
+      } ## for m
+    }
+    cat(".")
+  }
+  
+  Emin=min(Ehat)
+  p0<-which.min(apply(Ehat,3,min))
+  m<-which.min(apply(Ehat,2,min))
+  cc<-which.min(apply(Ehat,1,min))
+  mod=models[which.min(apply(Ehat,4,min))]
+  C=cov(TS)
+  V=t(eigen(C,TRUE)$vectors[,1:p0])
+  
+  return (list(p=p0,m=m,cc=cc,mod=mod,V=V[1:p0,]))
+}
+
+
+dfml<-function(TS,m,H,p0=3,cc=2,mod="stat_comb",V=NULL,orth=FALSE){
+  
+  n<-NCOL(TS)
+  p0=min(p0,n)
+  N=NROW(TS)
+  Zhat<-array(NA,c(H,p0))
+  if (is.null(V)){
+    C=cov(TS)
+    V=t(eigen(C,TRUE)$vectors[,1:p0])
+  }
+  Ztr=TS%*%t(V)
+  Zhat[,1]=multiplestepAhead(Ztr[,1],n=m, H=H,method=mod,Kmin=Kmin,C=cc)
+  if (p0>1)
+    for (p in 2:p0)
+      Zhat[,p]=multiplestepAhead(Ztr[,p],n=m, H=H,method=mod,Kmin=Kmin,C=cc)
+  if (p0>1)
+    return(Zhat[,1:p0]%*%V[1:p0,])
+  Xhat=Zhat[,1]%*%array(V[1:p0,],c(1,n))
+  return(Xhat)
+  
+}
+
+
+rnnpred<-function(TS,m,H){
+  require(keras)
+  n=NCOL(TS)
+  
+  M=MakeEmbeddedrev(TS,numeric(n)+m,numeric(n),numeric(n)+H,1:n)
+  
+  I=which(!is.na(apply(M$out,1,sum)))
+  M$inp=M$inp[I,]
+  M$out=M$out[I,]
+  N=NROW(M$inp)
+  n1=NCOL(M$inp)
+  p<-NCOL(M$out)
+  
+  trainX=array(M$inp,c(NROW(M$inp),m,n))
+  trainY=M$out
+  
+  model <- keras_model_sequential() %>%
+    layer_simple_rnn(units = 6,input_shape=c(m,n))%>%
+    layer_dropout(0.2) %>%
+    layer_dense(ncol(trainY))
+  
+  model %>% compile(loss = 'mse',
+                    optimizer = 'RMSprop',
+                    metrics = c('accuracy'))
+  
+  
+  model %>% fit(
+    x = trainX, # sequence we're using for prediction                                                          
+    y = trainY, # sequence we're predicting                                                                    
+    epochs = 100, # how many times we'll look @ the whole dataset                                           
+    validation_split = 0.1,verbose=0)
+  
+  lmodel=model
+  q<-NULL
+  D=0
+  for (j in 1:n)
+    q<-c(q,rev(TS[seq(N-D,N-m+1-D,by=-1),j]))
+  
+  Xts=array(q,c(1,1,length(q)))
+  trainXts=array(Xts,c(1,m,n))
+  Yhat<-array(NA,c(H,n))
+  
+  Yhat  <- lmodel%>% predict(trainXts,verbose=0)
+  return(array(Yhat,c(H,n)))
+  
+  
+}
+
+ 
+multifs<-function(TS,n,H,mod="rf"){
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  M=MakeEmbedded(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  Yhat<-array(NA,c(H,m))
+  q<-NULL
+  D=0
+  for (j in 1:m)
+    q<-c(q,TS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  for (i in 1:m)
+    for (h in 1:H){
+      Y=YY[,(i-1)*H+h]
+      fs<-mrmr(XX,Y,min(NCOL(XX)-1,5))
+      Yhat[h,i]=pred(mod,XX[,fs],Y,Xts[,fs],class=FALSE)
+      
+    }
+  return(Yhat)
 }

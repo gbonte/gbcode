@@ -222,7 +222,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
     for (kk in k:(min(NROW(X),C*k))){
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
       ## tricube kernel
-      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1))##,numeric(Reg)+1)
+      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1),numeric(Reg)+1)
       wd<-wd/sum(wd)
       if (any(is.na(wd)))
         wd<-numeric(length(wd))+1/length(wd)
@@ -235,7 +235,8 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
         oo<-rbind(oo,apply(wd*YY,2,sum,na.rm=T))
         
       } else {
-        err[kk]<-constloo(Y[index$ix[1:kk],1],wd)
+        ##err[kk]<-constloo(Y[index$ix[1:kk],1],wd)
+        err[kk]<-var(Y[index$ix[1:kk],1])
         oo<-rbind(oo,mean(c(Y[index$ix[1:kk],1],numeric(Reg)),na.rm=T))
       }
       if (is.na(err[kk])){
@@ -261,6 +262,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
   
   out.hat
 }
+
 
 
 #' KNN.acf
@@ -729,6 +731,7 @@ lin.pls<- function(X,Y,X.ts){
 #' \item{lazydirect}: locally linear  direct prediction based on \link{lazy.pred} function
 #' \item{clazydirect}: locally constant direct prediction based on \link{lazy.pred} function
 #' \item{lazyiter}: recursive prediction based on \link{lazy.pred} function
+#' \item{lindirect}: direct prediction based on \link{lin.pred} function
 #' \item{rfdirect}: direct prediction based on \link{rf.pred} function
 #' \item{rfiter}: recursive prediction based on \link{rf.pred} function
 #' \item{mimo}: MIMO prediction based on \link{KNN.multioutput} function
@@ -779,11 +782,15 @@ lin.pls<- function(X,Y,X.ts){
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             Kmin=3,C=2,FF=0,smooth=FALSE,maxfs=10,
                             XC=NULL,detrend=-1, forget=-1, engin=TRUE){
+  if (NCOL(TS)>1)
+    stop("Only for univariate time series")
+  
   N<-length(TS)
   qu=seq(0.1,1,by=0.1)
   
   if ((N-n-H)<10)
     method="stat_naive"
+  
   if (forget>0){
     I=min(N-10,max(1,round(N*forget))):N
     TS=TS[I]
@@ -843,6 +850,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(array(p+trnd.ts,c(1,length(p))))
   }
   
+  if (method=="stat_avg"){
+    p=numeric(H)+mean(c(TS))
+    return(array(p+trnd.ts,c(1,length(p))))
+  }
+  
   if (method=="stat_comb"){
     p=StatPredictors1(c(TS), H , index=8,verbose=F)
     return(array(p+trnd.ts,c(1,length(p))))
@@ -852,6 +864,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(array(p+trnd.ts,c(1,length(p))))
   }
   
+  
+  ### keras based RNN: it requires keras
+  if (method=="rnn"){
+    p=rnnpred(array(TS,c(length(TS),1)), n, H)
+    return(array(p+trnd.ts,c(1,length(p))))
+  }
   
   if (sd_trim(TS)<0.001 && method !="timefit" )
     return (numeric(H)+TS[1]+trnd.ts)
@@ -1265,6 +1283,53 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   )
   if (any(is.na(c(p))))
     stop("error in multipleStepAhead")
-  p+trnd.ts
+  c(p+trnd.ts)   ## trend correction
   
+}
+
+
+
+#' MmultiplestepAhead
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#'
+#' @description MmultiplestepAhead
+#' @details Wrapper over a set of methods for multi variate multiple step ahead time series prediction
+#' @title MmultiplestepAhead
+#' @name MmultiplestepAhead
+#' @param TS: time series
+#' @param n: embedding order
+#' @param H: horizon
+#' @param  multi:
+#' \itemize{
+#' \item{uni}: prediction based on univariate forecasting with unimethod
+#' \item{dfm}: prediction based on DFM
+#' \item{dfml}: prediction based on DFML
+#' \item{rnn}: prediction based on keras rnn
+#' }
+#' @return H step ahead predictions
+#' @export
+#' @examples
+#' ## Multi-variate Multi-step-ahead time series forecasting
+#'
+MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
+                             unimethod="stat_naive"){
+  m<-NCOL(TS)
+  if (m<=1)
+    stop("Only for multivariate series")
+  Yhat=array(NA,c(H,m))
+  if (multi=="uni")
+    for (j in 1:m)
+      Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod)
+  if (multi=="rnn")
+    Yhat=rnnpred(TS,n,H)
+  if (multi=="dfm")
+    Yhat=dfml(TS,n,H,mod="lindirect")
+  if (multi=="dfml"){
+    P=dfmldesign(TS,n,H,p0=6,
+                 models=c("stat_comb","lindirect","stat_naive","lazydirect"))
+    Yhat=dfml(TS,n,H,mod=P$mod,p0=P$p0)
+  }
+  if (multi=="multifs")
+    Yhat=multifs(TS,n,H,mod="rf")
+  return(Yhat)
 }
