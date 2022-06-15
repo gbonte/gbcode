@@ -1,0 +1,37 @@
+
+# Shiny dashboard "Statistical foundations of machine learning"
+
+
+## Conditional probability
+
+
+Left panel: 
+
+* Number of samples
+* 3D theta: angle defining the azimuthal direction in the 3D visualization
+* 3D phi: angle defining the colatitude in the 3D visualization
+
+## Bivariate gaussian distribution
+
+The dashboard illustrates a bivariate gaussian distribution in a 3D diagram.
+The user may change the contour axis size and their angle.
+
+The slider x allows to change the value $x$ in the conditional probability $p({\bf y}=y|x)$.
+The bottom right panel plots both the marginal distribution $p({\bf y}=y)$ (invariant to 
+the value of $x$) and the conditional distribution $p({\bf y}=y|x)$.
+
+## Regression function
+
+The dashboard illustrates a bivariate distribution where ${\bf y}=f(x)+{\bf w}$ where ${\bf w} \sim {\mathcal N} (0,\sigma^2)$.
+
+The function $f$ changes by moving the slider "Functions".
+
+Top right: 3D visualization of the joint density $p({\bf x}=x,{\bf y}=y)$
+Bottom left: 2D visualization of samples and function $f$
+
+Sliders:
+
+* Functions: by changing its value the user may change the function $f$: for  values $p \ge 0$,  
+$f(x)=x^p$; for $p<0$,  $f(x)$ is a sinusoidal function with different frequencies. 
+* Cond sdev: conditional variance $\sigma$ of the noise 
+* x: value used to visualize $p({\bf y}=y|x)$ in the bottom right plot 

@@ -1,0 +1,13 @@
+name: regression
+title: regression
+username:
+account: gbonte
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3552149
+bundleId: 4352414
+url: https://gbonte.shinyapps.io/regression/
+when: 1615893287.61661
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: bimodal.R|bootstrap.R|cart.R|classif.R|condind.R|condpro.R|estimation.R|gaussian.R|lawlarge.R|leastsquares.R|mcarlo.R|server.R|ui.R|unimodal.R

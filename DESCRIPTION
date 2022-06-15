@@ -1,0 +1,35 @@
+Package: gbcode
+Type: Package
+Title: Code from the handbook "Statistical foundations of machine learning"
+Version: 2.0
+Date: 2016-02-19
+Author: Gianluca Bontempi
+Maintainer: Gianluca Bontempi <Gianluca.Bontempi@ulb.be>
+Description: Code from the handbook "Statistical foundations of machine
+    learning" https://tinyurl.com/sfmlh
+License: Common Sense
+LazyData: TRUE
+RoxygenNote: 7.1.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Depends: 
+    mvtnorm,
+    randomForest,
+    pls,
+    lazy,
+    forecast,
+    e1071,
+    lda,
+    MASS,
+    ROCR,
+    lars,
+    gbm,
+    mboost,
+    gam,
+    scatterplot3d,
+    ellipse,
+    xgboost,
+    latex2exp,
+    shinydashboard,
+    R (>= 2.10)

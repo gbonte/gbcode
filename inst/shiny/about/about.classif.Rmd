@@ -1,0 +1,139 @@
+
+# Shiny dashboard "Statistical foundations of machine learning"
+
+
+## Classification and assessment
+
+Common left panel: 
+
+* Number of samples: number of samples of observed dataset
+
+
+## Univariate mixture
+Goal: visualize the relation between posterior probability and class conditional density
+Univariate continuous input ${\bf x}$ and binary class taking two possible values: red and green.
+Both classes have a gaussian inverse conditional distribution $p({\bf x}=x| y)$
+
+$p(x|{\bf y}=\text{red}) \sim {\mathcal N} (\mu_1, \sigma_1^2)$
+
+$p(x|{\bf y}=\text{green}) \sim {\mathcal N} (\mu_2, \sigma_2^2)$
+
+
+Top left sliders: 
+
+* $\mu_1$: mean of red class conditional density
+* $\sigma^2_1$: variance of red class conditional density
+* $\mu_2$: mean of  green conditional density
+* $\sigma^2_2$: variance of green class conditional density
+* $P_1$: prior probability $P({\bf y}=\text{red})$
+
+Top right: visualization of red and green class conditional
+densities together with the posterior probability function 
+$P({\bf y}=\text{red}| x)$.
+
+Suggested manipulation:
+
+* change the class conditional density parameters and see the impact
+on samples and posterior probability
+* change the prior red probability and see the impact
+on samples and posterior probability
+
+## Linear discriminant
+
+Goal: visualize the relation between bivariate class conditional densities and linear discriminant.
+Bivariate continuous input ${\bf x}$ and binary class taking two possible values: red and green.
+Both classes have a bivariate gaussian class conditional density $p({\bf x}=x| y)$
+
+$p(x|{\bf y}=\text{red}) \sim {\mathcal N} ([\mu_{1x},\mu_{1y}]^T, \sigma_1^2 I_2)$
+
+$p(x|{\bf y}=\text{green}) \sim {\mathcal N} ([\mu_{2x},\mu_{2y}]^T, \sigma_2^2 I_2)$
+where $I_2$ is the diagonal [2,2] matrix.
+
+
+Top left sliders: 
+
+* $\mu_{1x}$: abscissa of mean of red class conditional density
+* $\mu_{1y}$: ordinate of mean of red class conditional density
+* $\sigma^2_1$: variance diagonal term of the red class conditional covariance
+* $\mu_{2x}$: abscissa of mean of green class conditional density
+* $\mu_{2y}$: ordinate of mean of green class conditional density
+* $\sigma^2_2$: variance diagonal green of the red class conditional covariance
+* $P_1$: prior probability $P({\bf y}=\text{red})$
+
+Suggested manipulation:
+
+* change the class conditional density parameters and see the impact
+on discriminant position
+* change the priod red probability  and see the impact
+on discriminant position
+
+## Perceptron
+
+Goal: visualize the iteration of the gradient based minimization
+of the hyperplane misclassification
+
+Bivariate continuous input ${\bf x}$ and binary class taking two possible values: red and green.
+Both classes have a bivariate gaussian class conditional density $p({\bf x}=x| y)$
+
+$p(x|{\bf y}=\text{red}) \sim {\mathcal N} ([\mu_{1x},\mu_{1y}]^T, \sigma_1^2 I_2)$
+
+$p(x|{\bf y}=\text{green}) \sim {\mathcal N} ([\mu_{2x},\mu_{2y}]^T, \sigma_2^2 I_2)$
+where $I_2$ is the diagonal [2,2] matrix.
+
+
+Top left sliders: 
+
+* $\mu_{1x}$: abscissa of mean of red class conditional density
+* $\mu_{1y}$: ordinate of mean of red class conditional density
+* $\sigma^2_1$: variance diagonal term of the red class conditional covariance
+* $\mu_{2x}$: abscissa of mean of green class conditional density
+* $\mu_{2y}$: ordinate of mean of green class conditional density
+* $\sigma^2_2$: variance diagonal green of the red class conditional covariance
+* $P_1$: prior probability $P({\bf y}=\text{red})$
+* \# steps: number of gradient iteration steps carried out at each click of "Gradient step Nnet" button 
+* $\eta$: learning rate
+
+Suggested manipulation:
+
+* change the learning rate and see the impact on the evolution of the perceptron hyperplane
+* click on the SVM button and see the corresponding separating hyperplane
+
+
+
+## Assessment
+
+Goal: visualize the relation between ROC curve, PR curve, confusion matrix and 
+classifier threshold.
+Univariate continuous input ${\bf x}$ and binary class taking two possible values: red (-) and green (+).
+Both classes have a gaussian inverse conditional distribution $p({\bf x}=x| y)$
+
+$p(x|{\bf y}=\text{red})= p(x|{\bf y}=\text{(-)}) \sim {\mathcal N} (\mu_{(-)}, \sigma_{(-)}^2)$
+
+$p(x|{\bf y}=\text{green})= p(x|{\bf y}=\text{(+)}) \sim {\mathcal N} (\mu_{(+)}, \sigma_{(+)}^2)$
+
+
+Top left sliders: 
+
+* $\mu_{(-)}$: mean of negative class conditional density
+* $\sigma^2_{(-)}$: variance of negative class conditional density
+* $\mu_{(+)}$: mean of  positive conditional density
+* $\sigma^2_{(+)}$: variance of positive class conditional density
+* $P_{(-)}$: prior probability of negative $P({\bf y}=\text{(-)})$
+* thr: threshold of confusion matrix
+
+
+center left: visualization of threshold and data distribution. The color of the dashed areas identify
+the classes returned by the classifier 
+
+center right: visualization of ROC curve: red dot is the ROC point associated to the threshold. Title contains the TPR, FPR associated to the threshold and the Area under the ROC curve.
+
+bottom left: confusion matrix associated to the threshold together with assessment statistics (TPR, TNT, and so on)
+
+bottom right: visualization of PR curve: red dot is the PR point associated to the threshold
+
+Suggested manipulation:
+
+* change the threshold and see the impact on confusion matrix, assessment statistics, position in the ROC curve, position in the PR curve
+
+* change the class conditional densities parameters (or the prior probability) and see the impact on confusion matrix, assessment statistics, ROC curve and PR curve.
+for instance what if the two class conditional distribution become closer?

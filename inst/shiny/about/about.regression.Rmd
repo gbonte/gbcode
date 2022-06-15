@@ -1,0 +1,103 @@
+
+# Shiny dashboard "Statistical foundations of machine learning"
+
+
+## Regression and model selection
+
+Goal: show the impact of different kinds of hyper-parameters (degree of polynomial model, number of neighbors in locally
+constant and locally linear fitting, number of trees in Random Forest) on the bias, variance and generalization error.
+
+Common left panel: 
+
+* Number of samples: number of samples of observed dataset
+* Target function: by moving the slider the function $f$ changes: for  values $f \ge 0$,  
+$f(x)=x^f$; for $f<0$,  $f(x)$ is a sinusoidal function with different frequencies.
+* Cond var $\sigma^2$: noise variance parameter 
+* x: value used to visualize $E({\bf y}|x)$ 
+* Number of MC trials
+
+
+## Polynomial fitting
+
+Top slider:
+
+* Order polynomial model: degree $p$ in $h(x)=\hat{\beta}_0 +\sum_{i=1}^p \hat{\beta}_i x^i$
+
+
+Center left: regression function (in green), sampling distribution of polynomial prediction and  value $x$. Title reports 
+the average squared bias (B2), variance, MSE, empirical MSE  and FPE criterion
+Center right: sampling distribution of the prediction for the input $x$
+
+Bottom left: Squared bias vs. polynomial degree
+
+Bottom center: Variance vs. polynomial degree
+
+Bottom right: MSE vs. polynomial degree. The title shows the polynomial order $p$ associated to the minimum MSE and the corresponding minimum MSE.
+
+Suggested manipulations:
+
+* by changing the degree $p$ the dashboard stores and visualizes the value of bias and variance vs the hyper-parameter $p$. 
+* check if the best $p$ corresponds to the polynomial order of the regression function $f$.
+* check the impact of noise variance on the variance and bias of the prediction
+* check the impact of nonlinearity of the target function on the variance and bias of the prediction
+* check the impact of the number of samples on the variance and bias of the prediction
+ 
+ 
+## Local constant fitting
+
+Top slider:
+
+* Number neighbors: hyperparameter $p$ of locally constant model
+
+Bottom left: regression function (in green), sampling distribution of polynomial prediction and  value $x$.
+Title reports 
+the average squared bias (B2), variance, MSE, empirical MSE  and FPE criterion.
+
+Bottom center: sampling distribution of the prediction for the input $x$
+
+Suggested manipulations:
+
+* by changing the hyperparameter $p$  analyze the variation of squared bias, variance and MSE. 
+* check the impact of noise variance on the variance and bias of the prediction
+* check the impact of nonlinearity of the target function on the variance and bias of the prediction
+* check the impact of the number of samples on the variance and bias of the prediction
+
+## Local linear fitting
+
+Top slider:
+
+* Number neighbors: hyperparameter $p$ of locally linear model
+
+Bottom left: regression function (in green), sampling distribution of polynomial prediction and  value $x$.
+Title reports 
+the average squared bias (B2), variance, MSE, empirical MSE  and FPE criterion.
+
+Bottom center: sampling distribution of the prediction for the input $x$
+
+Suggested manipulations:
+
+* by changing the hyperparameter $p$  analyze the variation of squared bias, variance and MSE. 
+* check the impact of noise variance on the variance and bias of the prediction
+* check the impact of nonlinearity of the target function on the variance and bias of the prediction
+* check the impact of the number of samples on the variance and bias of the prediction
+ 
+ 
+## Random forest fitting
+
+Top slider:
+
+* Number trees: hyperparameter $p$ of RF.
+
+Bottom left: regression function (in green), sampling distribution of polynomial prediction and  value $x$.
+Title reports 
+the average squared bias (B2), variance, MSE, empirical MSE  and FPE criterion.
+
+Bottom center: sampling distribution of the prediction for the input $x$
+
+Suggested manipulations:
+
+* by changing the hyperparameter $p$  analyze the variation of squared bias, variance and MSE. 
+* check the impact of noise variance on the variance and bias of the prediction
+* check the impact of nonlinearity of the target function on the variance and bias of the prediction
+* check the impact of the number of samples on the variance and bias of the prediction
+ 

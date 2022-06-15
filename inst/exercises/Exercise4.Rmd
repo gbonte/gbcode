@@ -1,0 +1,261 @@
+---
+title: "Exercise 4"
+subtitle: "Strongly and weakly relevant features"
+author: "G. Bontempi"
+#date: "3/4/2021"
+output: pdf_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question
+
+The .Rdata file **\url{https://www.dropbox.com/s/kfevu16cf5mxptc/bonus4.Rdata?dl=0}**
+contains a regression dataset with 
+$N=200$ samples, $n=50$ input features (in the matrix $\tt{X}$) and one target variable (vector $\tt{Y}$).
+
+Knowing that there are 3 strongly relevant variables and 2 weakly relevant variables,
+the student has to define and implement a strategy to find them.
+
+No existing feature selection code has to be used. However, 
+the student may use libraries to implement supervised learning algorithms.
+
+The student code should 
+
+* return the position of the 3 strongly relevant variables and 2 weakly relevant variables,
+* discuss what strategy could have been used if the number
+of strongly and weakly variables was not known in advance.
+
+
+\pagebreak
+
+
+## Data generation
+
+Let us see first how the input-output dataset was generated.
+The knowledge of the stochastic process
+generating the data will allow us to define the correct set of strongly and weakly relevant features.
+
+
+```{r data generation}
+rm(list=ls())
+set.seed(0)
+N<-200
+n<-50
+strong<-c(1,7,n)
+weak<-c(8,9)
+irr<-setdiff(1:n,c(strong,weak))
+ns<-length(strong)
+nw<-length(weak)
+
+Xw<-array(rnorm(N*nw),c(N,nw))
+
+X=array(rnorm(N*n),c(N,n))
+
+
+X[,strong[1]]=apply(abs(Xw),1,sum)+rnorm(N,sd=0.1)
+X[,strong[2]]=apply(abs(Xw),1,prod)+rnorm(N,sd=0.1)
+X[,strong[3]]=log(apply(abs(Xw),1,prod))+rnorm(N,sd=0.1)
+
+X[,weak]=Xw
+
+X=scale(X)
+Y=apply(abs(X[,strong]),1,sum)+rnorm(N,sd=0.1)
+save(file="bonus4.Rdata",list=c("X","Y"))
+```
+
+The relationship between ${\mathbf X}=\{{\mathbf x_1},{\mathbf x_2},\dots,{\mathbf x_{50}}\}$
+and ${\mathbf y}$ is given by
+
+\begin{equation}
+\label{eq:model}
+{\mathbf y}=|x_1+x_7+x_{50}|+{\mathbf w}
+\end{equation}
+
+
+where  ${\mathbf x_1}=| x_8+x_9|+{\mathbf w_1}$, 
+${\mathbf x_7}=| x_8 x_9|+{\mathbf w_7}$, 
+${\mathbf x_{50}}=\log | x_8 x_9| +{\mathbf w_{50}}$
+and ${\mathbf w},{\mathbf w_1},{\mathbf w_7},{\mathbf w_{50}}$, are all Normal with zero mean and standard deviation $0.1$.
+
+## Definition of strongly and weakly relevant features
+
+In the course a strongly relevant feature is defined as a feature ${\mathbf x}_j$ such that
+$$ I({\mathbf X}_{-j},{\mathbf y})< I({\mathbf X},{\mathbf y})$$ or equivalently
+
+
+$$ H({\mathbf y}| {\mathbf X}_{-j})> H({\mathbf y}|{\mathbf X})$$
+By removing a strongly relevant feature from the input set, the conditional variance of ${\mathbf y}$ increases.
+
+From \eqref{eq:model} it follows that 
+$$ p(y| X)=p(y| x_1,x_7,x_{50})$$
+or equivalently that ${\mathbf y}$
+is conditionally independent of all the other variables when the value of $\{x_1,x_7,x_{50}\}$ is known.
+
+The set of strongly relevant variables (which is also the Markov blanket) is  then $\{{\mathbf x_1},{\mathbf x_7},{\mathbf x_{50}}\}$. 
+
+A weakly relevant feature is a feature  ${\mathbf x_j}$ that is not strongly relevant and such that 
+$$ I({\mathbf S}_{-j},{\mathbf y})< I({\mathbf S},{\mathbf y})$$ 
+or equivalently 
+$$ H({\mathbf y}| {\mathbf S}_{-j})> H({\mathbf y}|{\mathbf S})$$
+for a certain context $S \subset X$. If we consider $S= X \setminus \{x_1,x_7,x_{50}\}$ then 
+$$ p(y| S)=p(y| x_8,x_9)$$
+It follows that ${\mathbf y}$
+is conditionally independent of all the other features of $S$ when the value of $\{x_8,x_9\}$ is known.
+
+The set of weakly relevant variables is  then $\{{\mathbf x_8},{\mathbf x_9}\}$. 
+
+In other terms the set of weakly relevant variables $\{x_8,x_9\}$  provides information about ${\mathbf y}$ for some contexts, e.g. the contexts where $\{x_1,x_7,x_{50}\}$ are not available.
+
+All the other features are irrelevant since they play no role in the dependency between ${\mathbf X}$ and ${\mathbf y}$.
+
+## Data-driven estimation of conditional entropy
+
+In the real setting (i.e. the one the student is confronted with) the conditional probability
+\eqref{eq:model} and the relationships between input features is not accessible.
+It is not then possible to compute analytically the information or the entropy terms.
+
+Nevertheless, it is possible to estimate the conditional probability  $p(y|S)$
+and consequently the conditional entropy term $H({\mathbf y}| {\mathbf S})$ for a subset $S$ of 
+features by making some assumptions:
+
+1. we have a learning model able to return an unbiased and low variant estimation
+of the regression function. In this case the estimated MISE returns  a good approximation of the conditional variance (i.e. the noise variance) 
+2. the conditional probability is Gaussian. In this case there is a direct link between the conditional variance and the conditional entropy.
+
+
+In other terms we make the assumption that 
+$$H({\mathbf y}| {\mathbf S_1}) < H({\mathbf y}| {\mathbf S_2}) $$ if
+$$\widehat{\text{MISE}_1}< \widehat{\text{MISE}_2}$$
+where $\widehat{\text{MISE}_i}$ is the estimated (e.g. by leave-one-out) generalization
+error of a learner trained with the input set $S_i$.
+
+
+
+## Data-driven identification of strongly relevant features 
+
+Here we identify in a data-driven manner the set of strongly relevant features by
+choosing as learner a Random Forest and by using a holdout strategy to estimate
+the generalization error. 
+
+In practice, we 
+
+1. remove a single input feature at the time, 
+2. split the dataset in training and validation set and learn a Random Forest with the training set
+3. compute the Random Forest generalization error for the validation set
+4. rank the features to select the ones that induced a largest increase of the generalization error
+
+```{r, identification of strongly relevant features, warning=FALSE, message=FALSE}
+library(gbcode)
+load("bonus4.Rdata")
+Itr<-sample(1:N,round(N/2))
+Ival<-setdiff(1:N,Itr)
+Yhat<-pred("rf",X[Itr,],Y[Itr],X[Ival,],class=FALSE)
+Ehat=(Y[Ival]-Yhat)^2
+MISEhat=mean(Ehat)  ## Holdout MISE computation
+print( mean(MISEhat^2))
+MISEhatj=numeric(n)
+Ehatj=array(NA,c(length(Ival),n))
+for (j in 1:n){
+  Yhatj<-pred("rf",X[Itr,-j],Y[Itr],X[Ival,-j],class=FALSE)  
+  ## we use the wrapper available in the gbcode package
+  Ehatj[,j]=(Y[Ival]-Yhatj)^2
+  ## estimation of the generalization error with the validation set
+  MISEhatj[j]=mean(Ehatj[,j])
+}
+
+stronghat=sort(MISEhatj-MISEhat,decr=TRUE,index=TRUE)$ix[1:ns]
+## Ranking of the features according to the increase of the validation error
+
+cat("Strongly relevant identified=",stronghat,"\n")
+
+```
+
+According to the procedure above, by knowing that there are **`r ns`** strongly relevant variables, the set of strongly relevant variables is in the columns **`r stronghat`** of the input matrix $X$.
+
+## Data-driven identification of weakly relevant features 
+
+The identification of weakly relevant variables would need a search in the space of all 
+possible contexts. Here we limit to consider the context $S= X \setminus \{x_1,x_7,x_{50}\}$ obtained by removing the strongly 
+relevant features from the input set. The hold-out procedure is similar to the one in the previous section.
+
+```{r, identification of weakly relevant features, warning=FALSE, message=FALSE}
+
+Yhat<-pred("rf",X[Itr,-strong],Y[Itr],X[Ival,-strong],class=FALSE)
+
+wMISEhat=mean((Y[Ival]-Yhat)^2)
+print( mean(wMISEhat^2))
+
+wMISEhatj=numeric(n)-100
+for (j in setdiff(1:n,strong)){
+  Yhatj<-pred("rf",X[Itr,-c(strong,j)],Y[Itr],X[Ival,-c(strong,j)],class=FALSE)
+  wMISEhatj[j]=mean((Y[Ival]-Yhatj)^2)
+}
+weakhat=sort(wMISEhatj-wMISEhat,decr=TRUE,index=TRUE)$ix[1:nw]
+print(sort(wMISEhatj-wMISEhat,decr=TRUE,index=TRUE)$x[1:nw])
+cat("Weakly relevant identified=",weakhat,"\n")
+
+```
+
+According to the procedure above we see that there are **`r nw`** features that,
+once removed, increase the generalization error of the context $S= X \setminus \{x_1,x_7,x_{50}\}$. We may deduce then that the set of weakly relevant variables is in the columns **`r weakhat`** of the input matrix $X$.
+
+
+## What to do in the general case
+
+The solution in this exercise has been facilitated by the knowledge of
+the number of strongly and weakly relevant features. Unfortunately, this information is hardly
+available in real settings.
+
+
+The main issue related to identification of relevant features is that
+we cannot compute the analytical exact value of the conditional entropy (or conditional
+information terms) because of the stochastic finite-data setting.
+In practice we have only rough estimates of those terms.
+Nevertheless, most of the time we are not interested in the actual values
+of those terms but in their relative values: for instance we may be interested 
+to know if
+$$H({\mathbf y}| {\mathbf S_1}) < H({\mathbf y}| {\mathbf S_2}) $$ 
+of if their difference is smaller than zero.
+
+Since those values are only estimated the fact that 
+$$\hat{H}({\mathbf y}| {\mathbf S_1}) < \hat{H}({\mathbf y}| {\mathbf S_2}) $$
+does not necessarily provide enough evidence to draw a conclusion. Given the stochastic setting
+a solution could be the adoption of statistical tests. For instance 
+if $H$ is approximated by $\widehat{\text{MISE}}$ we could use a statistical test
+to check whether the mean $\widehat{\text{MISE}_1}$ is significantly smaller than $\widehat{\text{MISE}_2}$. 
+
+
+Let us see how this could be done in practice.
+
+### Data-driven identification of the number of strongly relevant features 
+
+In this case we do not know exactly where to stop in the decreasing ranking of the vector $\tt{MISEhatj-MISEhat}$.
+
+In what follows we use a t-test comparing the vector of test errors 
+(stored in the R variable $\tt{Ehatj}$) of 
+each feature set $X_{-j}$ to the the one of $X$ (stored in the R variable $\tt{Ehat}$). This checks if
+the mean $\widehat{\text{MISE}_{-j}}$ is significantly
+larger (pvalue smaller than $0.01$) than $\widehat{\text{MISE}}$.
+
+```{r, selection number strongly relevant features}
+pv=numeric(n)
+for (j in 1:n)
+  pv[j]=t.test(Ehatj[,j],Ehat,alternative="greater",paired=TRUE)$p.value
+
+stronghat.test=which(pv<0.01)
+print(sort(pv,index=TRUE))
+```
+
+It follows that (for the given pvalue threshold) the set of strongly relevant features is **`r stronghat.test`**. Of course this number could be different for
+different pvalue thresholds.
+
+### Data-driven identification of the number of weakly relevant features 
+
+The procedure above can be used as well for detecting weakly relevant features
+for a given context.
+Nevertheless, since the number of weakly features is not given in advance, the problem of finding the set of weakly relevant features would remain much harder. 
+In fact, we are not supposed to stop the search until we have not considered all the possible contexts.
