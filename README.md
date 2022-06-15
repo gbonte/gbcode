@@ -1,8 +1,8 @@
 
 
-Code from the handbook 
+Code from the handbook and book
 "Statistical foundations of machine learning"
-http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf
+
 
 
 

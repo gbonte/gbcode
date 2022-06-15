@@ -263,7 +263,7 @@ constloo<-function(x,w=rep(1,length(x))){
 }
 
 
-dfmldesign<-function(TS,m0,H,p0=2,CC=1,lambda=0,Lcv=10,
+dfmldesign<-function(TS,m0,H,p0=2,CC=1,lambda=0,Lcv=10,Kmin=3,
                      models=c("stat_naive","lindirect")){
   
   n<-NCOL(TS)
@@ -327,7 +327,8 @@ dfmldesign<-function(TS,m0,H,p0=2,CC=1,lambda=0,Lcv=10,
 }
 
 
-dfml<-function(TS,m,H,p0=3,cc=2,mod="stat_comb",V=NULL,orth=FALSE){
+dfml<-function(TS,m,H,p0=3,cc=2,mod="stat_comb",
+               Kmin=3,V=NULL,orth=FALSE){
   
   n<-NCOL(TS)
   p0=min(p0,n)
