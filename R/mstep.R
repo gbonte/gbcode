@@ -1318,7 +1318,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #'
 MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
                              unimethod="stat_naive",
-                             dfmlmodels=c("stat_comb","lindirect","stat_naive","lazydirect","stat_avg")){
+                             dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect")){
   m<-NCOL(TS)
   if (m<=1)
     stop("Only for multivariate series")
@@ -1331,11 +1331,14 @@ MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
   if (multi=="dfm")
     Yhat=dfml(TS,n,H,p0=3,mod="lindirect")
   if (multi=="dfml"){
-    P=dfmldesign(TS,n,H,p0=6,
+    P=dfmldesign(TS,n,H,p0=4,
                  models=dfmlmodels)
     Yhat=dfml(TS,n,H,mod=P$mod,p0=P$p0)
   }
   if (multi=="multifs")
     Yhat=multifs(TS,n,H,mod="rf")
+  if (any(is.na(Yhat)))
+    stop("Wrong method in MmultiplestepAhead")
+  
   return(Yhat)
 }

@@ -16,28 +16,14 @@ for (i in seq(50001,100000,by=100)){
   N<-length(TS)
   H=TSERIES[[i]]$H
   
-  for (Ntr in seq(max(round(2*N/3),N-10*H),(N-H),5)){
+  for (Ntr in round(seq(2*N/3,(N-H),length.out=5))){
     
     TS.tr=TS[1:Ntr]
     TS.ts=TS[(Ntr+1):(Ntr+H)]
-    modtrnd=lm(TS.tr ~ seq(TS.tr))
-    FF=0.25
-    stp=round(FF*Ntr) ## starting point
-    sItr=stp:Ntr
-    sTS.tr=TS[sItr]
-    #trnd=pred("lin",sItr,sTS.tr,sItr,classi=FALSE) #modtrnd$fit
-    #trnd.ts=pred("lin",sItr,sTS.tr,seq(stp,Ntr+H),classi=FALSE)
-    #trnd.ts=trnd.ts[(length(trnd.ts)-H+1):length(trnd.ts)]
+
     
-    trnd=NULL
-    h=2
-    for (s in (stp-h):(Ntr-h))
-      trnd=c(trnd,multiplestepAhead(TS[1:s],n=3, H=h,method=method2)[h])
-    
-  
-    TTS.tr=sTS.tr-trnd
-    Y.cont2=multiplestepAhead(TS.tr,n=2, H=H,method=method2)
-    Y.cont=multiplestepAhead(TTS.tr,n=1, H=H,method=method1,Kmin=5,C=5)+Y.cont2
+    Y.cont=multiplestepAhead(TS.tr,n=2, H=H,method=method1,Kmin=5,C=5)
+    Y.cont2=multiplestepAhead(TS.tr,n=1, H=H,method=method2)
     Y.n=multiplestepAhead(TS.tr,n=1, H=H,method="stat_naive",Kmin=5,C=5)
     E=(TS.ts-Y.cont)
     E2=(TS.ts-Y.cont2)
@@ -54,8 +40,8 @@ for (i in seq(50001,100000,by=100)){
     }
     aNMSE=c(aNMSE,NMSE)
     aNMSE2=c(aNMSE2,NMSE2)
-    cat("i=",i, "Nt=",Ntr, " aNMSE=",mean(aNMSE), "aNMSE2=", mean(aNMSE2),"\n")
+    cat("i=",i, "Nt=",Ntr, method1," aNMSE=",mean(aNMSE), method2, "aNMSE2=", mean(aNMSE2),"\n")
   }
-  cat("i=",i, " aNMSE=",mean(aNMSE), "aNMSE2=", mean(aNMSE2),"\n")
+  cat("i=",i, method1, " aNMSE=",mean(aNMSE), method2, "aNMSE2=", mean(aNMSE2),"\n")
   
 }

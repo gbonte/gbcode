@@ -27,11 +27,11 @@ NMSE5=NULL
 NMSE6=NULL
 
 method1="lazydirect"
-method2="stat_theta"
+method2="liniter"
 method3="lazyiter"
-method4="stat_holt"
+method4="stat_comb"
 method5="rnn"
-method6="mimo"
+method6="mimo.comb"
 n=24
 maxfs=5
 for (i in 2:nseries){
