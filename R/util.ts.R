@@ -263,13 +263,13 @@ constloo<-function(x,w=rep(1,length(x))){
 }
 
 
-dfmldesign<-function(TS,m0,H,p0=2,CC=1,lambda=0,Lcv=10,Kmin=3,
+dfmldesign<-function(TS,m0,H,p0=2,lambda=0,Lcv=10,
                      models=c("stat_naive","lindirect")){
   
-  n<-NCOL(TS)
-  maxp=min(n,p0)
-  maxm=m0
-  nm=length(models)
+  n<-NCOL(TS)  ## number of series
+  maxp=min(n,p0)  ## max no PC components
+  maxm=m0 ## max autoregressive order
+  nm=length(models) ## number of forecasting models
   
   N<-NROW(TS)
   Xtr<-TS[1:min(N-H-1,floor(8*N/10)),]
@@ -282,72 +282,67 @@ dfmldesign<-function(TS,m0,H,p0=2,CC=1,lambda=0,Lcv=10,Kmin=3,
   Z=(TS%*%t(V))
   eps=1e-3
   
-  Ehat<-array(0,c(CC,maxm,maxp,nm))
-  for (mm in 1:nm){
+  Ehat<-array(0,c(maxm,maxp,nm))
+  for (mm in 1:nm){ ## loop over forecasting model
     mod=models[mm]
-    for (cc in 1:CC){
-      for (m in 1:maxm){
-        ZZ<-NULL
-        for (s in seq(1,Nts-H-1,length.out=Lcv)){
-          Zhat<-array(NA,c(H,maxp))
-          muZ=mean(Z[1:(Ntr+s),1])
-          stdZ=sd(Z[1:(Ntr+s),1])+eps
-          sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
-          Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod,Kmin=Kmin,C=cc)
-          Xts=X[(Ntr+s+1):(Ntr+s+H),]
-          Xhat=(Zhat[,1]*stdZ+muZ)%*%array(V[1,],c(1,n))
-          
-          Ehat[cc,m,1,mm]<-Ehat[cc,m,1,mm]+mean(apply((Xts-Xhat)^2,2,mean))
-          
-          for (p in 2:maxp){
-            muZ=mean(Z[1:(Ntr+s),p])
-            stdZ=sd(Z[1:(Ntr+s),p])+eps
-            sZ=(Z[1:(Ntr+s),p]-muZ)/stdZ
-            Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod,Kmin=Kmin,C=cc)
-            Xhat=(Zhat[,1:p]*stdZ+muZ)%*%V[1:p,]
-            Ehat[cc,m,p,mm]<-Ehat[cc,m,p,mm]+mean(apply((Xts-Xhat)^2,2,mean))
-          } ## for p
-          ZZ<-rbind(ZZ,Zhat)
-        } ## for s
-        if (lambda>0)
-          for (p in 2:maxp){
-            cZ=1-cor.prob(ZZ[,1:p])
-            cZ= mean(c(cZ[upper.tri(cZ)]))
-            Ehat[cc,m,p,mm]<-Ehat[cc,m,p,mm]/Lcv+lambda*cZ ## criterion for decorrelation of factor predictions 
-          }
-      } ## for m
-    }
-    cat(".")
+    
+    for (m in 1:maxm){ ## loop over autoregressive order
+      ZZ<-NULL
+      for (s in seq(1,Nts-H-1,length.out=Lcv)){
+        Zhat<-array(NA,c(H,maxp))
+        muZ=mean(Z[1:(Ntr+s),1])
+        stdZ=sd(Z[1:(Ntr+s),1])+eps
+        sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
+        Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+        Xts=X[(Ntr+s+1):(Ntr+s+H),]
+        Xhat=(Zhat[,1]*stdZ+muZ)%*%array(V[1,],c(1,n))
+        
+        Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((Xts-Xhat)^2,2,mean))
+        
+        for (p in 2:maxp){ ## loop over number of Pcomponents
+          muZ=mean(Z[1:(Ntr+s),p])
+          stdZ=sd(Z[1:(Ntr+s),p])+eps
+          sZ=(Z[1:(Ntr+s),p]-muZ)/stdZ
+          Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+          Xhat=(Zhat[,1:p]*stdZ+muZ)%*%V[1:p,]
+          Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((Xts-Xhat)^2,2,mean))
+        } ## for p
+        ZZ<-rbind(ZZ,Zhat)
+      } ## for s
+      if (lambda>0)
+        for (p in 2:maxp){
+          cZ=1-cor.prob(ZZ[,1:p])
+          cZ= mean(c(cZ[upper.tri(cZ)]))
+          Ehat[m,p,mm]<-Ehat[m,p,mm]/Lcv+lambda*cZ ## criterion for decorrelation of factor predictions 
+        }
+    } ## for m
   }
+  cat(".")
+  
   
   Emin=min(Ehat)
-  p0<-which.min(apply(Ehat,3,min))
-  m<-which.min(apply(Ehat,2,min))
-  cc<-which.min(apply(Ehat,1,min))
-  mod=models[which.min(apply(Ehat,4,min))]
-  C=cov(TS)
-  V=t(eigen(C,TRUE)$vectors[,1:p0])
+  bestp<-which.min(apply(Ehat,2,min))
+  bestm<-which.min(apply(Ehat,1,min))
+  bestmod=models[which.min(apply(Ehat,3,min))]
   
-  return (list(p=p0,m=m,cc=cc,mod=mod,V=V[1:p0,]))
+  return (list(p=bestp,m=bestm,mod=bestmod))
 }
 
 
-dfml<-function(TS,m,H,p0=3,cc=2,mod="stat_comb",
-               Kmin=3,V=NULL,orth=FALSE){
-  
+dfml<-function(TS,m,H,p0=3,mod="stat_comb",V=NULL,orth=FALSE){
+  ## m: autoregressive order
   n<-NCOL(TS)
   p0=min(p0,n)
   N=NROW(TS)
   Zhat<-array(NA,c(H,p0))
-  if (is.null(V)){
-    C=cov(TS)
-    V=t(eigen(C,TRUE)$vectors[,1:p0])
-  }
+  C=cov(TS)
+  V=t(eigen(C,TRUE)$vectors[,1:p0])
+  
   Ztr=TS%*%t(V)
-  Zhat[,1]=multiplestepAhead(Ztr[,1],n=m, H=H,method=mod,Kmin=Kmin,C=cc)
+  Zhat[,1]=multiplestepAhead(Ztr[,1],n=m, H=H,method=mod)
   if (p0>1)
     for (p in 2:p0)
-      Zhat[,p]=multiplestepAhead(Ztr[,p],n=m, H=H,method=mod,Kmin=Kmin,C=cc)
+      Zhat[,p]=multiplestepAhead(Ztr[,p],n=m, H=H,method=mod)
   if (p0>1)
     return(Zhat[,1:p0]%*%V[1:p0,])
   Xhat=Zhat[,1]%*%array(V[1:p0,],c(1,n))

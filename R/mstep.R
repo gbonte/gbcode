@@ -873,6 +873,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(c(p+trnd.ts))
   }
   
+  ### keras based RNN: it requires keras
+  if (method=="lstm"){
+    p=lstmpred(array(TS,c(length(TS),1)), n, H)
+    return(c(p+trnd.ts))
+  }
+  
   if (sd_trim(TS)<0.001 && method !="timefit" )
     return (numeric(H)+TS[1]+trnd.ts)
   TS<-array(TS,c(N,1))
@@ -1311,6 +1317,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #' \item{dfml}: prediction based on DFML
 #' \item{rnn}: prediction based on keras rnn
 #' }
+#' @param pc0: number of DFML components
 #' @return H step ahead predictions
 #' @export
 #' @examples
@@ -1318,6 +1325,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #'
 MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
                              unimethod="stat_naive",
+                             pc0=3,
                              dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect")){
   m<-NCOL(TS)
   if (m<=1)
@@ -1331,11 +1339,13 @@ MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
   if (multi=="lstm")
     Yhat=lstmpred(TS,n,H)
   if (multi=="dfm")
-    Yhat=dfml(TS,n,H,p0=3,mod="lindirect")
+    Yhat=dfml(TS,n,H,p0=pc0,mod="lindirect")
   if (multi=="dfml"){
-    P=dfmldesign(TS,n,H,p0=4,
+    ## DFML searches in the space: #Pcomponents(1:2*pc0)
+    # #models(dfmlmodels), autoregressive order (1:2*n)
+    P=dfmldesign(TS,2*n,H,p0=2*pc0,
                  models=dfmlmodels)
-    Yhat=dfml(TS,n,H,mod=P$mod,p0=P$p0)
+    Yhat=dfml(TS,P$m,H,mod=P$mod,p0=P$p0)
   }
   if (multi=="multifs")
     Yhat=multifs(TS,n,H,mod="rf")
