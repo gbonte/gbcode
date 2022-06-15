@@ -17,7 +17,7 @@ remna<-function(ts){
 data(NN5)
 
 nseries<-NCOL(NN5)
-H=56
+H=20
 N=NROW(NN5)
 NMSE=NULL
 NMSE2=NULL
@@ -30,13 +30,13 @@ method1="lazydirect"
 method2="stat_theta"
 method3="lazyiter"
 method4="stat_holt"
-method5="mimo.acf.lin"
-method6="mimo.acf"
+method5="rnn"
+method6="mimo"
 n=24
 maxfs=5
 for (i in 2:nseries){
   TS=scale(remna(NN5[,i]))
-  for (Ntr in seq (500,N-H)){
+  for (Ntr in round(seq (500,N-H,length.out=3))){
     
     TStr=TS[1:Ntr]
     TSts=TS[(Ntr+1):(Ntr+H)]
@@ -54,11 +54,11 @@ for (i in 2:nseries){
     Y.cont4=multiplestepAhead(TStr,n=n, H=H,method=method4,maxfs=maxfs)
     NMSE4=c(NMSE4,mean((TSts-Y.cont4)^2)/(mean((TSts-Yn)^2)))
     
-    Y.cont5=multiplestepAhead(TStr,n=n, H=H,method=method6,maxfs=maxfs)
+    Y.cont5=multiplestepAhead(TStr,n=n, H=H,method=method5,maxfs=maxfs)
     NMSE5=c(NMSE5,mean((TSts-Y.cont5)^2)/(mean((TSts-Yn)^2)))
     
-    Y.cont6=multiplestepAhead(TStr,n=n, H=H,method=method6,maxfs=maxfs)
-    lambda=0.2
+    Y.cont6=multiplestepAhead(TStr,n=n, H=H,method=method6,maxfs=maxfs,Kmin=5,C=4)
+    lambda=0
     Y.cont6=lambda*(Yn)+(1-lambda)*Y.cont6
     NMSE6=c(NMSE6,mean((TSts-Y.cont6)^2)/(mean((TSts-Yn)^2)))
     

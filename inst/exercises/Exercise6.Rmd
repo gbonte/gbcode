@@ -16,7 +16,7 @@ Consider a binary classification task where the input ${\mathbf x} \in {\mathbb 
 two values: $0$ (associated to red) and $1$ (associated to green).
 
 Suppose that the a-priori probability is 
-$p({\mathbf y}=1)=0.2$ and that the inverse (or class-conditional) distributions
+$p({\mathbf y}=1)=0.4$ and that the inverse (or class-conditional) distributions
 are 
 
 * green/cross class : mixture of three Gaussians 

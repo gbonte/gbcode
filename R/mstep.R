@@ -222,7 +222,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
     for (kk in k:(min(NROW(X),C*k))){
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
       ## tricube kernel
-      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1),numeric(Reg)+1)
+      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1),numeric(Reg)+0.1)
       wd<-wd/sum(wd)
       if (any(is.na(wd)))
         wd<-numeric(length(wd))+1/length(wd)
@@ -230,14 +230,14 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
         L<-apply(Y[index$ix[1:kk],],2,var) ##constloo,wd)
         L<-L[which(is.finite(L))]
         err[kk]<-mean(L)
-        YY=rbind(Y[index$ix[1:kk],],array(0,c(Reg,NCOL(Y))))
+        YY=rbind(Y[index$ix[1:kk],],array(mean(Y),c(Reg,NCOL(Y))))
         ## add as many rows as Reg regularisation null terms
         oo<-rbind(oo,apply(wd*YY,2,sum,na.rm=T))
         
       } else {
         ##err[kk]<-constloo(Y[index$ix[1:kk],1],wd)
         err[kk]<-var(Y[index$ix[1:kk],1])
-        oo<-rbind(oo,mean(c(Y[index$ix[1:kk],1],numeric(Reg)),na.rm=T))
+        oo<-rbind(oo,mean(c(Y[index$ix[1:kk],1],numeric(Reg)+mean(Y)),na.rm=T))
       }
       if (is.na(err[kk])){
         stop("KNN.multioutput error")
@@ -349,13 +349,13 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3){
     ETS<-MakeEmbedded(array(TS,c(length(TS),1)),n=ord.emb,0)
     for (kk in k:(C*k)){
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
-      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1),numeric(Reg)+1)
+      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1),numeric(Reg)+0.1)
       wd<-wd/sum(wd)
       if (any(is.na(wd)))
         wd<-1/length(wd)+numeric(length(wd))
       
       if (m>1){
-        YY=rbind(Y[index$ix[1:kk],],array(0,c(Reg,NCOL(Y))))
+        YY=rbind(Y[index$ix[1:kk],],array(mean(Y),c(Reg,NCOL(Y))))
         LP<-apply(YY,2,mean,na.rm=T)
         oo<-rbind(oo,LP)
         
@@ -479,13 +479,13 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3)
       d<-Ds[index$ix[1:kk],i]/Ds[index$ix[kk+1],i]
       ##d<-numeric(length(d))
       ##wd<-exp(-d^2)
-      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1),numeric(Reg)+1)
+      wd<-c(((1-abs(d)^3)^3)*(abs(d)<1),numeric(Reg)+0.1)
       wd<-wd/sum(wd)
       if (any(is.na(wd)))
         wd<-1/length(wd)+numeric(length(wd))
       
       if (m>1){
-        YY=rbind(Y[index$ix[1:kk],],array(0,c(Reg,NCOL(Y))))
+        YY=rbind(Y[index$ix[1:kk],],array(mean(Y),c(Reg,NCOL(Y))))
         LP<-apply(YY,2,mean,na.rm=T)
         oo<-rbind(oo,LP)
         A<-acf(c(TS,LP),lag.max=length(Acf)-1,plot=FALSE)$acf
@@ -494,7 +494,7 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3)
         err[kk]<- 1-abs(cor(c(PA),c(Pacf)))+1-abs(cor(c(A),c(Acf)))
         
       } else {
-        O<-mean(c(Y[index$ix[1:kk],1],numeric(Reg)),na.rm=T)
+        O<-mean(c(Y[index$ix[1:kk],1],numeric(Reg)+mean(Y)),na.rm=T)
         A<-acf(c(O),lag.max=length(Acf)-1,plot=FALSE)$acf
         PA<-pacf(c(O),lag.max=length(Pacf),plot=FALSE)$acf
         err[kk]<-1-abs(cor(c(PA),c(Pacf)))##+1-abs(cor(c(A),c(Acf)))
@@ -780,7 +780,7 @@ lin.pls<- function(X,Y,X.ts){
 #'
 #'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
-                            Kmin=3,C=2,FF=0,smooth=FALSE,maxfs=10,
+                            Kmin=5,C=3,FF=0,smooth=FALSE,maxfs=6,
                             XC=NULL,detrend=-1, forget=-1, engin=TRUE){
   if (NCOL(TS)>1)
     stop("Only for univariate time series")
