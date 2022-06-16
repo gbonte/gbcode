@@ -280,7 +280,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
   C=cov(Xtr) 
   V=t(eigen(C,TRUE)$vectors[,1:maxp])
   Z=(TS%*%t(V))
-  eps=1e-3
+  eps=1e-4
   
   Ehat<-array(0,c(maxm,maxp,nm))
   for (mm in 1:nm){ ## loop over forecasting model
@@ -294,8 +294,9 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
         stdZ=sd(Z[1:(Ntr+s),1])+eps
         sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
         Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+        Zhat[,1]=Zhat[,1]*stdZ+muZ
         Xts=X[(Ntr+s+1):(Ntr+s+H),]
-        Xhat=(Zhat[,1]*stdZ+muZ)%*%array(V[1,],c(1,n))
+        Xhat=(Zhat[,1])%*%array(V[1,],c(1,n))
         
         Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((Xts-Xhat)^2,2,mean))
         
@@ -304,7 +305,8 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
           stdZ=sd(Z[1:(Ntr+s),p])+eps
           sZ=(Z[1:(Ntr+s),p]-muZ)/stdZ
           Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod)
-          Xhat=(Zhat[,1:p]*stdZ+muZ)%*%V[1:p,]
+          Zhat[,p]=Zhat[,p]*stdZ+muZ
+          Xhat=Zhat[,1:p]%*%V[1:p,]
           Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((Xts-Xhat)^2,2,mean))
         } ## for p
         
@@ -312,15 +314,13 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
      
     } ## for m
   }
-  cat(".")
-  
   
   Emin=min(Ehat)
   bestp<-which.min(apply(Ehat,2,min))
   bestm<-which.min(apply(Ehat,1,min))
   bestmod=models[which.min(apply(Ehat,3,min))]
   
-  return (list(p=bestp,m=bestm,mod=bestmod))
+  return (list(p=bestp,m=bestm,mod=bestmod,Ehat=Ehat))
 }
 
 
@@ -332,7 +332,7 @@ dfml<-function(TS,m,H,p0=3,mod="stat_comb"){
   Zhat<-array(NA,c(H,p0))
   C=cov(TS)
   V=t(eigen(C,TRUE)$vectors[,1:p0])
-  eps=1e-3
+  eps=1e-4
   Ztr=TS%*%t(V)
   muZ=mean(Ztr[,1])
   stdZ=sd(Ztr[,1])+eps
