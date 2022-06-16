@@ -265,7 +265,6 @@ constloo<-function(x,w=rep(1,length(x))){
 
 dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
                      models=c("stat_naive","lindirect")){
-  
   n<-NCOL(TS)  ## number of series
   maxp=min(n,p0)  ## max no PC components
   maxm=m0 ## max autoregressive order
