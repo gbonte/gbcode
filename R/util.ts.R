@@ -324,7 +324,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
 }
 
 
-dfml<-function(TS,m,H,p0=3,mod="stat_comb",V=NULL,orth=FALSE){
+dfml<-function(TS,m,H,p0=3,mod="stat_comb"){
   ## m: autoregressive order
   n<-NCOL(TS)
   p0=min(p0,n)
@@ -334,16 +334,16 @@ dfml<-function(TS,m,H,p0=3,mod="stat_comb",V=NULL,orth=FALSE){
   V=t(eigen(C,TRUE)$vectors[,1:p0])
   eps=1e-3
   Ztr=TS%*%t(V)
-  muZ=mean(Z[,1])
-  stdZ=sd(Z[,1])+eps
-  sZ=(Z[,1]-muZ)/stdZ
+  muZ=mean(Ztr[,1])
+  stdZ=sd(Ztr[,1])+eps
+  sZ=(Ztr[,1]-muZ)/stdZ
   Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod)
   Zhat[,1]=(Zhat[,1]*stdZ+muZ)
   if (p0>1)
     for (p in 2:p0){
-      muZ=mean(Z[,p])
-      stdZ=sd(Z[,p])+eps
-      sZ=(Z[,p]-muZ)/stdZ
+      muZ=mean(Ztr[,p])
+      stdZ=sd(Ztr[,p])+eps
+      sZ=(Ztr[,p]-muZ)/stdZ
       Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod)
       Zhat[,p]=(Zhat[,p]*stdZ+muZ)
     }
