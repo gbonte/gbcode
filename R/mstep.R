@@ -1326,7 +1326,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
                              unimethod="stat_naive",
                              pc0=3, cdfml=2,
-                             dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect")){
+                             dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect"),
+                             verbose=FALSE){
   m<-NCOL(TS)
   if (m<=1)
     stop("Only for multivariate series")
@@ -1345,7 +1346,8 @@ MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
     # #models(dfmlmodels), autoregressive order (1:2*n)
     P=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,
                  models=dfmlmodels)
-    
+    if (verbose)
+      print(P)
     Yhat=dfml(TS,P$m,H,mod=P$mod,p0=P$p0)
   }
   if (multi=="multifs")
