@@ -1325,7 +1325,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #'
 MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
                              unimethod="stat_naive",
-                             pc0=3,
+                             pc0=3, cdfml=2,
                              dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect")){
   m<-NCOL(TS)
   if (m<=1)
@@ -1343,7 +1343,7 @@ MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
   if (multi=="dfml"){
     ## DFML searches in the space: #Pcomponents(1:2*pc0)
     # #models(dfmlmodels), autoregressive order (1:2*n)
-    P=dfmldesign(TS,2*n,H,p0=2*pc0,
+    P=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,
                  models=dfmlmodels)
     Yhat=dfml(TS,P$m,H,mod=P$mod,p0=P$p0)
   }
