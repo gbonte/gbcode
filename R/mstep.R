@@ -1339,7 +1339,7 @@ MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
   if (multi=="lstm")
     Yhat=lstmpred(TS,n,H)
   if (multi=="dfm")
-    Yhat=dfml(TS,n,H,p0=pc0,mod="lindirect")
+    Yhat=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1])
   if (multi=="dfml"){
     ## DFML searches in the space: #Pcomponents(1:2*pc0)
     # #models(dfmlmodels), autoregressive order (1:2*n)
