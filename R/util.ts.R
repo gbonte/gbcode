@@ -332,12 +332,21 @@ dfml<-function(TS,m,H,p0=3,mod="stat_comb",V=NULL,orth=FALSE){
   Zhat<-array(NA,c(H,p0))
   C=cov(TS)
   V=t(eigen(C,TRUE)$vectors[,1:p0])
-  
+  eps=1e-3
   Ztr=TS%*%t(V)
-  Zhat[,1]=multiplestepAhead(Ztr[,1],n=m, H=H,method=mod)
+  muZ=mean(Z[,1])
+  stdZ=sd(Z[,1])+eps
+  sZ=(Z[,1]-muZ)/stdZ
+  Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+  Zhat[,1]=(Zhat[,1]*stdZ+muZ)
   if (p0>1)
-    for (p in 2:p0)
-      Zhat[,p]=multiplestepAhead(Ztr[,p],n=m, H=H,method=mod)
+    for (p in 2:p0){
+      muZ=mean(Z[,p])
+      stdZ=sd(Z[,p])+eps
+      sZ=(Z[,p]-muZ)/stdZ
+      Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+      Zhat[,p]=(Zhat[,p]*stdZ+muZ)
+    }
   if (p0>1)
     return(Zhat[,1:p0]%*%V[1:p0,])
   Xhat=Zhat[,1]%*%array(V[1:p0,],c(1,n))
