@@ -319,7 +319,6 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
   bestp<-which.min(apply(Ehat,2,min))
   bestm<-which.min(apply(Ehat,1,min))
   bestmod=models[which.min(apply(Ehat,3,min))]
-  
   return (list(p=bestp,m=bestm,mod=bestmod,Ehat=Ehat))
 }
 
