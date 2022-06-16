@@ -42,6 +42,7 @@ export(SMAPE)
 export(multiplestepAhead)
 export(MmultiplestepAhead)
 export(genar)
+export(genstar)
 
 import(forecast) #Requires v8.2
 import(lars)
