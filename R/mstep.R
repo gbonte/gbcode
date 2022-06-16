@@ -1323,7 +1323,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #' @examples
 #' ## Multi-variate Multi-step-ahead time series forecasting
 #'
-MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
+MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
                              unimethod="stat_naive",
                              pc0=3, cdfml=2,
                              dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect"),
@@ -1344,11 +1344,14 @@ MmultiplestepAhead<-function(TS,n,H,D=0, multi="uni",
   if (multi=="dfml"){
     ## DFML searches in the space: #Pcomponents(1:2*pc0)
     # #models(dfmlmodels), autoregressive order (1:2*n)
-    P=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,
+    Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,
                  models=dfmlmodels)
-    if (verbose)
-      print(P)
-    Yhat=dfml(TS,P$m,H,mod=P$mod,p0=P$p0)
+    
+    Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,mod=Ddesign$mod)
+    if (verbose){
+      print(Ddesign)
+    }
+    
   }
   if (multi=="multifs")
     Yhat=multifs(TS,n,H,mod="rf")

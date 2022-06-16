@@ -38,7 +38,6 @@ rankrho<-function(X,Y,nmax=5,regr=FALSE){
   
   return(sort(c(Iy), decreasing=T, index.return=T)$ix[1:nmax])
   
-  
 }
 
 

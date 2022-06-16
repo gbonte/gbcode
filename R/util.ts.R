@@ -294,10 +294,10 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
         sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
         Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod)
         Zhat[,1]=Zhat[,1]*stdZ+muZ
-        Xts=X[(Ntr+s+1):(Ntr+s+H),]
+        XXts=TS[(Ntr+s+1):(Ntr+s+H),]
         Xhat=(Zhat[,1])%*%array(V[1,],c(1,n))
         
-        Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((Xts-Xhat)^2,2,mean))
+        Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
         
         for (p in 2:maxp){ ## loop over number of Pcomponents
           muZ=mean(Z[1:(Ntr+s),p])
@@ -306,7 +306,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
           Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod)
           Zhat[,p]=Zhat[,p]*stdZ+muZ
           Xhat=Zhat[,1:p]%*%V[1:p,]
-          Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((Xts-Xhat)^2,2,mean))
+          Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
         } ## for p
         
       } ## for s
@@ -318,7 +318,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
   bestp<-which.min(apply(Ehat,2,min))
   bestm<-which.min(apply(Ehat,1,min))
   bestmod=models[which.min(apply(Ehat,3,min))]
-  return (list(p=bestp,m=bestm,mod=bestmod,Ehat=Ehat))
+  return (list(p=bestp,m=bestm,mod=bestmod))
 }
 
 
@@ -345,8 +345,10 @@ dfml<-function(TS,m,H,p0=3,mod="stat_comb"){
       Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod)
       Zhat[,p]=(Zhat[,p]*stdZ+muZ)
     }
-  if (p0>1)
-    return(Zhat[,1:p0]%*%V[1:p0,])
+  if (p0>1){
+    Xhat=Zhat[,1:p0]%*%V[1:p0,]
+    return(Xhat)
+  }
   Xhat=Zhat[,1]%*%array(V[1:p0,],c(1,n))
   return(Xhat)
   
