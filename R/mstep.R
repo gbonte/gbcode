@@ -153,8 +153,9 @@ timefit<-function(TS.tr,n,C,H){
 #' lines(t[(N-H+1):N],Y.cont)
 
 KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
-                           dist="euclidean",C=2,F=0,wta=TRUE,scaleX=TRUE,
-                           Reg=3){
+                           dist="euclidean",C=2,F=0,
+                           wta=TRUE,scaleX=TRUE,
+                           Reg=1){
   
   Reg=max(Reg,1)
   
@@ -227,7 +228,8 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
       if (any(is.na(wd)))
         wd<-numeric(length(wd))+1/length(wd)
       if (m>1){
-        L<-apply(Y[index$ix[1:kk],],2,var) ##constloo,wd)
+        #L<-apply(Y[index$ix[1:kk],],2,var) 
+        L<-apply(Y[index$ix[1:kk],],2,constloo,wd[1:kk])
         L<-L[which(is.finite(L))]
         err[kk]<-mean(L)
         YY=rbind(Y[index$ix[1:kk],],array(mean(Y),c(Reg,NCOL(Y))))
@@ -235,8 +237,8 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
         oo<-rbind(oo,apply(wd*YY,2,sum,na.rm=T))
         
       } else {
-        ##err[kk]<-constloo(Y[index$ix[1:kk],1],wd)
-        err[kk]<-var(Y[index$ix[1:kk],1])
+        err[kk]<-constloo(Y[index$ix[1:kk],1],wd[1:kk])
+        ##err[kk]<-var(Y[index$ix[1:kk],1])
         oo<-rbind(oo,mean(c(Y[index$ix[1:kk],1],numeric(Reg)+mean(Y)),na.rm=T))
       }
       if (is.na(err[kk])){
@@ -785,6 +787,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             XC=NULL,detrend=-1, forget=-1, engin=FALSE){
   if (NCOL(TS)>1)
     stop("Only for univariate time series")
+  if (any(is.na(TS)))
+    stop("NA in the series")
   
   N<-length(TS)
   
@@ -954,7 +958,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                }else{
                 
                  p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),
-                                       q[select.var],k=Kmin,C=C,F=FF,Reg=2)
+                                       q[select.var],k=Kmin,C=C,F=FF,Reg=1)
                }
              }
            }   
@@ -1083,7 +1087,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            } ## for h
          },
          mimo={
-           p<-KNN.multioutput(X[,select.var],Y,q[select.var],k=Kmin,C=C,F=FF,Reg=2)
+           p<-KNN.multioutput(X[,select.var],Y,q[select.var],k=Kmin,C=C,F=FF,Reg=1)
          },
          mimo.comb={
            pdirect2<-NULL
@@ -1127,7 +1131,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                
                
                KK<-KNN.acf(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
-                           TS=TS.acf,D,Reg=2)
+                           TS=TS.acf,D,Reg=1)
                p2[1:h]<-KK[(H-h+1):H]
                pdirect3<-rbind(pdirect3,p2)
              }
@@ -1138,7 +1142,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
              
              KK<-KNN.acf(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
-                         TS=TS.acf,D,Reg=2)
+                         TS=TS.acf,D,Reg=1)
              p2[1:h]<-KK
              pdirect3<-rbind(pdirect3,p2)
            }
@@ -1158,7 +1162,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                
                KK<-KNN.acf.lin(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
                                Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
-                               Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D,Reg=5)
+                               Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D,
+                               Reg=1)
                p2[1:h]<-KK[(H-h+1):H]
                pdirect4<-rbind(pdirect4,p2)
              }
@@ -1170,7 +1175,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              
              KK<-KNN.acf.lin(X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
                              Acf=acf(TS.acf,lag.max=ACF.lag,plot=F)$acf,
-                             Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D,Reg=5)
+                             Pacf=pacf(TS.acf,lag.max=ACF.lag,plot=F)$acf,TS=TS.acf,D,Reg=1)
              p2[1:h]<-KK
              pdirect4<-rbind(pdirect4,p2)
              
@@ -1355,6 +1360,16 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   }
   if (multi=="multifs")
     Yhat=multifs(TS,n,H,mod="rf")
+  if (multi=="multifs2")
+    Yhat=multifs2(TS,n,H,mod="rf")
+  if (multi=="comb"){
+    YYhat=array(NA,c(H,m,3))
+    YYhat[,,1]=multifs(TS,n,H,mod="rf")
+    YYhat[,,2]=multifs2(TS,n,H,mod="rf")
+    YYhat[,,3]=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1])
+   
+    Yhat=apply(YYhat,c(1,2),mean)
+  }
   if (any(is.na(Yhat)))
     stop("Wrong method in MmultiplestepAhead")
   

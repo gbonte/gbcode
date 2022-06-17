@@ -286,7 +286,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
     mod=models[mm]
     
     for (m in 1:maxm){ ## loop over autoregressive order
-     
+      
       for (s in round(seq(1,Nts-H-1,length.out=Lcv))){
         Zhat<-array(NA,c(H,maxp))
         muZ=mean(Z[1:(Ntr+s),1])
@@ -310,7 +310,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
         } ## for p
         
       } ## for s
-     
+      
     } ## for m
   }
   
@@ -370,7 +370,6 @@ rnnpred<-function(TS,m,H){
   
   trainX=array(M$inp,c(NROW(M$inp),m,n))
   trainY=M$out
-  
   model <- keras_model_sequential() %>%
     layer_simple_rnn(units = 6,input_shape=c(m,n))%>%
     layer_dropout(0.2) %>%
@@ -395,7 +394,10 @@ rnnpred<-function(TS,m,H){
   
   Xts=array(q,c(1,1,length(q)))
   trainXts=array(Xts,c(1,m,n))
+  
+  
   Yhat<-array(NA,c(H,n))
+  
   
   Yhat  <- lmodel%>% predict(trainXts,verbose=0)
   return(array(Yhat,c(H,n)))
@@ -440,7 +442,7 @@ lstmpred<-function(TS,m,H){
   q<-NULL
   D=0
   for (j in 1:n)
-    q<-c(q,rev(TS[seq(N-D,N-m+1-D,by=-1),j]))
+    q<-c(q,TS[seq(N-D,N-m+1-D,by=-1),j])
   
   Xts=array(q,c(1,1,length(q)))
   trainXts=array(Xts,c(1,m,n))
@@ -453,26 +455,46 @@ lstmpred<-function(TS,m,H){
 }
 
 
-multifs<-function(TS,n,H,mod="rf"){
+multifs<-function(TS,n,H,mod="rf",w=NULL){
   
   m=NCOL(TS)
   N=NROW(TS)
+  if (is.null(w))
+    w=1:m
   M=MakeEmbedded(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   I=which(!is.na(apply(M$out,1,sum)))
   XX=M$inp[I,]
   YY=M$out[I,]
-  Yhat<-array(NA,c(H,m))
+  Yhat<-array(NA,c(H,length(w)))
   q<-NULL
   D=0
   for (j in 1:m)
     q<-c(q,TS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
-  for (i in 1:m)
+  for (i in 1:length(w))
     for (h in 1:H){
-      Y=YY[,(i-1)*H+h]
+      Y=YY[,(w[i]-1)*H+h]
       fs<-mrmr(XX,Y,min(NCOL(XX)-1,5))
       Yhat[h,i]=pred(mod,XX[,fs],Y,Xts[,fs],class=FALSE)
       
     }
+  return(Yhat)
+}
+
+
+
+multifs2<-function(TS,n,H,mod="rf"){
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  Yhat<-array(NA,c(H,m))
+  for (i in 1:m){
+    Ii=setdiff(1:m,i)
+    fs<-Ii[mrmr(TS[,Ii],TS[,i],min(m-1,5))]
+    Yhat[,i]=multifs(TS[,c(i,fs)],n,H,mod=mod,w=1)
+           
+  }
+  
+  
   return(Yhat)
 }
