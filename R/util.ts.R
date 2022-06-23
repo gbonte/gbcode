@@ -355,11 +355,11 @@ dfml<-function(TS,m,H,p0=3,mod="stat_comb"){
 }
 
 
-rnnpred<-function(TS,m,H){
+rnnpred2<-function(TS,n,H){
   require(keras)
-  n=NCOL(TS)
+  m=NCOL(TS) ## number of series
   
-  M=MakeEmbeddedrev(TS,numeric(n)+m,numeric(n),numeric(n)+H,1:n)
+  M=MakeEmbeddedrev(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   
   I=which(!is.na(apply(M$out,1,sum)))
   M$inp=M$inp[I,]
@@ -368,16 +368,34 @@ rnnpred<-function(TS,m,H){
   n1=NCOL(M$inp)
   p<-NCOL(M$out)
   
-  trainX=array(M$inp,c(NROW(M$inp),m,n))
+  trainX=array(M$inp,c(NROW(M$inp),n,m))
   trainY=M$out
-  model <- keras_model_sequential() %>%
-    layer_simple_rnn(units = 6,input_shape=c(m,n))%>%
-    layer_dropout(0.2) %>%
+  
+  model <- keras_model_sequential()
+  model %>%
+    layer_lstm(units            = 50, 
+               input_shape      = c(n,m), 
+              # batch_size       = 5,
+               return_sequences = TRUE, 
+              # stateful         = TRUE
+              ) %>% 
+    layer_lstm(units            = 50, 
+               return_sequences = FALSE, 
+               stateful         = FALSE) %>% 
     layer_dense(ncol(trainY))
   
-  model %>% compile(loss = 'mse',
-                    optimizer = 'RMSprop',
-                    metrics = c('accuracy'))
+  model %>% 
+    compile(loss = 'mae', optimizer = 'adam')
+  model
+  
+  #model <- keras_model_sequential() %>%
+  #  layer_simple_rnn(units = 6,input_shape=c(n,m))%>%
+  #  layer_dropout(0.2) %>%
+  #  layer_dense(ncol(trainY))
+  
+  #model %>% compile(loss = 'mse',
+  #                  optimizer = 'RMSprop',
+  #                  metrics = c('accuracy'))
   
   
   model %>% fit(
@@ -389,28 +407,194 @@ rnnpred<-function(TS,m,H){
   lmodel=model
   q<-NULL
   D=0
-  for (j in 1:n)
-    q<-c(q,rev(TS[seq(N-D,N-m+1-D,by=-1),j]))
+  for (j in 1:m)
+    q<-c(q,rev(TS[seq(N-D,N-n+1-D,by=-1),j]))
   
   Xts=array(q,c(1,1,length(q)))
-  trainXts=array(Xts,c(1,m,n))
+  trainXts=array(Xts,c(1,n,m))
   
   
-  Yhat<-array(NA,c(H,n))
+  Yhat<-array(NA,c(H,m))
   
   
   Yhat  <- lmodel%>% predict(trainXts,verbose=0)
-  return(array(Yhat,c(H,n)))
+  return(array(Yhat,c(H,m)))
+  
+  
+}
+
+rnnpred0<-function(TS,n,H,nunits=10){
+  require(keras)
+  m=NCOL(TS) ## number of series
+  
+  M=MakeEmbeddedrev(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  
+  I=which(!is.na(apply(M$out,1,sum)))
+  M$inp=M$inp[I,]
+  M$out=M$out[I,]
+  N=NROW(M$inp)
+  n1=NCOL(M$inp)
+  p<-NCOL(M$out)
+  
+  trainX=array(M$inp,c(NROW(M$inp),n,m))
+  trainY=array(M$out,c(NROW(M$out),H*m))
+  
+  model <- keras_model_sequential() %>%
+    layer_simple_rnn(units = nunits,input_shape=c(n,m))%>%
+    layer_dropout(0.2) %>%
+    layer_dense(units=H*m)
+  
+  
+  model %>% compile(loss = 'mse',
+                    optimizer = 'RMSprop',
+                    metrics = c('accuracy'))
+  
+  
+  model %>% fit(
+    x = trainX, # sequence we're using for prediction                                                          
+    y = trainY, # sequence we're predicting                                                                    
+    epochs = 500, # how many times we'll look @ the whole dataset                                           
+    validation_split = 0.1,verbose=0)
+  
+  lmodel=model
+  q<-NULL
+  D=0
+  for (j in 1:m)
+    q<-c(q,rev(TS[seq(N-D,N-n+1-D,by=-1),j]))
+  
+  Xts=array(q,c(1,1,length(q)))
+  trainXts=array(Xts,c(1,n,m))
+  
+  
+  Yhat<-array(NA,c(H,m))
+  
+  
+  Yhat  <- lmodel%>% predict(trainXts,verbose=0)
+  
+  return(array(Yhat,c(H,m)))
+  
+  
+}
+
+rnnpred<-function(TS,H,nunits=10,epochs=20){
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  if (m==1){
+    x_train_arr <- array(TS[1:(N-H)], c(N-H,1,1))
+    y_train_arr <- array(TS[(H+1):(N)], c(N-H,1))
+    x_test_arr <- array(TS[(H+1):(N)], c(N-H,1,1))
+  } else {
+    x_train_arr <- array(TS[1:(N-H),], c(N-H,1,1))
+    y_train_arr <- array(TS[(H+1):(N),],c(N-H,1)) #lag_train_tbl$value
+    x_test_arr <- array(TS[(H+1):(N),], c(N-H,1,1))
+  }
+  
+  batch_size=1
+  model <- keras_model_sequential()
+  
+  model %>%
+    layer_simple_rnn(units            = nunits, 
+               input_shape      = c(m,1), 
+               batch_size       = batch_size,
+               return_sequences = TRUE, 
+               stateful         = TRUE) %>% 
+    layer_simple_rnn(units            = nunits, 
+               return_sequences = FALSE, 
+               stateful         = TRUE) %>% 
+    layer_dense(units = m)
+  
+  model %>% 
+    compile(loss = 'mae', optimizer = 'adam')
+  
+  # 5.1.7 Fitting LSTM
+  for (i in 1:epochs) {
+    model %>% fit(x          = x_train_arr, 
+                  y          = y_train_arr, 
+                  batch_size = batch_size,
+                  epochs     = 1, 
+                  verbose    = -1, 
+                  shuffle    = FALSE)
+    
+    model %>% reset_states()
+    #cat("Epoch: ", i)
+  }
+  
+  # 5.1.8 Predict and Return Tidy Data
+  # Make Predictions
+  pred_out <- model %>% 
+    predict(x_test_arr, batch_size = batch_size)
+  
+  N2=NROW(pred_out)
+  
+  
+  return(pred_out[(N2-H+1):N2,])
+  
+  
+}
+lstmpred<-function(TS,H,nunits=10,epochs=20){
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  if (m==1){
+    x_train_arr <- array(TS[1:(N-H)], c(N-H,1,1))
+    y_train_arr <- array(TS[(H+1):(N)], c(N-H,1))
+    x_test_arr <- array(TS[(H+1):(N)], c(N-H,1,1))
+  } else {
+    x_train_arr <- array(TS[1:(N-H),], c(N-H,1,1))
+    y_train_arr <- array(TS[(H+1):(N),],c(N-H,1)) #lag_train_tbl$value
+    x_test_arr <- array(TS[(H+1):(N),], c(N-H,1,1))
+  }
+  
+  batch_size=1
+  model <- keras_model_sequential()
+  
+  model %>%
+    layer_lstm(units            = nunits, 
+               input_shape      = c(m,1), 
+               batch_size       = batch_size,
+               return_sequences = TRUE, 
+               stateful         = TRUE) %>% 
+    layer_lstm(units            = nunits, 
+               return_sequences = FALSE, 
+               stateful         = TRUE) %>% 
+    layer_dense(units = m)
+  
+  model %>% 
+    compile(loss = 'mae', optimizer = 'adam')
+  
+  # 5.1.7 Fitting LSTM
+  for (i in 1:epochs) {
+    model %>% fit(x          = x_train_arr, 
+                  y          = y_train_arr, 
+                  batch_size = batch_size,
+                  epochs     = 1, 
+                  verbose    = -1, 
+                  shuffle    = FALSE)
+    
+    model %>% reset_states()
+    #cat("Epoch: ", i)
+  }
+  
+  # 5.1.8 Predict and Return Tidy Data
+  # Make Predictions
+  pred_out <- model %>% 
+    predict(x_test_arr, batch_size = batch_size)
+  
+  N2=NROW(pred_out)
+  
+  
+  return(pred_out[(N2-H+1):N2,])
   
   
 }
 
 
-lstmpred<-function(TS,m,H){
+lstmpred2<-function(TS,n,H,nunits=10){
   require(keras)
-  n=NCOL(TS)
+  m=NCOL(TS)
   
-  M=MakeEmbeddedrev(TS,numeric(n)+m,numeric(n),numeric(n)+H,1:n)
+  M=MakeEmbeddedrev(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   
   I=which(!is.na(apply(M$out,1,sum)))
   M$inp=M$inp[I,]
@@ -419,11 +603,11 @@ lstmpred<-function(TS,m,H){
   n1=NCOL(M$inp)
   p<-NCOL(M$out)
   
-  trainX=array(M$inp,c(NROW(M$inp),m,n))
-  trainY=M$out
+  trainX=array(M$inp,c(NROW(M$inp),n,m))
+  trainY=array(M$out,c(NROW(M$out),H*m))
   
   model <- keras_model_sequential() %>%
-    layer_lstm(units = 6,input_shape=c(m,n))%>%
+    layer_lstm(units = nunits,input_shape=c(n,m))%>%
     layer_dropout(0.2) %>%
     layer_dense(ncol(trainY))
   
@@ -435,21 +619,21 @@ lstmpred<-function(TS,m,H){
   model %>% fit(
     x = trainX, # sequence we're using for prediction                                                          
     y = trainY, # sequence we're predicting                                                                    
-    epochs = 100, # how many times we'll look @ the whole dataset                                           
+    epochs = 500, # how many times we'll look @ the whole dataset                                           
     validation_split = 0.1,verbose=0)
   
   lmodel=model
   q<-NULL
   D=0
-  for (j in 1:n)
-    q<-c(q,TS[seq(N-D,N-m+1-D,by=-1),j])
+  for (j in 1:m)
+    q<-c(q,TS[seq(N-D,N-n+1-D,by=-1),j])
   
   Xts=array(q,c(1,1,length(q)))
-  trainXts=array(Xts,c(1,m,n))
-  Yhat<-array(NA,c(H,n))
+  trainXts=array(Xts,c(1,n,m))
+  Yhat<-array(NA,c(H,m))
   
   Yhat  <- lmodel%>% predict(trainXts,verbose=0)
-  return(array(Yhat,c(H,n)))
+  return(array(Yhat,c(H,m)))
   
   
 }

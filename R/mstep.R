@@ -711,7 +711,6 @@ lin.pls<- function(X,Y,X.ts){
 #' @param TS: time series
 #' @param n: embedding order
 #' @param H: horizon
-#' @param  Kmin: min number of neighbours for lazy methods
 #' @param  dist: type of distance: \code{euclidean, cosine} for lazy methods
 #' @param  F: forgetting factor
 #' @param  C: integer parameter which sets the maximum number of neighbours (C*k) for lazy methods
@@ -783,8 +782,14 @@ lin.pls<- function(X,Y,X.ts){
 #'
 #'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
-                            Kmin=5,C=3,FF=0,smooth=FALSE,maxfs=6,
-                            XC=NULL,detrend=-1, forget=-1, engin=FALSE){
+                            FF=0,smooth=FALSE,maxfs=6,
+                            XC=NULL,detrend=-1, forget=-1, engin=FALSE,...){
+  
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
   if (NCOL(TS)>1)
     stop("Only for univariate time series")
   if (any(is.na(TS)))
@@ -873,13 +878,13 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   
   ### keras based RNN: it requires keras
   if (method=="rnn"){
-    p=rnnpred(array(TS,c(length(TS),1)), n, H)
+    p=rnnpred(array(TS,c(length(TS),1)),  H,...)
     return(c(p+trnd.ts))
   }
   
   ### keras based RNN: it requires keras
   if (method=="lstm"){
-    p=lstmpred(array(TS,c(length(TS),1)), n, H)
+    p=lstmpred(array(TS,c(length(TS),1)),  H,...)
     return(c(p+trnd.ts))
   }
   
@@ -956,7 +961,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                if (length(which(!is.na(Yh)))<NROW(X) ){
                  p[h]<-mean(Yh,na.rm=TRUE)
                }else{
-                
+                 
                  p[h]<-KNN.multioutput(X[,select.var],array(Yh,c(NX,1)),
                                        q[select.var],k=Kmin,C=C,F=FF,Reg=1)
                }
@@ -1101,7 +1106,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                ## TS=[TS(1), TS(2),....., TS(N)]
                ##  D=0:  q2=[TS(N-H+h), TS(N-1-H+h),...,TS(N-n+1-H+h)]
                ##        pred=  [TS(N-H+h+1),...TS(N+h+1)]
-              
+               
                KK<-KNN.multioutput(X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF)
                p2[1:h]<-KK[(H-h+1):H]
                pdirect2<-rbind(pdirect2,p2)
@@ -1330,9 +1335,14 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #'
 MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
                              unimethod="stat_naive",
-                             pc0=3, cdfml=2,
-                             dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect"),
-                             verbose=FALSE){
+                             #pc0=3, cdfml=2,
+                             #dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect"),
+                             verbose=FALSE,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
   m<-NCOL(TS)
   if (m<=1)
     stop("Only for multivariate series")
@@ -1341,16 +1351,16 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     for (j in 1:m)
       Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod)
   if (multi=="rnn")
-    Yhat=rnnpred(TS,n,H)
+    Yhat=rnnpred(TS,H,rnnunits)
   if (multi=="lstm")
-    Yhat=lstmpred(TS,n,H)
+    Yhat=lstmpred(TS,H,rnnunits)
   if (multi=="dfm")
     Yhat=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1])
   if (multi=="dfml"){
     ## DFML searches in the space: #Pcomponents(1:2*pc0)
     # #models(dfmlmodels), autoregressive order (1:2*n)
     Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,
-                 models=dfmlmodels)
+                       models=dfmlmodels)
     
     Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,mod=Ddesign$mod)
     if (verbose){
@@ -1367,7 +1377,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     YYhat[,,1]=multifs(TS,n,H,mod="rf")
     YYhat[,,2]=multifs2(TS,n,H,mod="rf")
     YYhat[,,3]=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1])
-   
+    
     Yhat=apply(YYhat,c(1,2),mean)
   }
   if (any(is.na(Yhat)))

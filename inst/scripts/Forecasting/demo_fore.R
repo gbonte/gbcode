@@ -43,7 +43,7 @@ NMSE4=NULL
 NMSE5=NULL
 NMSE6=NULL
 TS=scale(remna((rawTS)))
-n=5
+n=15
 method1="lazydirect"
 method2="stat_theta"
 method3="lindirect"
@@ -51,7 +51,7 @@ method4="rnn"
 method5="arima"
 method6="mimo.comb"
 colors=c("red","green","magenta","cyan","orange","yellow")
-HH<-c(10,20,50)
+HH<-c(50)
 if (assess)
   for (i in round(seq((N/3),(N-max(HH)),length.out=(5))))
     for (H in HH){
@@ -64,7 +64,8 @@ if (assess)
       NMSE2=c(NMSE2,mean(TSts-Y.cont2)^2)
       Y.cont3=multiplestepAhead(TStr,n=n, H=H,method=method3,detrend=0)
       NMSE3=c(NMSE3,mean(TSts-Y.cont3)^2)
-      Y.cont4=multiplestepAhead(TStr,n=n, H=H,method=method4,detrend=0)
+      Y.cont4=multiplestepAhead(TStr,n=n, H=H,method=method4,
+                                rnnunits=50,epochs=50)
       NMSE4=c(NMSE4,mean(TSts-Y.cont4)^2)
       Y.cont5=multiplestepAhead(TStr,n=n, H=H,method=method5,detrend=0)
       NMSE5=c(NMSE5,mean(TSts-Y.cont5)^2)
@@ -77,15 +78,16 @@ if (assess)
           method5, " NMSE5=", mean(NMSE5),
           method6, " NMSE6=", mean(NMSE6),"\n")
       if (visualize){
-        plot(TSts,type="l")
-        lines(Y.cont,col=colors[1])
-        lines(Y.cont2,col=colors[2])
-        lines(Y.cont3,col=colors[3])
-        lines(Y.cont4,col=colors[4],lwd=2)
-        lines(Y.cont5,col=colors[5])
-        lines(Y.cont6,col=colors[6])
+        plot(c(TStr,TSts),type="l")
+        lines(c(TStr*NA,Y.cont),col=colors[1])
+        lines(c(TStr*NA,Y.cont2),col=colors[2])
+        lines(c(TStr*NA,Y.cont3),col=colors[3])
+        lines(c(TStr*NA,Y.cont4),col=colors[4],lwd=2)
+        lines(c(TStr*NA,Y.cont5),col=colors[5])
+        lines(c(TStr*NA,Y.cont6),col=colors[6])
         legend("topleft",c(method1,method2,method3,method4,method5,method6),
-               col=colors,lty=1)
+               col=colors,lty=1,cex=0.5)
+        browser()
         
       }
     }
