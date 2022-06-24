@@ -796,6 +796,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     stop("NA in the series")
   
   N<-length(TS)
+  if (H>round(N/2))
+    stop("Too long horizon ")
   
   qu=seq(0.1,1,by=0.1)
   
@@ -1351,18 +1353,18 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     for (j in 1:m)
       Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod)
   if (multi=="rnn")
-    Yhat=rnnpred(TS,H,rnnunits)
+    Yhat=rnnpred(TS,H,...)
   if (multi=="lstm")
-    Yhat=lstmpred(TS,H,rnnunits)
+    Yhat=lstmpred(TS,H,...)
   if (multi=="dfm")
-    Yhat=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1])
+    Yhat=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1],...)
   if (multi=="dfml"){
     ## DFML searches in the space: #Pcomponents(1:2*pc0)
     # #models(dfmlmodels), autoregressive order (1:2*n)
     Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,
-                       models=dfmlmodels)
+                       models=dfmlmodels,...)
     
-    Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,mod=Ddesign$mod)
+    Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,mod=Ddesign$mod,...)
     if (verbose){
       print(Ddesign)
     }
@@ -1376,7 +1378,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     YYhat=array(NA,c(H,m,3))
     YYhat[,,1]=multifs(TS,n,H,mod="rf")
     YYhat[,,2]=multifs2(TS,n,H,mod="rf")
-    YYhat[,,3]=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1])
+    YYhat[,,3]=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1],...)
     
     Yhat=apply(YYhat,c(1,2),mean)
   }

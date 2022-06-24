@@ -264,7 +264,12 @@ constloo<-function(x,w=rep(1,length(x))){
 
 
 dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
-                     models=c("stat_naive","lindirect")){
+                     models=c("stat_naive","lindirect"),...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
   n<-NCOL(TS)  ## number of series
   maxp=min(n,p0)  ## max no PC components
   maxm=m0 ## max autoregressive order
@@ -292,7 +297,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
         muZ=mean(Z[1:(Ntr+s),1])
         stdZ=sd(Z[1:(Ntr+s),1])+eps
         sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
-        Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+        Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
         Zhat[,1]=Zhat[,1]*stdZ+muZ
         XXts=TS[(Ntr+s+1):(Ntr+s+H),]
         Xhat=(Zhat[,1])%*%array(V[1,],c(1,n))
@@ -303,7 +308,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
           muZ=mean(Z[1:(Ntr+s),p])
           stdZ=sd(Z[1:(Ntr+s),p])+eps
           sZ=(Z[1:(Ntr+s),p]-muZ)/stdZ
-          Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+          Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
           Zhat[,p]=Zhat[,p]*stdZ+muZ
           Xhat=Zhat[,1:p]%*%V[1:p,]
           Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
@@ -322,8 +327,13 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
 }
 
 
-dfml<-function(TS,m,H,p0=3,mod="stat_comb"){
+dfml<-function(TS,m,H,p0=3,mod="stat_comb",...){
   ## m: autoregressive order
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
   n<-NCOL(TS)
   p0=min(p0,n)
   N=NROW(TS)
@@ -335,14 +345,14 @@ dfml<-function(TS,m,H,p0=3,mod="stat_comb"){
   muZ=mean(Ztr[,1])
   stdZ=sd(Ztr[,1])+eps
   sZ=(Ztr[,1]-muZ)/stdZ
-  Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+  Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
   Zhat[,1]=(Zhat[,1]*stdZ+muZ)
   if (p0>1)
     for (p in 2:p0){
       muZ=mean(Ztr[,p])
       stdZ=sd(Ztr[,p])+eps
       sZ=(Ztr[,p]-muZ)/stdZ
-      Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod)
+      Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
       Zhat[,p]=(Zhat[,p]*stdZ+muZ)
     }
   if (p0>1){
@@ -485,14 +495,14 @@ rnnpred<-function(TS,H,nunits=10,epochs=20){
     y_train_arr <- array(TS[(H+1):(N)], c(N-H,1))
     x_test_arr <- array(TS[(H+1):(N)], c(N-H,1,1))
   } else {
-    x_train_arr <- array(TS[1:(N-H),], c(N-H,1,1))
-    y_train_arr <- array(TS[(H+1):(N),],c(N-H,1)) #lag_train_tbl$value
-    x_test_arr <- array(TS[(H+1):(N),], c(N-H,1,1))
+    x_train_arr <- array(TS[1:(N-H),], c(N-H,m,1))
+    y_train_arr <- array(TS[(H+1):(N),],c(N-H,m)) #lag_train_tbl$value
+    x_test_arr <- array(TS[(H+1):(N),], c(N-H,m,1))
   }
   
   batch_size=1
   model <- keras_model_sequential()
-  
+ 
   model %>%
     layer_simple_rnn(units            = nunits, 
                input_shape      = c(m,1), 
@@ -541,9 +551,9 @@ lstmpred<-function(TS,H,nunits=10,epochs=20){
     y_train_arr <- array(TS[(H+1):(N)], c(N-H,1))
     x_test_arr <- array(TS[(H+1):(N)], c(N-H,1,1))
   } else {
-    x_train_arr <- array(TS[1:(N-H),], c(N-H,1,1))
-    y_train_arr <- array(TS[(H+1):(N),],c(N-H,1)) #lag_train_tbl$value
-    x_test_arr <- array(TS[(H+1):(N),], c(N-H,1,1))
+    x_train_arr <- array(TS[1:(N-H),], c(N-H,m,1))
+    y_train_arr <- array(TS[(H+1):(N),],c(N-H,m)) #lag_train_tbl$value
+    x_test_arr <- array(TS[(H+1):(N),], c(N-H,m,1))
   }
   
   batch_size=1
