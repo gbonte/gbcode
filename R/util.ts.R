@@ -433,61 +433,12 @@ rnnpred2<-function(TS,n,H){
   
 }
 
-rnnpred0<-function(TS,n,H,nunits=10){
-  require(keras)
-  m=NCOL(TS) ## number of series
-  
-  M=MakeEmbeddedrev(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
-  
-  I=which(!is.na(apply(M$out,1,sum)))
-  M$inp=M$inp[I,]
-  M$out=M$out[I,]
-  N=NROW(M$inp)
-  n1=NCOL(M$inp)
-  p<-NCOL(M$out)
-  
-  trainX=array(M$inp,c(NROW(M$inp),n,m))
-  trainY=array(M$out,c(NROW(M$out),H*m))
-  
-  model <- keras_model_sequential() %>%
-    layer_simple_rnn(units = nunits,input_shape=c(n,m))%>%
-    layer_dropout(0.2) %>%
-    layer_dense(units=H*m)
-  
-  
-  model %>% compile(loss = 'mse',
-                    optimizer = 'RMSprop',
-                    metrics = c('accuracy'))
-  
-  
-  model %>% fit(
-    x = trainX, # sequence we're using for prediction                                                          
-    y = trainY, # sequence we're predicting                                                                    
-    epochs = 500, # how many times we'll look @ the whole dataset                                           
-    validation_split = 0.1,verbose=0)
-  
-  lmodel=model
-  q<-NULL
-  D=0
-  for (j in 1:m)
-    q<-c(q,rev(TS[seq(N-D,N-n+1-D,by=-1),j]))
-  
-  Xts=array(q,c(1,1,length(q)))
-  trainXts=array(Xts,c(1,n,m))
-  
-  
-  Yhat<-array(NA,c(H,m))
-  
-  
-  Yhat  <- lmodel%>% predict(trainXts,verbose=0)
-  
-  return(array(Yhat,c(H,m)))
-  
-  
-}
-
-rnnpred<-function(TS,H,nunits=10,epochs=20){
-  
+rnnpred<-function(TS,H,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
   m=NCOL(TS)
   N=NROW(TS)
   if (m==1){
@@ -542,8 +493,12 @@ rnnpred<-function(TS,H,nunits=10,epochs=20){
   
   
 }
-lstmpred<-function(TS,H,nunits=10,epochs=20){
-  
+lstmpred<-function(TS,H,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
   m=NCOL(TS)
   N=NROW(TS)
   if (m==1){
@@ -649,8 +604,12 @@ lstmpred2<-function(TS,n,H,nunits=10){
 }
 
 
-multifs<-function(TS,n,H,mod="rf",w=NULL){
-  
+multifs<-function(TS,n,H,w=NULL,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
   m=NCOL(TS)
   N=NROW(TS)
   if (is.null(w))
@@ -677,8 +636,12 @@ multifs<-function(TS,n,H,mod="rf",w=NULL){
 
 
 
-multifs2<-function(TS,n,H,mod="rf"){
-  
+multifs2<-function(TS,n,H,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
   m=NCOL(TS)
   N=NROW(TS)
   Yhat<-array(NA,c(H,m))

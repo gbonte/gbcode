@@ -1337,8 +1337,6 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #'
 MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
                              unimethod="stat_naive",
-                             #pc0=3, cdfml=2,
-                             #dfmlmodels=c("stat_comb","lindirect","lazyiter","lazydirect"),
                              verbose=FALSE,...){
   args<-list(...)
   if (length(args)>0)
@@ -1357,12 +1355,11 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (multi=="lstm")
     Yhat=lstmpred(TS,H,...)
   if (multi=="dfm")
-    Yhat=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1],...)
+    Yhat=dfml(TS,n,H,p0=pc0,...)
   if (multi=="dfml"){
-    ## DFML searches in the space: #Pcomponents(1:2*pc0)
-    # #models(dfmlmodels), autoregressive order (1:2*n)
-    Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,
-                       models=dfmlmodels,...)
+    ## DFML searches in the space: #Pcomponents(1:cdfml*pc0)
+    # #models(dfmlmodels), autoregressive order (1:cdfml*n)
+    Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,...)
     
     Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,mod=Ddesign$mod,...)
     if (verbose){
@@ -1371,14 +1368,14 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     
   }
   if (multi=="multifs")
-    Yhat=multifs(TS,n,H,mod="rf")
+    Yhat=multifs(TS,n,H,...)
   if (multi=="multifs2")
-    Yhat=multifs2(TS,n,H,mod="rf")
+    Yhat=multifs2(TS,n,H,...)
   if (multi=="comb"){
     YYhat=array(NA,c(H,m,3))
-    YYhat[,,1]=multifs(TS,n,H,mod="rf")
-    YYhat[,,2]=multifs2(TS,n,H,mod="rf")
-    YYhat[,,3]=dfml(TS,n,H,p0=pc0,mod=dfmlmodels[1],...)
+    YYhat[,,1]=multifs(TS,n,H,...)
+    YYhat[,,2]=multifs2(TS,n,H,...)
+    YYhat[,,3]=dfml(TS,n,H,p0=pc0,...)
     
     Yhat=apply(YYhat,c(1,2),mean)
   }
