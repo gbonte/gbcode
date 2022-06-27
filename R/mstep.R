@@ -1361,7 +1361,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     # #models(dfmlmodels), autoregressive order (1:cdfml*n)
     Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,...)
     
-    Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,mod=Ddesign$mod,...)
+    Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,dfmod=Ddesign$mod,...)
     if (verbose){
       print(Ddesign)
     }
