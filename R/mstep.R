@@ -1367,8 +1367,15 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     }
     
   }
+  if (multi=="VAR"){
+    if (n*(m^2)>N)
+      n=1
+    #mVAR=VAR(TS,p=n,output=FALSE)
+    Yhat=VARpred2(TS,m=VAR(TS,p=n,output=FALSE),h=H,Out=FALSE)$pred 
+  }
   if (multi=="multifs")
     Yhat=multifs(TS,n,H,...)
+  
   if (multi=="multifs2")
     Yhat=multifs2(TS,n,H,...)
   if (multi=="comb"){
