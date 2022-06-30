@@ -51,9 +51,21 @@ MASE<-function(y,yhat){
   mean(abs(q))
   
 }
-
+#### remNA ####
+#' Remove NA from a multivariate time series by interpolation
+#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @references \url{mlg.ulb.ac.be}
+#' @title Remove NA from a time series by interpolation
+#' @param TS: univariate/multivariate time series
+#' @export
+#'
 remNA<-function(TS){
-  return(approx(seq(TS),TS,seq(TS))$y)
+  if (is.vector(TS))
+    return(approx(seq(TS),TS,seq(TS))$y)
+  TS2=TS*0
+  for (i in 1:NCOL(TS))
+    TS2[,i]=approx(seq(TS[,i]),TS[,i],seq(TS[,i]))$y
+  return(TS2)
 }
 
 nlcor<-function(x,y){
@@ -69,17 +81,6 @@ nlcor<-function(x,y){
   cor(y[-I], yh)
 }
 
-#### remNA ####
-#' Remove NA from a time series by interpolation
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
-#' @references \url{mlg.ulb.ac.be}
-#' @title Remove NA from a time series by interpolation
-#' @param TS: univariate time series
-#' @export
-#'
-remNA<-function(TS){
-  return(approx(seq(TS),TS,seq(TS))$y)
-}
 
 #### dist2 ####
 #' Returns matrix of distances between two matrices with same number of columns
@@ -327,7 +328,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
 }
 
 
-dfml<-function(TS,n,H,p0=3,dfmod="stat_comb",...){
+dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
   ## n: autoregressive order
   args<-list(...)
   if (length(args)>0)
@@ -385,10 +386,10 @@ rnnpred2<-function(TS,n,H){
   model %>%
     layer_lstm(units            = 50, 
                input_shape      = c(n,m), 
-              # batch_size       = 5,
+               # batch_size       = 5,
                return_sequences = TRUE, 
-              # stateful         = TRUE
-              ) %>% 
+               # stateful         = TRUE
+    ) %>% 
     layer_lstm(units            = 50, 
                return_sequences = FALSE, 
                stateful         = FALSE) %>% 
@@ -433,12 +434,13 @@ rnnpred2<-function(TS,n,H){
   
 }
 
-rnnpred<-function(TS,H,...){
+rnnpred<-function(TS,H,nunits=10,epochs=50,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
+ 
   m=NCOL(TS)
   N=NROW(TS)
   if (m==1){
@@ -453,16 +455,16 @@ rnnpred<-function(TS,H,...){
   
   batch_size=1
   model <- keras_model_sequential()
- 
+  
   model %>%
     layer_simple_rnn(units            = nunits, 
-               input_shape      = c(m,1), 
-               batch_size       = batch_size,
-               return_sequences = TRUE, 
-               stateful         = TRUE) %>% 
+                     input_shape      = c(m,1), 
+                     batch_size       = batch_size,
+                     return_sequences = TRUE, 
+                     stateful         = TRUE) %>% 
     layer_simple_rnn(units            = nunits, 
-               return_sequences = FALSE, 
-               stateful         = TRUE) %>% 
+                     return_sequences = FALSE, 
+                     stateful         = TRUE) %>% 
     layer_dense(units = m)
   
   model %>% 
@@ -504,13 +506,16 @@ VARspred<-function(TS,n,H,...){
   return(Yhat)
 }
 
-lstmpred<-function(TS,H,...){
+lstmpred<-function(TS,H,nunits=10,epochs=50,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
+  
   m=NCOL(TS)
+ 
+  
   N=NROW(TS)
   if (m==1){
     x_train_arr <- array(TS[1:(N-H)], c(N-H,1,1))
@@ -662,7 +667,7 @@ multifs2<-function(TS,n,H,...){
     fs<-Ii[mrmr(TS[,Ii],TS[,i],min(m-1,5))]
     ## subset of series which is informative about TS[,i]
     Yhat[,i]=multifs(TS[,c(i,fs)],n,H,mod=mod,w=1)
-           
+    
   }
   
   
@@ -819,4 +824,4 @@ VARpred2<-function (x,model, h = 1, orig = 0, Out.level = F,verbose=FALSE) {
 }
 
 
-  
+

@@ -783,13 +783,17 @@ lin.pls<- function(X,Y,X.ts){
 #'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             FF=0,smooth=FALSE,maxfs=6,
-                            XC=NULL,detrend=-1, forget=-1, engin=FALSE,...){
+                            XC=NULL,detrend=-1, forget=-1, engin=FALSE,
+                            Kmin=3,C=3,debug=FALSE,
+                            verbose=FALSE,...){
   
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
+  if (debug)
+    browser()
   if (NCOL(TS)>1)
     stop("Only for univariate time series")
   if (any(is.na(TS)))
@@ -1006,12 +1010,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                      q2=q[select.var]
                      
                      p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
-                                     conPar=CPar,linPar=LPar,cmbPar=10)
+                                     conPar=CPar,linPar=LPar,cmbPar=3)
                    }
                  }else{
                    
                    p[h]<-lazy.pred(Xw,Yw,q[select.var],
-                                   conPar=CPar,linPar=LPar,cmbPar=10)
+                                   conPar=CPar,linPar=LPar,cmbPar=3)
                  }
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
@@ -1050,12 +1054,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                      q2=q[select.var]
                      
                      p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
-                                     conPar=CPar,linPar=LPar,cmbPar=10)
+                                     conPar=CPar,linPar=LPar,cmbPar=3)
                    }
                  }else{
                    
                    p[h]<-lazy.pred(Xw,Yw,q[select.var],
-                                   conPar=CPar,linPar=LPar,cmbPar=10)
+                                   conPar=CPar,linPar=LPar,cmbPar=3)
                  }
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
@@ -1259,7 +1263,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
-                                 conPar=CPar,linPar=LPar,cmbPar=10)
+                                 conPar=CPar,linPar=LPar,cmbPar=3)
              q<-c(piter[h],q[1:(length(q)-1)])
              
            }
@@ -1274,7 +1278,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
              piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
-                                 conPar=CPar,linPar=LPar,cmbPar=10)
+                                 conPar=CPar,linPar=LPar,cmbPar=3)
              q<-c(piter[h],q[1:(length(q)-1)])
              
            }
@@ -1336,7 +1340,9 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #' ## Multi-variate Multi-step-ahead time series forecasting
 #'
 MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
-                             unimethod="stat_naive",
+                             unimethod="stat_naive", 
+                             dfmlmodels="lindirect",
+                             pc0=2,
                              verbose=FALSE,
                              debug=FALSE,...){
   args<-list(...)
@@ -1345,6 +1351,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
       assign(x = names(args)[i], value = args[[i]])
     }
   m<-NCOL(TS)
+  if (debug)
+    browser()
   if (m<=1)
     stop("Only for multivariate series")
   Yhat=array(NA,c(H,m))
@@ -1357,8 +1365,6 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=lstmpred(TS,H,...)
   if (multi=="dfm"){
     Yhat=dfml(TS,n,H,p0=pc0,dfmod=dfmlmodels[1],...)
-    if (debug)
-      browser()
   }
   if (multi=="dfml"){
     ## DFML searches in the space: #Pcomponents(1:cdfml*pc0)
