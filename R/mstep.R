@@ -1370,8 +1370,12 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (multi=="VAR"){
     if (n*(m^2)>N)
       n=1
-    #mVAR=VAR(TS,p=n,output=FALSE)
-    Yhat=VARpred2(TS,m=VAR(TS,p=n,output=FALSE),h=H,Out=FALSE)$pred 
+    
+    Yhat=VARpred2(TS,m=MTS::VAR(TS,p=n,output=FALSE),h=H,Out=FALSE)$pred 
+  }
+  if (multi=="VARs"){
+   
+    Yhat=VARspred(TS,n,H)
   }
   if (multi=="multifs")
     Yhat=multifs(TS,n,H,...)
@@ -1387,7 +1391,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=apply(YYhat,c(1,2),mean)
   }
   if (any(is.na(Yhat)))
-    stop("Wrong method in MmultiplestepAhead")
+    stop(paste(multi," is an unknown method in MmultiplestepAhead")
   
   return(Yhat)
 }

@@ -493,6 +493,17 @@ rnnpred<-function(TS,H,...){
   
   
 }
+VARspred<-function(TS,n,H,...){
+  n=NCOL(TS)
+  colnames(TS)=1:n
+  V=VARshrink(TS, p = n, type = "const", method = "ridge")
+  P=predict(V,n.ahead=H)
+  Yhat=NULL
+  for (i in 1:n)
+    Yhat=cbind(Yhat,P$fcst[[i]][,1])
+  return(Yhat)
+}
+
 lstmpred<-function(TS,H,...){
   args<-list(...)
   if (length(args)>0)
