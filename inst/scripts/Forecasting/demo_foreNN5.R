@@ -17,7 +17,7 @@ NMSE6=NULL
 method1="lazydirect"
 method2="liniter"
 method3="lazyiter"
-method4="lstm"
+method4="stat_holt"
 method5="rnn"
 method6="mimo.comb"
 colors=c("red","green","magenta","cyan","orange","blue")
@@ -39,24 +39,23 @@ for (i in 2:nseries){
     TSts=TS[(Ntr+1):(Ntr+H)]
     Yn=multiplestepAhead(TStr,n=n, H=H,method="stat_naive")
     
-    Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1,maxfs=maxfs,eng=FALSE)
+    Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1)
     NMSE=c(NMSE,mean((TSts-Y.cont)^2)/(mean((TSts-Yn)^2)))
     
-    Y.cont2=multiplestepAhead(TStr,n=n, H=H,method=method2,maxfs=maxfs)
+    Y.cont2=multiplestepAhead(TStr,n=n, H=H,method=method2)
     NMSE2=c(NMSE2,mean((TSts-Y.cont2)^2)/(mean((TSts-Yn)^2)))
     
-    Y.cont3=multiplestepAhead(TStr,n=n, H=H,method=method3,maxfs=maxfs)
+    Y.cont3=multiplestepAhead(TStr,n=n, H=H,method=method3)
     NMSE3=c(NMSE3,mean((TSts-Y.cont3)^2)/(mean((TSts-Yn)^2)))
     
-    Y.cont4=multiplestepAhead(TStr,n=n, H=H,method=method4,maxfs=maxfs)
+    Y.cont4=multiplestepAhead(TStr,n=n, H=H,method=method4)
     NMSE4=c(NMSE4,mean((TSts-Y.cont4)^2)/(mean((TSts-Yn)^2)))
     
-    Y.cont5=multiplestepAhead(TStr,n=n, H=H,method=method5,maxfs=maxfs)
+    Y.cont5=multiplestepAhead(TStr,n=n, H=H,method=method5)
     NMSE5=c(NMSE5,mean((TSts-Y.cont5)^2)/(mean((TSts-Yn)^2)))
     
-    Y.cont6=multiplestepAhead(TStr,n=n, H=H,method=method6,maxfs=maxfs,Kmin=5,C=4)
-    lambda=0
-    Y.cont6=lambda*(Yn)+(1-lambda)*Y.cont6
+    Y.cont6=multiplestepAhead(TStr,n=n, H=H,method=method6)
+   
     NMSE6=c(NMSE6,mean((TSts-Y.cont6)^2)/(mean((TSts-Yn)^2)))
     
     ## Forecasting error is normalised wrt error of the naive method
