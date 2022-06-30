@@ -1391,7 +1391,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=apply(YYhat,c(1,2),mean)
   }
   if (any(is.na(Yhat)))
-    stop(paste(multi," is an unknown method in MmultiplestepAhead")
+    stop(paste(multi," is an unknown method in MmultiplestepAhead"))
   
   return(Yhat)
 }
