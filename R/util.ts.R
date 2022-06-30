@@ -327,15 +327,15 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
 }
 
 
-dfml<-function(TS,m,H,p0=3,dfmod="stat_comb",...){
-  ## m: autoregressive order
+dfml<-function(TS,n,H,p0=3,dfmod="stat_comb",...){
+  ## n: autoregressive order
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
-  n<-NCOL(TS)
-  p0=min(p0,n)
+  m<-NCOL(TS)
+  p0=min(p0,m)
   N=NROW(TS)
   Zhat<-array(NA,c(H,p0))
   C=cov(TS)
@@ -352,14 +352,14 @@ dfml<-function(TS,m,H,p0=3,dfmod="stat_comb",...){
       muZ=mean(Ztr[,p])
       stdZ=sd(Ztr[,p])+eps
       sZ=(Ztr[,p]-muZ)/stdZ
-      Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=dfmod,...)
+      Zhat[,p]=multiplestepAhead(sZ,n=n, H=H,method=dfmod,...)
       Zhat[,p]=(Zhat[,p]*stdZ+muZ)
     }
   if (p0>1){
     Xhat=Zhat[,1:p0]%*%V[1:p0,]
     return(Xhat)
   }
-  Xhat=Zhat[,1]%*%array(V[1:p0,],c(1,n))
+  Xhat=Zhat[,1]%*%array(V[1:p0,],c(1,m))
   return(Xhat)
   
 }
@@ -615,12 +615,13 @@ lstmpred2<-function(TS,n,H,nunits=10){
 }
 
 
-multifs<-function(TS,n,H,w=NULL,...){
+multifs<-function(TS,n,H,w=NULL,nfs=5,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
+  
   m=NCOL(TS)
   N=NROW(TS)
   if (is.null(w))
@@ -638,7 +639,7 @@ multifs<-function(TS,n,H,w=NULL,...){
   for (i in 1:length(w))
     for (h in 1:H){
       Y=YY[,(w[i]-1)*H+h]
-      fs<-mrmr(XX,Y,min(NCOL(XX)-1,5))
+      fs<-mrmr(XX,Y,min(NCOL(XX)-1,nfs))
       Yhat[h,i]=pred(mod,XX[,fs],Y,Xts[,fs],class=FALSE)
       
     }
@@ -659,6 +660,7 @@ multifs2<-function(TS,n,H,...){
   for (i in 1:m){
     Ii=setdiff(1:m,i)
     fs<-Ii[mrmr(TS[,Ii],TS[,i],min(m-1,5))]
+    ## subset of series which is informative about TS[,i]
     Yhat[,i]=multifs(TS[,c(i,fs)],n,H,mod=mod,w=1)
            
   }

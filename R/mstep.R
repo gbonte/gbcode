@@ -1337,7 +1337,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #'
 MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
                              unimethod="stat_naive",
-                             verbose=FALSE,...){
+                             verbose=FALSE,
+                             debug=FALSE,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -1349,13 +1350,16 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   Yhat=array(NA,c(H,m))
   if (multi=="uni")
     for (j in 1:m)
-      Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod)
+      Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod,...)
   if (multi=="rnn")
     Yhat=rnnpred(TS,H,...)
   if (multi=="lstm")
     Yhat=lstmpred(TS,H,...)
-  if (multi=="dfm")
-    Yhat=dfml(TS,n,H,p0=pc0,...)
+  if (multi=="dfm"){
+    Yhat=dfml(TS,n,H,p0=pc0,dfmod=dfmlmodels[1],...)
+    if (debug)
+      browser()
+  }
   if (multi=="dfml"){
     ## DFML searches in the space: #Pcomponents(1:cdfml*pc0)
     # #models(dfmlmodels), autoregressive order (1:cdfml*n)
@@ -1385,7 +1389,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (multi=="comb"){
     YYhat=array(NA,c(H,m,3))
     YYhat[,,1]=multifs(TS,n,H,...)
-    YYhat[,,2]=multifs2(TS,n,H,...)
+    YYhat[,,2]=VARspred(TS,n,H,...)
     YYhat[,,3]=dfml(TS,n,H,p0=pc0,...)
     
     Yhat=apply(YYhat,c(1,2),mean)
