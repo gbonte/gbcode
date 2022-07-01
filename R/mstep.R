@@ -1377,8 +1377,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=multifs2(TS,n,H,mod=mod,...)
   if (multi=="comb"){
     YYhat=array(NA,c(H,m,3))
-    YYhat[,,1]=multifs(TS,n,H,...)
-    YYhat[,,2]=VARspred(TS,n,H,...)
+    YYhat[,,1]=multifs(TS,n,H,mod=mod,...)
+    YYhat[,,2]=VARspred(TS,n,H,mod=mod,...)
     YYhat[,,3]=dfml(TS,n,H,p0=pc0,...)
     
     Yhat=apply(YYhat,c(1,2),mean)

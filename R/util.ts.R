@@ -620,7 +620,7 @@ lstmpred2<-function(TS,n,H,nunits=10){
 }
 
 
-multifs<-function(TS,n,H,w=NULL,nfs=5,...){
+multifs<-function(TS,n,H,w=NULL,nfs=5,mod,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -655,7 +655,7 @@ multifs<-function(TS,n,H,w=NULL,nfs=5,...){
 
 
 
-multifs2<-function(TS,n,H,...){
+multifs2<-function(TS,n,H,mod,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
