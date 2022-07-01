@@ -12,28 +12,36 @@ library(keras)
 # clothing          Cloth sales in China m=25 for 1805 days
 #TaiwanAirBox032017 Hourly PM25 Measurements from Air-Box Devices in Taiwan (m=516)
 #PElectricity1344 Electricity Prices in New England and USA- weekly (m=1344)
-
+names=c("FREDMDApril19","CPIEurope200015","Stockindexes99world",
+        "UMEdata20002018","clothing",
+        "TaiwanAirBox032017","PElectricity1344")
 frequency=c(24)
-D = get("clothing", asNamespace('SLBDD'))
+nn=3
+D = get(names[nn], asNamespace('SLBDD'))
+w=which(colnames(D) %in% c("caldt","Date","hour") )
+if (length(w)>0)
+  D=D[,-w]
 print(dim(D))
 visualize=TRUE 
 season=FALSE
 execute=TRUE
 namefile="price.Rdata"
-methods=c("uni","VAR","VARs","dfm","dfml","lstm")
+methods=c("uni","VAR","VARs","dfm","dfml","multifs")
 colors=c("red","green","magenta","cyan","orange","blue")
 
 if (execute){
+  set.seed(0)
   n=5
-  Nmax<-1500
+  Nmax<-1000
+  mmax<-100
   if (NROW(D)>Nmax)
     D=D[1:Nmax,]
-  mmax<-50
+  
  
   if (NCOL(D)>mmax)
     D=D[,sample(1:NCOL(D),mmax)]
   m=NCOL(D)
-  H=25
+  H=50
   
   if (season){
     X=NULL
@@ -67,7 +75,7 @@ if (execute){
   Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5],cdfml=2,
                            dfmlmodels=c("lindirect","lazydirect"))
   cat(".")
-  Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6])
+  Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],mod="rf")
   cat(".")
   save(file=namefile,list=c("methods","H","X","m","Xts","Xhat1","Xhat2",
                                      "Xhat3","Xhat4","Xhat5","Xhat6"))

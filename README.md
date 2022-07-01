@@ -14,3 +14,7 @@ library(devtools); install_github("gbonte/gbcode"); require(gbcode)
 To change the directory to the one containing scripts 
 
 - setwd(find.package("gbcode"))
+
+To go to the directory of the Forecasting scripts 
+- setwd(paste(find.package("gbcode"),"scripts/Forecasting",sep="/"))
+

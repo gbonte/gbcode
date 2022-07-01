@@ -1,5 +1,5 @@
 rm(list=ls())
-library("SLBDD")
+library("SLBDDMT")
 library("VARshrink")
 require(gbcode)
 require(MTS)

@@ -82,7 +82,7 @@ nlcor<-function(x,y){
 
 
 #' timefit
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
 #'
 #' @description time fitting of time series
 #' @details time fitting
@@ -116,9 +116,10 @@ timefit<-function(TS.tr,n,C,H){
 
 
 #' KNN.multioutput
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
 #'
 #' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
+#' @references \url{https://tinyurl.com/sfmlh}
 #' @description Multioutput KNN
 #' @details Multioutput KNN which perform a locally constant model with weighted combination of local model on the basis of leave-one-out error. A tricube kernel is used to weight the distances.
 #' @title KNN.multioutput
@@ -268,7 +269,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
 
 
 #' KNN.acf
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
 #'
 #' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
 #' @description Multioutput KNN
@@ -395,7 +396,7 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3){
 
 
 #' KNN.acf.lin
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
 #'
 #' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
 #' @description Multioutput KNN
@@ -518,7 +519,7 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3)
 
 
 #' KNN.pls
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
 #'
 #' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
 #' @description Multioutput KNN
@@ -652,7 +653,7 @@ KNN.pls<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,del=0){
 
 
 #' lin.pls
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
 #'
 #' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
 #' @description Multioutput lin PLS
@@ -701,14 +702,15 @@ lin.pls<- function(X,Y,X.ts){
 
 
 #' multiplestepAhead
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
 #'
 #' @references \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
-#' @description multiplestepAhead
-#' @details Wrapper over a set of methods for multiple step ahead time series prediction
+#' @references \url{https://tinyurl.com/sfmlh}
+#' @description multiplestepAhead: : univariate multi-step-ahead forecaster
+#' @details Wrapper over a set of methods for univariate multi-step-ahead time series forecasting
 #' @title multiplestepAhead
 #' @name multiplestepAhead
-#' @param TS: time series
+#' @param TS: time series in column format [T,1]
 #' @param n: embedding order
 #' @param H: horizon
 #' @param  dist: type of distance: \code{euclidean, cosine} for lazy methods
@@ -759,13 +761,14 @@ lin.pls<- function(X,Y,X.ts){
 #' Y.cont=multiplestepAhead(TS.tr,n=3, H=H,method="mimo")
 #'
 #' plot(t[(N-H+1):N],TS.ts)
-#' lines(t[(N-H+1):N],Y.cont)
+#' lines(t[(N-H+1):N],Y.cont,col="red")
 #'
 #'
 #'
 #'
 #' ## Multi-step ahead time series forecasting Santa Fe  chaotic time series A
-#' rm(list=ls()
+#' rm(list=ls())
+#' require(gbcode)
 #' data(A)
 #' TS=A
 #' N<-1000
@@ -773,11 +776,11 @@ lin.pls<- function(X,Y,X.ts){
 #' TS.tr=TS[1:N,1]
 #' TS.ts<-TS[(N+1):(N+H),1]
 #' TS.tr=array(TS.tr,c(length(TS.tr),1))
-#' Y.mimo=multiplestepAhead(TS.tr,n=12, H=H,method="mimo")
+#' Y.dir=multiplestepAhead(TS.tr,n=12, H=H,method="lazydirect")
 #' Y.mimo.comb=multiplestepAhead(TS.tr,n=12, H=H,method="mimo.comb")
-#' plot(t[(N-H+1):N],TS.ts)
-#' lines(t[(N-H+1):N],Y.mimo,col="red")
-#' lines(t[(N-H+1):N],Y.mimo.comb,col="green")
+#' plot((N-H+1):N,TS.ts,type="l",xlab="",ylab="Santa Fe A series")
+#' lines((N-H+1):N,Y.dir,col="red")
+#' lines((N-H+1):N,Y.mimo.comb,col="green")
 #'
 #'
 #'
@@ -1317,31 +1320,51 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 
 
 #' MmultiplestepAhead
-#' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
+#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
 #'
-#' @description MmultiplestepAhead
+#' @references \url{https://tinyurl.com/sfmlh}
+#' @description MmultiplestepAhead: multi-variate multi-step-ahead forecaster
 #' @details Wrapper over a set of methods for multi variate multiple step ahead time series prediction
 #' @title MmultiplestepAhead
 #' @name MmultiplestepAhead
-#' @param TS: time series
+#' @param TS: time series [T,m] where m>1 is the number of series
 #' @param n: embedding order
+#' @param dfmlmethods: alternative methods from \link{mmultiplestepAhead} used by DFML to predict factors
 #' @param H: horizon
+#' @param unimethod: method from \link{mmultiplestepAhead} used to predict each univariate series
 #' @param  multi:
 #' \itemize{
-#' \item{uni}: prediction based on univariate forecasting with unimethod
+#' \item{uni}: prediction based on univariate forecasting with unimethod in \link{mmultiplestepAhead}
 #' \item{dfm}: prediction based on DFM
 #' \item{dfml}: prediction based on DFML
-#' \item{rnn}: prediction based on keras rnn
+#' \item{VAR}: prediction based on VAR 
+#' \item{VARs}: prediction based on VAR shrink from \pkg{VARshrink} package
+#' \item{rnn}: prediction based on \pkg{keras} rnn
+#' \item{lstm}: prediction based on \pkg{keras} lstm
+#' \item{multi}: prediction based on MISO direct strategy and feature selection (predictor from \link{pred})
 #' }
-#' @param pc0: number of DFML components
-#' @return H step ahead predictions
+#' @return matrix [H,m] with the H step ahead predictions for m series
 #' @export
 #' @examples
 #' ## Multi-variate Multi-step-ahead time series forecasting
-#'
+#' require("VARshrink")
+#' require(gbcode)
+#' require(MTS)
+#' data("mts-examples")
+#' Xtr=scale(tenstocks[,2:11])
+#' n=3
+#' H=10
+#' Xhat1=MmultiplestepAhead(Xtr,n,H,multi="uni",uni=c("lazyiter"))
+#' Xhat2=MmultiplestepAhead(Xtr,n,H,multi="dfm")
+#' Xhat3=MmultiplestepAhead(Xtr,n,H,multi="VARs")
+#' Xhat4=MmultiplestepAhead(Xtr,n,H,multi="dfml",cdfml=3,
+#'                         dfmlmethods=c("lindirect","lazydirect"))
+#' Xhat5=MmultiplestepAhead(Xtr,n,H,multi="multifs",mod="rf")
+#' 
 MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
                              unimethod="stat_naive", 
                              dfmlmodels="lindirect",
+                             mod="rf",
                              pc0=2,
                              verbose=FALSE,
                              debug=FALSE,...){
@@ -1388,10 +1411,10 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=VARspred(TS,n,H)
   }
   if (multi=="multifs")
-    Yhat=multifs(TS,n,H,...)
+    Yhat=multifs(TS,n,H,mod=mod,...)
   
   if (multi=="multifs2")
-    Yhat=multifs2(TS,n,H,...)
+    Yhat=multifs2(TS,n,H,mod=mod,...)
   if (multi=="comb"){
     YYhat=array(NA,c(H,m,3))
     YYhat[,,1]=multifs(TS,n,H,...)

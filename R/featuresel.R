@@ -65,6 +65,8 @@ rankrho<-function(X,Y,nmax=5,regr=FALSE){
 #' Y<-R$Y
 #' real.features<-R$feat
 #' ranked.features<-rfrank(X,Y,nmax=3)
+#' 
+#' 
 rfrank<-function(X,Y,nmax=5,type=1){
   if (!is.element(type,c(1,2)))
     stop("Error: type should be either 1 or 2")
