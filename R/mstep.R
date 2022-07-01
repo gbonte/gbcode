@@ -25,47 +25,6 @@ periodest<-function(x){
   return(round(1/spx[which.max(spy)])) ## period estimation
 }
 
-detectSeason<-function(TS,maxs=10){
-  if (length(TS)<20 || sd(TS)<0.1)
-    return (1)
-  seas=1
-  trnd=lm(TS ~ seq(TS))$fit
-  for (add in c(0,1)){
-    if (add==1)
-      S<-TS/trnd
-    if (add==0)
-      S<-TS-trnd
-    #print(S) 
-    if (any(is.infinite(S)))
-      return (1)
-    if (sd(S,na.rm=TRUE)<0.1)
-      return (1)
-    PVS=numeric(maxs)+Inf
-    for (s in 2:maxs){
-      PV=NULL
-      m_S = t(matrix(data = S, nrow = s))
-      for (i in 1:s){
-        for (j in setdiff(1:s,i)){
-          xs=m_S[,i]
-          ys=unlist(m_S[,j])
-          if (sd(xs,na.rm=TRUE)<0.1 || sd(ys,na.rm=TRUE)<0.1)
-            return(1)
-          PV=c(PV,t.test(xs,ys)$p.value)
-        }#
-        
-      }#
-      PVS[s]=median(PV)
-    }# for s
-    
-    if (min(PVS)<0.05){
-      seas=which.min(PVS)
-      return(seas)
-    }# if min
-  }#
-  
-  return(seas)
-}#
-
 nlcor<-function(x,y){
   require(lazy)
   N<-length(x)
@@ -787,7 +746,7 @@ lin.pls<- function(X,Y,X.ts){
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             FF=0,smooth=FALSE,maxfs=6,
                             XC=NULL,detrend=-1, forget=-1, engin=FALSE,
-                            Kmin=3,C=3,debug=FALSE,
+                            Kmin=3,C=2,debug=FALSE,
                             verbose=FALSE,...){
   
   args<-list(...)
@@ -821,11 +780,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   
   trnd.ts=numeric(H)
   trnd.ts2=numeric(H)
-  if (detrend>=0){
-    I=max(1,min(N-10,max(1,round(N*detrend)))):N
-    trnd=pred("lin",I,TS[I],seq(c(TS)),classi=FALSE,lambda=1e-3) 
-    trnd.ts=pred("lin",I,TS[I],seq(c(TS,1:H)),classi=FALSE,lambda=1e-3)[(N+1):(N+H)]
-    TS=TS-trnd
+  if (detrend>0){
+    S=detectSeason(TS,Ls=N+H,pmin=0.25)
+    TS=TS-S$spattern[1:N]-S$strend[1:N]
+    trnd.ts<-S$spattern+S$strend
+    trnd.ts<-trnd.ts[(N+1):(N+H)]
   }
   
   if (!is.null(XC)){
@@ -1374,6 +1333,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
       assign(x = names(args)[i], value = args[[i]])
     }
   m<-NCOL(TS)
+  N=NROW(TS)
   if (debug)
     browser()
   if (m<=1)
@@ -1392,7 +1352,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (multi=="dfml"){
     ## DFML searches in the space: #Pcomponents(1:cdfml*pc0)
     # #models(dfmlmodels), autoregressive order (1:cdfml*n)
-    Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,...)
+    Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,models=dfmlmodels,...)
     
     Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,dfmod=Ddesign$mod,...)
     if (verbose){
@@ -1411,7 +1371,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=VARspred(TS,n,H)
   }
   if (multi=="multifs")
-    Yhat=multifs(TS,n,H,mod=mod,...)
+    Yhat=multifs(TS,n,H,mod=mod,debug=debug,...)
   
   if (multi=="multifs2")
     Yhat=multifs2(TS,n,H,mod=mod,...)

@@ -434,13 +434,13 @@ rnnpred2<-function(TS,n,H){
   
 }
 
-rnnpred<-function(TS,H,nunits=10,epochs=50,...){
+rnnpred<-function(TS,H,nunits=50,epochs=50,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
- 
+  
   m=NCOL(TS)
   N=NROW(TS)
   if (m==1){
@@ -506,7 +506,7 @@ VARspred<-function(TS,n,H,...){
   return(Yhat)
 }
 
-lstmpred<-function(TS,H,nunits=10,epochs=50,...){
+lstmpred<-function(TS,H,nunits=50,epochs=50,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -514,7 +514,7 @@ lstmpred<-function(TS,H,nunits=10,epochs=50,...){
     }
   
   m=NCOL(TS)
- 
+  
   
   N=NROW(TS)
   if (m==1){
@@ -645,7 +645,9 @@ multifs<-function(TS,n,H,w=NULL,nfs=5,...){
     for (h in 1:H){
       Y=YY[,(w[i]-1)*H+h]
       fs<-mrmr(XX,Y,min(NCOL(XX)-1,nfs))
-      Yhat[h,i]=pred(mod,XX[,fs],Y,Xts[,fs],class=FALSE)
+      
+      Yhat[h,i]=pred(mod,XX[,fs],Y,array(Xts[,fs],c(1,length(fs))),
+                     class=FALSE)
       
     }
   return(Yhat)
@@ -823,5 +825,48 @@ VARpred2<-function (x,model, h = 1, orig = 0, Out.level = F,verbose=FALSE) {
   VARpred <- list(pred = pred, se.err = se, mse = mse)
 }
 
+detectSeason<-function(TS,maxs=20,Ls=100,pmin=0.1,debug=FALSE){
+  if (length(TS)<20 || sd(TS)<0.01)
+    return(list(best=1,spattern=numeric(LS),strend=numeric(LS)))
+  if (any(is.infinite(TS)))
+    return(list(best=1,spattern=numeric(LS),strend=numeric(LS)))
+  if (sd(TS,na.rm=TRUE)<0.01)
+    return(list(best=1,spattern=numeric(LS),strend=numeric(LS)))
+  
+  N=length(TS)
+  maxs=min(maxs,round(N/6))
+  trnd=lm(TS ~ seq(TS))$fit
+  
+  VS=numeric(maxs)-Inf
+  
+  S<-TS-trnd  ## detrended series
+  
+  for (s in 2:maxs){
+    PV=NULL
+    V=NULL
+    m_S = t(matrix(data = S[1:(floor(N/s)*s)], nrow = s))
+    VS[s]=(sd(S)-mean(apply(m_S,2,sd)))/sd(S) 
+    ## percentual reduction of stdev:
+    ## measure of entropy reduction 
+    
+  }# add
+ 
+  mVS=max(VS)
+  if (debug)
+    browser()
+  I=1:Ls
+  trnd2=pred("lin",1:length(trnd),trnd,1:Ls,classi=FALSE,lambda=1e-3)
+  if (mVS>pmin) { 
+    
+    bests=which.max(VS)  ## lowest conditional variance 
+    m_S = t(matrix(data = S[1:(floor(N/bests)*bests)], nrow = bests))
+    spattern=apply(m_S,2,mean)
+    spattern=rep(spattern,length.out=Ls)
+  } else {
+    bests=NA
+    spattern=numeric(Ls)
+  }
+  return(list(best=bests,spattern=spattern,strend=trnd2))
+}#
 
 

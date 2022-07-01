@@ -18,3 +18,5 @@ To change the directory to the one containing scripts
 To go to the directory of the Forecasting scripts 
 - setwd(paste(find.package("gbcode"),"scripts/Forecasting",sep="/"))
 
+To list the Forecasting demos:
+- dir(paste(find.package("gbcode"),"scripts/Forecasting/",sep="/"),patt="demo*")
