@@ -6,7 +6,7 @@ require(MTS)
 library(keras)
 
 # volatility          
-frequency=c(7)
+
 setwd(paste(find.package("gbcode"),"scripts/Forecasting",sep="/"))
 
 load("./data/bench.vola.6.Rdata")
@@ -30,6 +30,7 @@ if (execute){
     D=D[,sample(1:NCOL(D),mmax)]
   D=scale(D)
   m=NCOL(D)
+  N=NROW(D)
   H=25
   
   SeasP<-NULL
@@ -65,12 +66,11 @@ if (execute){
   Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5],cdfml=3,
                            dfmlmodels=c("lazydirect","lindirect","stat_comb"))
   cat(".")
-  Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],uni="mimo.comb")
+  Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],epochs=10)
   cat(".")
-  save(file=namefile,list=c("methods","H","X","m","Xts","Xhat1","Xhat2",
-                            "Xhat3","Xhat4","Xhat5","Xhat6"))
-} else
-  load(namefile)
+ # save(file=namefile,list=c("methods","H","X","m","Xts","Xhat1","Xhat2",
+#                            "Xhat3","Xhat4","Xhat5","Xhat6"))
+}
 
 m=NCOL(X)
 if (season){

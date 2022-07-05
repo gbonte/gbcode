@@ -3,11 +3,16 @@ library("SLBDD")
 library("VARshrink")
 require(gbcode)
 require(MTS)
-library(keras)
 
-# CPIEurope200015          
-#"TaiwanAirBox032017","PElectricity1344"
-D = get("TaiwanAirBox032017", asNamespace('SLBDD'))
+
+#FREDMDApril19     Federal Reserve Bank at St Louis.
+#CPIEurope200015   m=33 monthly Price Indexes EUUS
+# Stockindexes99world World Stock Indexes: daily stock indices of m=99 financial markets
+#UMEdata20002018   Quarterly Economic Series of the European Monetary Union (m=57)
+# clothing          Cloth sales in China m=25 for 1805 days
+#TaiwanAirBox032017 Hourly PM25 Measurements from Air-Box Devices in Taiwan (m=516)
+#PElectricity1344 Electricity Prices in New England and USA- weekly (m=1344)
+D = get("FREDMDApril19", asNamespace('SLBDD'))
 print(dim(D))
 visualize=TRUE
 season=TRUE

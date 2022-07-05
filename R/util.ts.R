@@ -434,7 +434,7 @@ rnnpred2<-function(TS,n,H){
   
 }
 
-rnnpred<-function(TS,H,nunits=50,epochs=50,...){
+rnnpred<-function(TS,H,nunits=10,epochs=10,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -459,10 +459,11 @@ rnnpred<-function(TS,H,nunits=50,epochs=50,...){
   model %>%
     layer_simple_rnn(units            = nunits, 
                      input_shape      = c(m,1), 
-                     batch_size       = batch_size,
                      return_sequences = TRUE, 
+                     batch_size=batch_size,
                      stateful         = TRUE) %>% 
-    layer_simple_rnn(units            = nunits, 
+    #layer_dropout(rate = 0.1) %>%
+    layer_simple_rnn(units            = round(nunits/2), 
                      return_sequences = FALSE, 
                      stateful         = TRUE) %>% 
     layer_dense(units = m)
@@ -470,17 +471,25 @@ rnnpred<-function(TS,H,nunits=50,epochs=50,...){
   model %>% 
     compile(loss = 'mae', optimizer = 'adam')
   
-  # 5.1.7 Fitting LSTM
-  for (i in 1:epochs) {
+  # 5.1.7 Fitting RNN
+  if (FALSE){
     model %>% fit(x          = x_train_arr, 
                   y          = y_train_arr, 
                   batch_size = batch_size,
-                  epochs     = 1, 
-                  verbose    = -1, 
+                  epochs     = epochs, 
+                  verbose    = 0, 
                   shuffle    = FALSE)
-    
-    model %>% reset_states()
-    #cat("Epoch: ", i)
+  } else {
+    for (i in 1:epochs) {
+      model %>% fit(x          = x_train_arr, 
+                    y          = y_train_arr, 
+                    batch_size = batch_size,
+                    epochs     = 1, 
+                    verbose    = 0, 
+                    shuffle    = FALSE)
+      model %>% reset_states()
+      #    #cat("Epoch: ", i)
+    }
   }
   
   # 5.1.8 Predict and Return Tidy Data
@@ -506,7 +515,7 @@ VARspred<-function(TS,n,H,...){
   return(Yhat)
 }
 
-lstmpred<-function(TS,H,nunits=50,epochs=50,...){
+lstmpred<-function(TS,H,nunits=10,epochs=10,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -533,10 +542,11 @@ lstmpred<-function(TS,H,nunits=50,epochs=50,...){
   model %>%
     layer_lstm(units            = nunits, 
                input_shape      = c(m,1), 
-               batch_size       = batch_size,
+               batch_size         =batch_size,
+               
                return_sequences = TRUE, 
                stateful         = TRUE) %>% 
-    layer_lstm(units            = nunits, 
+    layer_lstm(units            = round(nunits/2), 
                return_sequences = FALSE, 
                stateful         = TRUE) %>% 
     layer_dense(units = m)
@@ -545,16 +555,24 @@ lstmpred<-function(TS,H,nunits=50,epochs=50,...){
     compile(loss = 'mae', optimizer = 'adam')
   
   # 5.1.7 Fitting LSTM
-  for (i in 1:epochs) {
+  if (FALSE){
     model %>% fit(x          = x_train_arr, 
                   y          = y_train_arr, 
+                  epochs     = epochs, 
                   batch_size = batch_size,
-                  epochs     = 1, 
-                  verbose    = -1, 
+                  verbose    = 0, 
                   shuffle    = FALSE)
-    
-    model %>% reset_states()
-    #cat("Epoch: ", i)
+  } else {
+    for (i in 1:epochs) {
+      model %>% fit(x          = x_train_arr, 
+                    y          = y_train_arr, 
+                    batch_size = batch_size,
+                    epochs     = 1, 
+                    verbose    = 0, 
+                    shuffle    = FALSE)
+      model %>% reset_states()
+      #cat("Epoch: ", i)
+    }
   }
   
   # 5.1.8 Predict and Return Tidy Data
@@ -883,6 +901,6 @@ confsd<-function(x,alpha=0.01){
   chir=qchisq(alpha/2,N-1,lower.tail=TRUE)
   chil=qchisq(alpha/2,N-1,lower.tail=FALSE)
   return(list(low=sqrt((N-1)*var(x)/chil), upp=sqrt((N-1)*var(x)/chir)))
-         
+  
 }
 

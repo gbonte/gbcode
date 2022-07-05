@@ -3,7 +3,7 @@ library("SLBDD")
 library("VARshrink")
 require(gbcode)
 require(MTS)
-library(keras)
+
 
 # clothing          Cloth sales in China n=25
 
@@ -42,8 +42,7 @@ if (execute){
   } else {
     X=D
   }
-  print(bestS)
-  
+ 
   
   
   Xtr=X[1:Ntr,]
@@ -65,10 +64,7 @@ if (execute){
   cat(".")
   Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],uni="mimo.comb")
   cat(".")
-  save(file="clothing0.Rdata",list=c("methods","H","X","m","Xts","Xhat1","Xhat2",
-                                     "Xhat3","Xhat4","Xhat5","Xhat6"))
-} else
-  load("clothing0.Rdata")
+} 
 if (season){
   Xhat1=Xhat1+SPts
   Xhat2=Xhat2+SPts

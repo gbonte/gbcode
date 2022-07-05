@@ -49,14 +49,14 @@ if (assess)
       TStr=TS[1:i]
       TSts=TS[(i+1):(i+H)]
       
-      Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1,epochs=500, nunits=50)
+      Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1,epochs=10, 
+                               nunits=10)
       NMSE=mean(TSts-Y.cont)^2
       Y.cont2=multiplestepAhead(TStr,n=n, H=H,method=method2,Kmin=3,C=2)
       NMSE2=mean(TSts-Y.cont2)^2
       Y.cont3=multiplestepAhead(TStr,n=n, H=H,method=method3,Kmin=3,C=2)
       NMSE3=mean(TSts-Y.cont3)^2
-      Y.cont4=multiplestepAhead(TStr,n=n, H=H,method=method4,detrend=0,Kmin=3,C=2,
-                                nunits=50,epochs=50)
+      Y.cont4=multiplestepAhead(TStr,n=n, H=H,method=method4,detrend=0,Kmin=3,C=2)
       NMSE4=mean(TSts-Y.cont4)^2
       Y.cont5=multiplestepAhead(TStr,n=n, H=H,method=method5,detrend=0,Kmin=3,C=2)
       NMSE5=mean(TSts-Y.cont5)^2
