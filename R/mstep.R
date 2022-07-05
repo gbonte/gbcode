@@ -846,12 +846,16 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   
   ### keras based RNN: it requires keras
   if (method=="rnn"){
+    if (N>200)
+      TS=TS[(N-200):N]
     p=rnnpred(array(TS,c(length(TS),1)),  H,...)
     return(c(p+trnd.ts))
   }
   
   ### keras based RNN: it requires keras
   if (method=="lstm"){
+    if (N>200)
+      TS=TS[(N-200):N]
     p=lstmpred(array(TS,c(length(TS),1)),  H,...)
     return(c(p+trnd.ts))
   }
