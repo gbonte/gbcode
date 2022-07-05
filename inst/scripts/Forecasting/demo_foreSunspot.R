@@ -1,21 +1,16 @@
 #
-## LSTM code from https://www.r-bloggers.com/2018/04/time-series-deep-learning-forecasting-sunspots-with-keras-stateful-lstm-in-r/
+## Based on https://www.r-bloggers.com/2018/04/time-series-deep-learning-forecasting-sunspots-with-keras-stateful-lstm-in-r/
 rm(list=ls())
 library(gbcode)
 library(tidyverse)
-#library(glue)
-
+setwd(paste(find.package("gbcode"),"scripts/Forecasting",sep="/"))
 
 # Time Series
 library(timetk)
 library(tidyquant)
 library(tibbletime)
-
-
 library(recipes)
-
 library(rsample)
-
 library(keras)
 
 
@@ -24,9 +19,9 @@ sun_spots <- datasets::sunspot.month %>%
   mutate(index = as_date(index)) %>%
   as_tbl_time(index = index)
 
-H<-50
+H<-20
 
-periods_train <- 12 * 30
+periods_train <- 20 * 30
 periods_test  <- H
 skip_span     <- 12
 
@@ -38,15 +33,15 @@ rolling_origin_resamples <- rolling_origin(
   skip       = skip_span
 )
 
-
+detrend=0
 method1="lstm"
 method2="mimo.acf"
 method3="lazydirect"
 method4="mimo.comb"
 colors=c("red","green","magenta","cyan","orange","yellow")
 L=length(rolling_origin_resamples$splits)
-print(L)
-n=60
+
+n=12
 aLSTM2=NULL
 aLL1=NULL
 aLL2=NULL
@@ -66,15 +61,15 @@ for (S in round(L/2):L){
  
   Yhat1=multiplestepAhead(nTStrain,n,
                          H=H,method = method1,nunits=50, 
-                         epochs = 50)*stdTS+mu
+                         epochs = 500,detrend=detrend)*stdTS+mu
  
   Yhat2=multiplestepAhead(nTStrain,n,
-                         H=H,method = method2,Kmin=3,C=3)*stdTS+mu
+                         H=H,method = method2,Kmin=3,C=3,detrend=detrend)*stdTS+mu
   Yhat3=multiplestepAhead(nTStrain,n,
-                         H=H,method = method3,Kmin=3,C=3)*stdTS+mu
+                         H=H,method = method3,Kmin=3,C=3,detrend=detrend)*stdTS+mu
   
   Yhat4=multiplestepAhead(nTStrain,n,
-                          H=H,method = method4,Kmin=3,C=3)*stdTS+mu
+                          H=H,method = method4,Kmin=3,C=3,detrend=detrend)*stdTS+mu
   
   
   aLL1=c(aLL1,mean(abs(TStest-Yhat1)))
@@ -82,7 +77,7 @@ for (S in round(L/2):L){
   aLL3=c(aLL3,mean(abs(TStest-Yhat3)))
   aLL4=c(aLL4,mean(abs(TStest-Yhat4)))
   cat("Split=",S, "length(TS)=", length(TStrain), 
-      " H=",H,"|", method1, "=",mean(aLL1), 
+      " H=",H,"| \n", "MSE: ", method1, "=",mean(aLL1), 
       method2, "=",mean(aLL2),
       method3, "=",mean(aLL3), method4, "=",mean(aLL4) ,"\n")
   Nvis=round((2*Ntr/3))
@@ -93,6 +88,6 @@ for (S in round(L/2):L){
   lines(c(NA*TStrain[Nvis:Ntr],Yhat3),col=colors[3])
   lines(c(NA*TStrain[Nvis:Ntr],Yhat3),col=colors[4])
   legend("topleft",c(method1,method2,method3,method4),
-         col=colors,lty=1,cex=1)
+         col=colors,lty=1,cex=0.5)
   browser()
 }

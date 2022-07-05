@@ -37,7 +37,7 @@ NMSE4=NULL
 NMSE5=NULL
 TS=scale(remna((rawTS)))
 n=12
-method1="clazydirect"
+method1="lstm"
 method2="mimo.acf.lin"
 method3="lazydirect"
 method4="lazyiter"
@@ -49,7 +49,7 @@ if (assess)
       TStr=TS[1:i]
       TSts=TS[(i+1):(i+H)]
       
-      Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1,Kmin=3,C=2)
+      Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1,epochs=500, nunits=50)
       NMSE=mean(TSts-Y.cont)^2
       Y.cont2=multiplestepAhead(TStr,n=n, H=H,method=method2,Kmin=3,C=2)
       NMSE2=mean(TSts-Y.cont2)^2

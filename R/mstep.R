@@ -745,7 +745,7 @@ lin.pls<- function(X,Y,X.ts){
 #'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             FF=0,smooth=FALSE,maxfs=6,
-                            XC=NULL,detrend=-1, forget=-1, engin=FALSE,
+                            XC=NULL,detrend=0, forget=-1, engin=FALSE,
                             Kmin=3,C=2,debug=FALSE,
                             verbose=FALSE,...){
   
@@ -781,7 +781,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   trnd.ts=numeric(H)
   trnd.ts2=numeric(H)
   if (detrend>0){
-    S=detectSeason(TS,Ls=N+H,pmin=0.25)
+    S=detectSeason(TS,Ls=N+H,pmin=detrend)
     TS=TS-S$spattern[1:N]-S$strend[1:N]
     trnd.ts<-S$spattern+S$strend
     trnd.ts<-trnd.ts[(N+1):(N+H)]

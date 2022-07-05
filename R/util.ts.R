@@ -835,7 +835,12 @@ detectSeason<-function(TS,maxs=20,Ls=100,pmin=0.1,debug=FALSE){
   
   N=length(TS)
   maxs=min(maxs,round(N/6))
-  trnd=lm(TS ~ seq(TS))$fit
+  trndmod=lm(TS ~ seq(TS))
+  trnd=numeric(N)
+  summmod=summary(trndmod)
+  # check 
+  if (pf(summmod$fstatistic[1],summmod$fstatistic[2],summmod$fstatistic[3],lower.tail=FALSE)<pmin)
+    trnd=trndmod$fit
   
   VS=numeric(maxs)-Inf
   
@@ -845,18 +850,21 @@ detectSeason<-function(TS,maxs=20,Ls=100,pmin=0.1,debug=FALSE){
     PV=NULL
     V=NULL
     m_S = t(matrix(data = S[1:(floor(N/s)*s)], nrow = s))
-    VS[s]=(sd(S)-mean(apply(m_S,2,sd)))/sd(S) 
-    ## percentual reduction of stdev:
+    sdlS=confsd(S,alpha=pmin)$low
+    ## lower bound standard deviation of time series
+    
+    VS[s]=(sdlS-mean(unlist(lapply(apply(m_S,2,confsd,pmin),'[[',"upp"))))/sdlS
+    ## percentual reduction of lower bound of stdev(TS) with respect to upperbound of conditional variances:
     ## measure of entropy reduction 
     
   }# add
- 
+  
   mVS=max(VS)
   if (debug)
     browser()
   I=1:Ls
   trnd2=pred("lin",1:length(trnd),trnd,1:Ls,classi=FALSE,lambda=1e-3)
-  if (mVS>pmin) { 
+  if (mVS>0) { 
     
     bests=which.max(VS)  ## lowest conditional variance 
     m_S = t(matrix(data = S[1:(floor(N/bests)*bests)], nrow = bests))
@@ -869,4 +877,12 @@ detectSeason<-function(TS,maxs=20,Ls=100,pmin=0.1,debug=FALSE){
   return(list(best=bests,spattern=spattern,strend=trnd2))
 }#
 
+
+confsd<-function(x,alpha=0.01){
+  N=length(x)
+  chir=qchisq(alpha/2,N-1,lower.tail=TRUE)
+  chil=qchisq(alpha/2,N-1,lower.tail=FALSE)
+  return(list(low=sqrt((N-1)*var(x)/chil), upp=sqrt((N-1)*var(x)/chir)))
+         
+}
 
