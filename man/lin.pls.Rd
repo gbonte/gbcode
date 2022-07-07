@@ -15,5 +15,5 @@ Multioutput PLS for multi-step-ahed prediction. It performs a  partial least-squ
 \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
 }
 \author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+Gianluca Bontempi  \email{Gianluca.Bontempi@ulb.be}
 }

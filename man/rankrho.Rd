@@ -35,8 +35,8 @@ real.features<-R$feat
 ranked.features<-rankrho(X,Y,nmax=3)
 }
 \references{
-Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlhf}
 }
 \author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+Gianluca Bontempi  \email{Gianluca.Bontempi@ulb.be}
 }

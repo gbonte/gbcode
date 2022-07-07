@@ -10,9 +10,10 @@ lazy.pred(
   X.ts,
   class = FALSE,
   return.more = FALSE,
-  conPar = NULL,
+  conPar = c(3, 5),
   linPar = NULL,
   cmbPar = 5,
+  lambda = 1000,
   scaleX = TRUE
 )
 }

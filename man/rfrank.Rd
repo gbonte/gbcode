@@ -13,7 +13,7 @@ rfrank(X, Y, nmax = 5, type = 1)
 
 \item{nmax:}{number of top returned features}
 
-\item{back:}{if TRUE, backward reordering based on linear regression}
+\item{type:}{importance type: classification (1:MeanDecreaseAccuracy, 2: MeanDecreaseGini), regression (1:%IncMSE, 2:IncNodePurity)}
 }
 \value{
 Indices of \code{nmax} top ranked features
@@ -35,10 +35,12 @@ X<-R$X
 Y<-R$Y
 real.features<-R$feat
 ranked.features<-rfrank(X,Y,nmax=3)
+
+
 }
 \references{
-Handbook \emph{Statistical foundations of machine learning} available in \url{http://www.ulb.ac.be/di/map/gbonte/mod_stoch/syl.pdf}
+Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
 }
 \author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+Gianluca Bontempi  \email{Gianluca.Bontempi@ulb.be}
 }

@@ -21,6 +21,8 @@
 \item{wta:}{if TRUE a winner-takes-all strategy is used;  otherwise a weigthed combination is done on the basis of the l-o-o error}
 
 \item{Acf:}{autocorrelation function of the training series}
+
+\item{Reg:}{number (>1) of null terms to regularise the mean}
 }
 \value{
 vector of N.ts predictions
@@ -57,5 +59,5 @@ lines(t[(N-H+1):N],Y.cont)
 \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
 }
 \author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+Gianluca Bontempi  \email{Gianluca.Bontempi@ulb.be}
 }

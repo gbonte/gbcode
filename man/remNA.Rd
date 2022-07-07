@@ -7,10 +7,10 @@
 remNA(TS)
 }
 \arguments{
-\item{TS:}{univariate time series}
+\item{TS:}{univariate/multivariate time series}
 }
 \description{
-Remove NA from a time series by interpolation
+Remove NA from a multivariate time series by interpolation
 }
 \references{
 \url{mlg.ulb.ac.be}

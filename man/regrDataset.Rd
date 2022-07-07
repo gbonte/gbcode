@@ -4,7 +4,7 @@
 \alias{regrDataset}
 \title{Generator of nonlinear regression dataset}
 \usage{
-regrDataset(N, n, neff, sdn, seed = 0)
+regrDataset(N, n, neff, sdn, seed = 0, diag = TRUE)
 }
 \arguments{
 \item{N:}{number of observations}
@@ -28,9 +28,10 @@ neff<-3
 R<-regrDataset(N,n,neff,0.1)
 X<-R$X
 Y<-R$Y
+feat<-R$feat
 }
 \references{
-\url{mlg.ulb.ac.be}
+\url{https://tinyurl.com/sfmlh}
 }
 \author{
 Gianluca Bontempi  \email{gbonte@ulb.ac.be}

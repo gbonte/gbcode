@@ -4,30 +4,40 @@
 \alias{multiplestepAhead}
 \title{multiplestepAhead}
 \arguments{
-\item{TS:}{time series}
+\item{TS:}{time series in column format [T,1]}
 
 \item{n:}{embedding order}
 
 \item{H:}{horizon}
 
-\item{Kmin:}{min number of neighbours}
-
-\item{dist:}{type of distance: \code{euclidean, cosine}}
+\item{dist:}{type of distance: \code{euclidean, cosine} for lazy methods}
 
 \item{F:}{forgetting factor}
 
-\item{C:}{integer parameter which sets the maximum number of neighbours (C*k)}
+\item{C:}{integer parameter which sets the maximum number of neighbours (C*k) for lazy methods}
 
-\item{detrend:}{real parameter (in [0,1]) which fixes the window used for detrending the series. If equal to -1, no detrending is carried out}
+\item{detrend:}{real parameter (in [0,1]) which fixes the size of window used for linear detrending the series (0 corresponds to all series and 1 to ten latest terms). If detrend<0  no detrending is carried out}
 
-\item{smooth:}{if TRUE, the preidction is obtained by averaging multiple windows with different starting points}
+\item{smooth:}{if TRUE, the prediction is obtained by averaging multiple windows with different starting points}
+
+\item{engin:}{if TRUE, a number of additional features (related to the quantiles) are engineered and added}
 
 \item{method:}{\itemize{
 \item{arima}: prediction based on the \pkg{forecast} package
+\item{stat_naive}: naive predictor based on the M4 competition code
+\item{stat_ses_naive}: prediction based on the M4 competition code
+\item{stat_naive2}: naive predictor based on the M4 competition code
+\item{stat_ses}: SES predictor based on the M4 competition code
+\item{stat_holt}: Holt predictor based on the M4 competition code
+\item{stat_damped}: prediction based on the M4 competition code
+\item{stat_theta}: Theta predictor based on the M4 competition code
+\item{stat_comb}: prediction based on the M4 competition code
 \item{direct}: direct prediction based on \link{KNN.multioutput} function
 \item{iter}: recursive prediction based on \link{KNN.multioutput} function
-\item{lazydirect}: direct prediction based on \link{lazy.pred} function
+\item{lazydirect}: locally linear  direct prediction based on \link{lazy.pred} function
+\item{clazydirect}: locally constant direct prediction based on \link{lazy.pred} function
 \item{lazyiter}: recursive prediction based on \link{lazy.pred} function
+\item{lindirect}: direct prediction based on \link{lin.pred} function
 \item{rfdirect}: direct prediction based on \link{rf.pred} function
 \item{rfiter}: recursive prediction based on \link{rf.pred} function
 \item{mimo}: MIMO prediction based on \link{KNN.multioutput} function
@@ -42,12 +52,12 @@
 H step ahead predictions
 }
 \description{
-multiplestepAhead
+multiplestepAhead: : univariate multi-step-ahead forecaster
 }
 \details{
 multiplestepAhead
 
-Wrapper over a set of methods for multiple step ahead time series prediction
+Wrapper over a set of methods for univariate multi-step-ahead time series forecasting
 }
 \examples{
 ## Multi-step ahead time series forecasting
@@ -63,13 +73,14 @@ TS.tr=array(TS.tr,c(length(TS.tr),1))
 Y.cont=multiplestepAhead(TS.tr,n=3, H=H,method="mimo")
 
 plot(t[(N-H+1):N],TS.ts)
-lines(t[(N-H+1):N],Y.cont)
+lines(t[(N-H+1):N],Y.cont,col="red")
 
 
 
 
 ## Multi-step ahead time series forecasting Santa Fe  chaotic time series A
-rm(list=ls()
+rm(list=ls())
+require(gbcode)
 data(A)
 TS=A
 N<-1000
@@ -77,18 +88,20 @@ H<-200
 TS.tr=TS[1:N,1]
 TS.ts<-TS[(N+1):(N+H),1]
 TS.tr=array(TS.tr,c(length(TS.tr),1))
-Y.mimo=multiplestepAhead(TS.tr,n=12, H=H,method="mimo")
+Y.dir=multiplestepAhead(TS.tr,n=12, H=H,method="lazydirect")
 Y.mimo.comb=multiplestepAhead(TS.tr,n=12, H=H,method="mimo.comb")
-plot(t[(N-H+1):N],TS.ts)
-lines(t[(N-H+1):N],Y.mimo,col="red")
-lines(t[(N-H+1):N],Y.mimo.comb,col="green")
+plot((N-H+1):N,TS.ts,type="l",xlab="",ylab="Santa Fe A series")
+lines((N-H+1):N,Y.dir,col="red")
+lines((N-H+1):N,Y.mimo.comb,col="green")
 
 
 
 }
 \references{
 \emph{Bontempi G. Ben Taieb S. Conditionally dependent strategies for multiple-step-ahead prediction in local learning, International Journal of Forecasting Volume 27, Issue 3, July–September 2011, Pages 689–699}
+
+\url{https://tinyurl.com/sfmlh}
 }
 \author{
-Gianluca Bontempi  \email{gbonte@ulb.ac.be}
+Gianluca Bontempi  \email{Gianluca.Bontempi@ulb.be}
 }
