@@ -1,3 +1,20 @@
+genlog<-function(N,k=3.8, y0=0.1){
+ ## it generates a chaotic logistic discrete time time series
+  if (k<3.57){
+    stop("No chaotic behavior is generated for such k")
+  }
+  if (y0<0 | y0>1)
+    stop("Initial condition should belong to [0,1]")
+  y=c(y0)
+  
+  for (t in 1:N){
+    yt=y[length(y)]
+    yt1=k*yt*(1-yt)
+    y=c(y,yt1)
+    
+  }
+  return(y[1:N])
+}
 
 nar<-function(Y,number=1){
   

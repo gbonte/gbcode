@@ -264,7 +264,7 @@ constloo<-function(x,w=rep(1,length(x))){
 }
 
 
-dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
+dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
                      models=c("stat_naive","lindirect"),...){
   args<-list(...)
   if (length(args)>0)
@@ -293,26 +293,36 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
     
     for (m in 1:maxm){ ## loop over autoregressive order
       
-      for (s in round(seq(1,Nts-H-1,length.out=Lcv))){
-        Zhat<-array(NA,c(H,maxp))
-        muZ=mean(Z[1:(Ntr+s),1])
-        stdZ=sd(Z[1:(Ntr+s),1])+eps
-        sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
-        Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
-        Zhat[,1]=Zhat[,1]*stdZ+muZ
+      for (s in round(seq(0,Nts-H-1,length.out=Lcv))){
         XXts=TS[(Ntr+s+1):(Ntr+s+H),]
-        Xhat=(Zhat[,1])%*%array(V[1,],c(1,n))
-        
-        Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
-        
+        if (mod=="vars"){
+          Xhat=VARspred(TS[1:(Ntr+s),],m,H,method=1)
+          Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+        }else{
+          Zhat<-array(NA,c(H,maxp))
+          muZ=mean(Z[1:(Ntr+s),1])
+          stdZ=sd(Z[1:(Ntr+s),1])+eps
+          sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
+          Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
+          Zhat[,1]=Zhat[,1]*stdZ+muZ
+          
+          Xhat=(Zhat[,1])%*%array(V[1,],c(1,n))
+          
+          Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+        }
         for (p in 2:maxp){ ## loop over number of Pcomponents
           muZ=mean(Z[1:(Ntr+s),p])
           stdZ=sd(Z[1:(Ntr+s),p])+eps
           sZ=(Z[1:(Ntr+s),p]-muZ)/stdZ
-          Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
-          Zhat[,p]=Zhat[,p]*stdZ+muZ
-          Xhat=Zhat[,1:p]%*%V[1:p,]
-          Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+          if (mod=="vars"){
+            Xhat=VARspred(TS[1:(Ntr+s),],m,H,method=p)
+            Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+          }else{
+            Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
+            Zhat[,p]=Zhat[,p]*stdZ+muZ
+            Xhat=Zhat[,1:p]%*%V[1:p,]
+            Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+          }
         } ## for p
         
       } ## for s
@@ -321,9 +331,12 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=5,
   }
   
   Emin=min(Ehat)
+  
+  
   bestp<-which.min(apply(Ehat,2,min))
   bestm<-which.min(apply(Ehat,1,min))
   bestmod=models[which.min(apply(Ehat,3,min))]
+  browser()
   return (list(p=bestp,m=bestm,mod=bestmod))
 }
 
@@ -335,6 +348,8 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
+  if (dfmod=="vars")
+    return(VARspred(TS,n,H,method=p0))
   m<-NCOL(TS)
   p0=min(p0,m)
   N=NROW(TS)
@@ -504,10 +519,21 @@ rnnpred<-function(TS,H,nunits=10,epochs=10,...){
   
   
 }
-VARspred<-function(TS,n,H,...){
+VARspred<-function(TS,n,H,method=1,...){
   n=NCOL(TS)
   colnames(TS)=1:n
-  V=VARshrink(TS, p = n, type = "const", method = "ridge")
+  if (method>4)
+    method=method%%4
+  if (method==1)
+    V=VARshrink(TS, p = n, type = "const", method = "ridge")
+  if (method==2)
+    V=VARshrink(TS, p = n, type = "none", method = "ridge")
+  if (method==3)
+    V=VARshrink(TS, p = n, type = "const", method = "ns")
+  if (method==4)
+    V=VARshrink(TS, p = n, type = "none", method = "ns")
+  if (method==5)
+    V=VARshrink(TS, p = n, type = "const", method = "kcv")
   P=predict(V,n.ahead=H)
   Yhat=NULL
   for (i in 1:n)

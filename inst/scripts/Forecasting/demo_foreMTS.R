@@ -68,7 +68,7 @@ if (execute){
   Xhat4=MmultiplestepAhead(Xtr,n,H,multi=methods[4])
   cat(".")
   Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5],cdfml=3,
-                           dfmlmodels=c("lindirect","lazydirect","stat_comb"))
+                           dfmlmodels=c("lindirect","stat_comb"))
   cat(".")
   Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],mod="rf")
   cat(".")

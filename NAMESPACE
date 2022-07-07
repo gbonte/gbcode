@@ -45,6 +45,7 @@ export(multiplestepAhead)
 export(MmultiplestepAhead)
 export(genar)
 export(genstar)
+export(genlog)
 
 import(forecast) #Requires v8.2
 import(lars)

@@ -36,13 +36,16 @@ for (k in 1:(2*q)){
   }
 }
 
-par(mfrow=c(2,1))
+par(mfrow=c(3,1), mai = 0.3*c(1,1,1,1),
+    mar = 2*c(1,1,1,1))
 plot(Y,xlab='',main=paste("MA(",q,")"))
-par(mar=c(2,1,2,2))
+#par(mar=c(2,1,2,2))
 plot(abs(Co_emp),type="l",lty=2,ylab='',xlab='k')
 lines(abs(Co_th),lty=1)
-par(mar=c(2,1,2,2))
-legend("topright",c('Estimated cor', 'Cor'),lty=c(2,1))
+#par(mar=c(2,1,2,2))
+legend("topright",c('Estimated cor', 'Cor'),cex=0.6,
+       lty=c(2,1))
+acf(Y)
 
 
 

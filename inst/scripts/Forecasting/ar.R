@@ -2,12 +2,12 @@
 ## R package gbcode 
 ## Author: G. Bontempi
 
-
+rm(list=ls())
 library(signal)                  
 
 set.seed(0)
 
-q=4  ## order of MA(q)
+q=4  ## order of AR(q)
 N=q*500
 
 alpha=rnorm(q)
@@ -48,23 +48,27 @@ for (k in 2:(Q+1))
   hatpacf=c(hatpacf,lm(YY[,1]~YY[,2:k])$coefficients[k])
 
 
-par(mfrow=c(3,1))
+par(mfrow=c(3,1), mai = 0.1*c(1,1,1,1),
+    mar = 2*c(1,1,1,1))
 plot(Y,xlab='',main=paste("AR(",q,")"))
-par(mar=c(2,1,2,2))
+
 plot(1:Q,hatacf,type="l",lty=1,ylab='',xlab='k',main="Est acf")
-lines(1:Q,2/sqrt(N)*(numeric(K)+1),lty=2)
-legend("topright",c('Estimated autocor', 'thr'),lty=c(1,2))
-par(mar=c(2,1,2,2))
+lines(1:Q,2/sqrt(N)*(numeric(Q)+1),lty=2)
+legend("bottomright",c('Estimated autocor', 'thr'),lty=c(1,2),cex=0.5)
+
 plot(1:Q,hatpacf,type="l",lty=1,ylab='',xlab='k',main="Est pacf")
-lines(1:K,2/sqrt(N)*(numeric(K)+1),lty=2)
-legend("topright",c('Estimated pcor', 'thr'),lty=c(1,2))
+lines(1:Q,2/sqrt(N)*(numeric(Q)+1),lty=2)
+legend("bottomright",c('Estimated pcor', 'thr'),lty=c(1,2),cex=0.5)
 
 
 print(c(acf(Y,plot=FALSE)$acf)[2:(Q-1)])
 cat("\n ")
-print(Co_emp)
-cat("\n \n")
+
 print(c(pacf(Y,plot=FALSE)$acf)[1:(Q-1)])
 cat("\n ")
-print(as.numeric(pc))
 
+par(mfrow=c(3,1), mai = 0.1*c(1,1,1,1),
+    mar = 2*c(1,1,1,1))
+plot(Y,xlab='',main=paste("AR(",q,")"))
+acf(Y)
+pacf(Y)
