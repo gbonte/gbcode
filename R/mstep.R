@@ -96,6 +96,7 @@ timefit<-function(TS.tr,n,C,H){
 #' @export
 #' @examples
 #' ## Multi-step ahead time series forecasting
+#' require(gbcode)
 #' t=seq(0,200,by=0.1)
 #' N<-length(t)
 #' H<-50 ## horizon prediction
@@ -249,6 +250,7 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
 #' @export
 #' @examples
 #' ## Multi-step ahead time series forecasting
+#' require(gbcode)
 #' library(lazy)
 #' t=seq(0,200,by=0.1)
 #' N<-length(t)
@@ -376,7 +378,7 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3){
 #' @export
 #' @examples
 #' ## Multi-step ahead time series forecasting
-#'
+#' require(gbcode)
 #' t=seq(0,200,by=0.1)
 #' N<-length(t)
 #' H<-500 ## horizon prediction
@@ -499,6 +501,7 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3)
 #' @examples
 #' ## Multi-step ahead time series forecasting
 #' library(pls)
+#' require(gbcode)
 #' t=seq(0,400,by=0.1)
 #' N<-length(t)
 #' H<-1500 ## horizon prediction
@@ -519,6 +522,7 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3)
 #'
 #' ## Multi-step ahead time series forecasting chaotic time series
 #' rm(list=ls()
+#' require(gbcode)
 #' N<-NROW(A)
 #' H<-200 ## horizon prediction
 #' TS<-A[,1]

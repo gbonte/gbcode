@@ -333,17 +333,12 @@ linearFsel<-function(X,Y,nmax=5,nmax2=NCOL(X),loo=FALSE,back=FALSE){
 #' @details Ridge based feature selection based on glmnet
 #' @title ridgeFsel
 #' @name ridgeFsel
+#' @export
+#' 
 #' @param  X: input dataset
 #' @param Y: output dataset
 #' @param nmax: number of top returned features
-#' @export
-ridgeFsel<-function(X,Y,nmax=5,alpha=0){
-  require(glmnet)
-  n=NCOL(X)
-  cv_mod <- cv.glmnet(x = X, y = Y, alpha = alpha)
-  return(sort(abs(coef(cv_mod))[-1],decr=TRUE,index=TRUE)$ix[1:min(nmax,n)])
-}
-#'
+#' #'
 #' @examples
 #' N<-100
 #' n<-5
@@ -354,6 +349,14 @@ ridgeFsel<-function(X,Y,nmax=5,alpha=0){
 #' real.features<-R$feat
 #' ranked.features<-ridgeFsel(X,Y,nmax=3)
 #' 
+
+ridgeFsel<-function(X,Y,nmax=5,alpha=0){
+  require(glmnet)
+  n=NCOL(X)
+  cv_mod <- cv.glmnet(x = X, y = Y, alpha = alpha)
+  return(sort(abs(coef(cv_mod))[-1],decr=TRUE,index=TRUE)$ix[1:min(nmax,n)])
+}
+
 
 errfunction<-function(X,Y,algo,cv=10, classi=TRUE,...){
   ## returns empirical error if cv<=1, cross-validation error if cv>1
