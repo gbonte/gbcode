@@ -1,0 +1,478 @@
+---
+title: 'Statistical foundations of Machine Learning: the playground'
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+---
+
+```{r, Required packages, visualization parameters and useful function}
+rm(list=ls())
+library(mvtnorm) ## multivariate normal density and random generator
+library(scatterplot3d)
+library(rlang)
+
+cols=rep(c("red","green","blue","magenta","black","yellow"),3)
+
+
+## returns the density of a mixture of gaussians
+## if m=1 it returns the gaussian density
+dmixture<-function(X, m=3){
+  N=NROW(X)
+  n<-NCOL(X)
+  w=runif(m)
+  w=w/sum(w)  
+  
+  centers=array(rnorm(m*n),c(m,n))
+  sds=array(runif(m*n),c(m,n))
+  
+  dens<-numeric(N)
+  for (i in 1:m)
+    dens=dens+w[i]*dmvnorm(X,mean=centers[i,],sigma=diag(sds[i,]))
+  
+  return(dens)
+}
+```
+
+
+This notebook shows how to implement a Machine Learning playground 
+to assess by simulation a number of theoretical concepts.
+The focus will be on supervised learning.
+Given the playground nature and the need to make visible the results
+we will limit to consider learning tasks with at most bivariate
+inputs ($1 \le n \le 2$) and univariate output.
+
+
+
+
+# Monte Carlo simulation
+The entire playground relies on Monte Carlo simulation.
+The basic assumption is that the number $S$ of Monte Carlo trials is sufficiently
+large to make extremely accurate all the Monte Carlo estimations of probabilistic
+quantities.
+In what follows we will not distinguish a Monte Carlo estimation from the real value. 
+
+```{r, Monte Carlo parameters}
+S= 10000 ## number of Monte Carlo trials
+```
+
+For instance if we want to compute $E[g({\bf x})]$ where
+$g=|x|$ and ${\bf x} \sim {\mathcal N}(\mu=0,\sigma^2=2)$
+we will assume that
+
+```{r}
+mean(abs(rnorm(S,0,sd=sqrt(2))))
+```
+
+returns the correct value.
+
+
+
+# Data generating process
+
+This section will show how to define a data generating process to create
+training and test sets. 
+
+
+## Main parameters
+
+The first quantities to be defined
+are the size of the training set and dimension of the input space.
+
+```{r, Supervised learning task parameter}
+
+N= 100 ## size of training set
+n= 2 ## input dimension
+
+labels=c(-1,1)  ## labels of the binary classification task
+```
+
+## Input distribution
+
+Here we define the input multivariate distribution and provide a function
+which returns the input training set. In order to make general
+the input distribution we consider a mixture of $m$ gaussians
+
+```{r}
+
+M=3 ## number of mixture components
+
+Inputs<-function(N,n,m,centers=NULL,sds=NULL){
+  ## m : number of mixture components
+  
+  X=NULL
+  W=NULL ## keep strace of which component was sampled
+  
+  
+  w=runif(m)
+  w=w/sum(w)  
+  
+  if (is.null(centers))
+    centers=array(rnorm(m*n),c(m,n))
+  if (is.null(sds))
+    sds=array(runif(m*n),c(m,n))
+  
+  
+  for (i in 1:N){
+    whichm=sample(1:m,1,prob=w)
+    W=c(W,whichm)
+    X=rbind(X,rmvnorm(1,mean=centers[whichm,],sigma=diag(sds[m,])))
+    
+  }
+  
+  return(list(X=X,W=W,centers=centers,sds=sds))
+}
+
+
+```
+
+## Conditional expectation function
+
+In a regression task we have to define the conditional expectation $E_[{\bf y}|x]=f(x)$
+
+```{r, Regression conditional expection}
+
+condexp<-function(X){
+  n=NCOL(X)
+  if (n==1){
+    f=sin(2*pi*(X[,1])) ## put here your own function
+  }
+  if (n==2){
+    f=((X[,1]+X[,2])) ## put here your own function
+    f=(X[,1]^2+X[,2]^2+X[,1]*X[,2])
+    f=(X[,1]+X[,2])
+  }
+  return(f)
+}
+
+
+```
+
+## Data set generation
+
+In this section we show how to generate the training set $D_N$ of $N$ samples.
+
+
+### Input training generation
+
+```{r, Input data generation}
+Inp=Inputs(N,n,M)
+X=Inp$X
+```
+
+### Regression target generation 
+
+Target following ${\bf y}=f(x)+{\bf w}$ 
+
+```{r, Regression data generation}
+
+sdw=0.25  ## conditional variance (or noise variance)
+
+Y=condexp(X)+rnorm(N,sd=sdw)
+
+Dr=data.frame(cbind(Y,X))
+colnames(Dr)<-c("y",paste("x",1:n,sep=""))
+
+```
+
+### Classification target generation 
+Here we generate binary classification data: there are two basic methods.
+
+The first consists in defining a conditional probability function $P({\bf y} =c_1|x)$ and then
+sample the class.
+
+```{r, Classification data generation: method 1}
+
+logit<-function(p){
+  exp(p)/(1+exp(p))
+}
+
+sampler <- function(w) {
+  sample(labels, 1, prob=c(w,1-w))
+}
+
+condpro=logit(condexp(X))
+Y=unlist(lapply(condpro, sampler))
+Dc=data.frame(cbind(Y,X))
+colnames(Dc)<-c("y",paste("x",1:n,sep=""))
+
+```
+
+The second consists in 
+
+1. setting the prior probabilities $P({\bf y} =c_1)$ and $P({\bf y} =c_2)$
+2. computing the class conditional probabilities
+$p(x | {\bf y} =c_1)$ and $p(x | {\bf y} =c_2)$  
+3. computing the posterior probability by Bayes theorem 
+$$ P({\bf y} =c_1| x)= \frac{p(x | {\bf y} =c_1) P({\bf y} =c_1) }{p(x | {\bf y} =c_1) P({\bf y} =c_1)+
+p(x | {\bf y} =c_2) P({\bf y} =c_2)}$$
+
+
+```{r, Classification data generation: method 2}
+
+P1=0.5
+P2=1-P1
+cond1=dmixture(X,m=1)
+cond2=dmixture(X,m=1)
+
+condpro=cond1*P1/(cond1*P1+cond2*P2)
+Y=unlist(lapply(condpro, sampler))
+Dc2=data.frame(cbind(Y,X))
+colnames(Dc2)<-c("y",paste("x",1:n,sep=""))
+
+```
+
+
+
+## Data set visualization
+
+You will find below some possible visualizations
+
+### Input data visualization
+
+
+```{r, input data visualization }
+#ggplot(data = D, aes(x=x1,y=y))+geom_point()
+if (n==2){
+  plot(Dr$x1,Dr$x2,xlab="x1",ylab="x2", main="Input distribution")
+  
+}
+```
+
+
+### Regression data visualization
+
+```{r, regression data visualization}
+
+
+
+pairs(Dr)
+
+
+with(Dr, {
+  scatterplot3d(x = x1,
+                y = x2, 
+                z = y,
+                type = "h",
+                main="3-D Scatterplot")
+})
+
+#library(plotly)
+#fig<-plot_ly(data=Dr, x=~x1,y=~x2, z=~y,type="scatter3d", mode="markers")
+#fig
+
+
+
+```
+
+
+### Classification data visualization
+
+
+```{r, classification data visualization}
+
+plot(Dc$x1,Dc$x2,xlab="x1",ylab="x2")
+for (class in labels){
+  w=which(Dc$y==class)
+  points(Dc$x1[w],Dc$x2[w],col=cols[class+2])
+}
+
+
+plot(Dc2$x1,Dc2$x2,xlab="x1",ylab="x2")
+for (class in labels){
+  w=which(Dc2$y==class)
+  points(Dc2$x1[w],Dc2$x2[w],col=cols[class+2])
+}
+
+```
+
+# Learner
+In this section we define the learner, i.e. the estimator
+that given a training set and a test query point returns the prediction.
+Note that the entire learning process should be described in this function,
+notably the feature selection, parameter identification, model selection and prediction.
+
+## Regression
+
+We will code some regression learners with different complexities
+
+
+### Constant regression learner
+
+It is one of the simplest you could imagine.
+It just returns as prediction the average of the output
+
+```{r, lslearn0}
+
+lslearn0<-function(D,Xts){
+  
+  Nts=NROW(Xts)
+  Xtr<-cbind(D$x1,D$x2)
+  Ytr<-D$y
+  Yhat=numeric(Nts)+mean(Y)
+  return(Yhat)
+}
+
+
+```
+
+
+### Least-squares regression learners
+
+The first regressor uses only the first variable $x_1$
+```{r, lslearn1}
+
+lslearn1<-function(D,Xts){
+  lambda=0.001
+  Ntr=NROW(D)
+  Nts=NROW(Xts)
+  Xtr<-cbind(numeric(Ntr)+1,D$x1)
+  Xts<-cbind(numeric(Nts)+1,Xts[,1])
+  Ytr<-D$y
+  betahat<-solve(t(Xtr)%*%Xtr+lambda*diag(NCOL(Xtr)))%*%t(Xtr)%*%Ytr
+  Yhat=Xts%*%betahat
+  return(Yhat)
+}
+```
+
+The second regressor uses both variables
+```{r, lslearn2}
+
+lslearn2<-function(D,Xts){
+  Ntr=NROW(D)
+  Nts=NROW(Xts)
+  Xtr<-cbind(numeric(Ntr)+1,D$x1,D$x2)
+  Xts<-cbind(numeric(Nts)+1,Xts)
+  Ytr<-D$y
+  betahat<-solve(t(Xtr)%*%Xtr)%*%t(Xtr)%*%Ytr
+  Yhat=Xts%*%betahat
+  return(Yhat)
+}
+```
+
+
+The third regressor uses both variables and add their squared values
+```{r, lslearn3}
+
+lslearn3<-function(D,Xts){
+  Ntr=NROW(D)
+  Nts=NROW(Xts)
+  Xtr<-cbind(numeric(Ntr)+1,D$x1,D$x2,D$x1^2,D$x2^2,D$x1^3,D$x2^3)
+  Xts<-cbind(numeric(Nts)+1,Xts,Xts^2,Xts^3)
+  Ytr<-D$y
+  betahat<-solve(t(Xtr)%*%Xtr)%*%t(Xtr)%*%Ytr
+  Yhat=Xts%*%betahat
+  return(Yhat)
+}
+```
+
+
+# Generalization assessment of a learner
+
+For a given learner, we computer here functional risk, expected generalization error and
+we check the bias/variance decomposition of the mean-squared-error
+
+
+## Testset generation
+
+
+```{r, Test set generation}
+
+Inp=Inputs(S,n,M,Inptr$centers,Inptr$sds)
+Xts=Inp$X
+Yts=condexp(Xts)+rnorm(N,sd=sdw)
+
+
+```
+
+
+## Choice learner
+
+```{r}
+learner="lslearn0" ## put the learner you want to assess
+```
+
+
+## Functional risk
+The functional risk for a given training set $D_N$ and a hypothesis $h(x,\alpha_N)$ 
+$$ R(\alpha_N)=E_{{\bf x}, {\bf y}} [({\bf y}-h({\bf x},\alpha_N))]$$
+where $h(x,\alpha_N)$ is the hypothesis returned by a learner trained on the dataset $D_N$
+
+
+
+```{r, functional risk lslearners}
+
+Yhat<-exec(learner,Dr,Xts)
+
+RISK= mean((Yts-Yhat)^2)
+
+cat("Learner=",learner, ":\n Functional Risk=",RISK, "\n")
+
+```
+
+## MISE
+
+The MISE is $G_N=E_{{\bf D}_N}[R(\alpha_N)]$
+
+## Bias, variance and MSE
+
+Bias: $B(x)=E_{{\bf D}_N}[E[{\bf y} |x] -h(x,\alpha_N)]=f(x)-E_{{\bf D}_N}[h(x,\alpha_N)]$
+
+
+
+Variance: $V(x)=E_{{\bf D}_N} [( h(x,\alpha_N)-E_{{\bf D}_N}[h(x,\alpha_N)] )^2]$
+
+MSE:  $\text{MSE}(x)=B^2(x)+V(x)+\sigma_{{\bf w}}^2$
+
+
+MISE: $\text{MISE}=E_{{\bf x}}[\text{MSE}({\bf x})]=E_{{\bf x}}[B^2(\bf x)+V(\bf x)+\sigma_{{\bf w}}^2]= E_{{\bf x}}[B^2(\bf x)]+E_{{\bf x}}[V(\bf x)]+\sigma_{{\bf w}}^2$
+
+
+
+The following code computes MISE, bias, variance and verifies the identity above.
+
+```{r, MISE learner 0}
+learner="lslearn0" ## put the learner you want to assess
+
+EEN=NULL
+YhatN<-NULL
+EN<-NULL
+
+Inpts=Inputs(S,n,M)
+Inpts=Inputs(S,n,M,Inpts$centers,Inpts$sds)
+Xts=Inpts$X
+fts=condexp(Xts)
+
+for (s in 1:100){
+  Inp=Inputs(N,n,M,Inpts$centers,Inpts$sds)
+  Xtr=Inp$X   
+  Ytr=condexp(Xtr)+rnorm(N,sd=sdw)
+  Dr=data.frame(cbind(Ytr,Xtr))  ## generation training set 
+  
+  Yts=fts+rnorm(NROW(Xts),sd=sdw) ## generation test set 
+  colnames(Dr)<-c("y",paste("x",1:n,sep=""))
+  
+  Yhat<-exec(learner,Dr,Xts)  ## prediction in test set
+  
+  
+  YhatN<-cbind(YhatN,Yhat)
+  EN<-cbind(EN,Yhat-fts)
+  EEN=cbind(EEN,(Yts-Yhat))
+
+}
+
+MSEx=apply(EEN^2,1,mean) ## MSE(x): MSE for test inputs
+MISE=mean(MSEx)
+
+Bx=apply(EN^2,1,mean) ## B(x): squared bias for test inputs
+B2= mean(Bx) ## Expectation over x of B(x)
+
+V2x=apply(YhatN,1,var) ## VAR(x): variance for test inputs
+V2= mean(V2x) ## Expectation over x of VAR(x)
+
+
+cat("Learner=",learner, ":\n MISE=",MISE,"\n Bias^2=",B2,"Variance=",V2,
+    "Bias^2+Variance+Noise=", B2+V2+sdw^2,"\n")
+
+```

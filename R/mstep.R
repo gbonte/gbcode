@@ -754,8 +754,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
-  if (debug)
-    browser()
+  
   if (NCOL(TS)>1)
     stop("Only for univariate time series")
   if (any(is.na(TS)))
@@ -1302,7 +1301,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #' \item{VARs}: prediction based on VAR shrink from \pkg{VARshrink} package
 #' \item{rnn}: prediction based on \pkg{keras} rnn
 #' \item{lstm}: prediction based on \pkg{keras} lstm
-#' \item{multi}: prediction based on MISO direct strategy and feature selection (predictor from \link{pred})
+#' \item{multifs}: prediction based on MISO direct strategy and feature selection (predictor from \link{pred})
 #' }
 #' @return matrix [H,m] with the H step ahead predictions for m series
 #' @export
@@ -1336,8 +1335,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     }
   m<-NCOL(TS)
   N=NROW(TS)
-  if (debug)
-    browser()
+  
   if (m<=1)
     stop("Only for multivariate series")
   Yhat=array(NA,c(H,m))

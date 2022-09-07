@@ -1,30 +1,3 @@
-#' Dataset A
-#'@title A Santa Fe time series
-#'@description chaotic time series from Santa Fe time series competition
-#' @references \url{http://www-psych.stanford.edu/~andreas/Time-Series/SantaFe.html}
-#' @references \url{http://www.amazon.com/Time-Series-Prediction-Forecasting-Understanding/dp/0201626020}
-#' @name A
-#' @docType data
-#' @keywords data
-#' @export
-#' @examples
-#' data(A)
-#' plot(A[,1],type="l")
-NULL
-
-#' Dataset NN5
-#'@title NN5 time series
-#'@description  time series from NN5 time series competition
-#' @references \url{http://www.neural-forecasting-competition.com/NN5/}
-#' @references \url{https://www.researchgate.net/publication/222828050_Conditionally_dependent_strategies_for_multiple-step-ahead_prediction_in_local_learning}
-#' @name NN5
-#' @docType data
-#' @keywords data
-#' @export
-#' @examples
-#' data(NN5)
-#' plot(NN5[,1],type="l")
-NULL
 
 #### SMAPE ####
 #' Symmetric mean absolute percentage error

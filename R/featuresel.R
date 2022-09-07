@@ -1,6 +1,6 @@
 #' ranking
 #' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlhf}
+#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlhf }
 #' @description Ranking filter based on mutual information
 #' @details Ranking filter based on mutaul information
 #' @title rankrho
@@ -41,32 +41,7 @@ rankrho<-function(X,Y,nmax=5,regr=FALSE){
 }
 
 
-#' rfrank
-#' @author Gianluca Bontempi  \email{Gianluca.Bontempi@@ulb.be}
-#' @references Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}
-#' @description rfrank filter based on importance of Random Forest
-#' @details rfrank based on importance of Random Forest
-#' @title rfrank
-#' @name rfrank
-#' @export
-#'
-#' @param  X: input dataset
-#' @param Y: output dataset
-#' @param nmax: number of top returned features
-#' @param type: importance type: classification (1:MeanDecreaseAccuracy, 2: MeanDecreaseGini), regression (1:%IncMSE, 2:IncNodePurity)
-#' @return Indices of \code{nmax} top ranked features
-#'
-#' @examples
-#' N<-100
-#' n<-5
-#' neff<-3
-#' R<-regrDataset(N,n,neff,0.1,seed=0)
-#' X<-R$X
-#' Y<-R$Y
-#' real.features<-R$feat
-#' ranked.features<-rfrank(X,Y,nmax=3)
-#' 
-#' 
+
 rfrank<-function(X,Y,nmax=5,type=1){
   if (!is.element(type,c(1,2)))
     stop("Error: type should be either 1 or 2")
