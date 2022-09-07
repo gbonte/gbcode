@@ -1515,7 +1515,7 @@ corXY.old<-function(X,Y){
 #' @return partial correlation
 #' @export
 #' @examples
-#' pcor1(rnorm(100),rnorm(100),rnorm(100),)
+#' pcor1(rnorm(100),rnorm(100),rnorm(100))
 #'
 pcor1<-function(x,y,z){
   if (is.numeric(z)){

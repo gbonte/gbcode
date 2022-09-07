@@ -271,6 +271,7 @@ star<-function(Y,number=1,loc=4,linear=TRUE,mix=NULL){
 #' @param s: standard deviation of additive noise
 #' @param number : integer number (between 1 and 13) denoting the NAR generating model
 #'
+#' @export
 #' @return vector containing time series observations
 #' @examples
 #' plot(genar(100),type="l")

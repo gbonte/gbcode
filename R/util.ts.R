@@ -3,6 +3,11 @@
 #' Symmetric mean absolute percentage error
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{https://en.wikipedia.org/wiki/Symmetric_mean_absolute_percentage_error}
+#' @param ts1: series 1
+#' @param ts2: series 2
+#' @param Cent: center
+#' @param Sc: scale factor
+#' 
 #' @title Symmetric mean absolute percentage error
 SMAPE<-function(ts1,ts2,Cent=0,Sc=1){
   ts1<-Cent+ts1*Sc
@@ -122,6 +127,8 @@ dist2<-function(X1,X2){
 #' \itemize{
 #' \item{inp}: embedded inputs of all variables (n[i] columns for series ts[i])
 #' \item{out}: outputs of variates whose index is in w}
+#' 
+#' @export
 #' @examples
 #' TS<-array(1:25,c(5,5))
 #' ## embeds a 5 variate time series with embedding orders equal to 2 for all variables for one-step ahead prediction

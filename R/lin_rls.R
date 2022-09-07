@@ -17,6 +17,7 @@
 #'
 #'}
 #'
+#' @export
 #'@examples
 #'par(ask=TRUE)
 #'n<-1;

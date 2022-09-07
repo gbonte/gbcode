@@ -259,12 +259,13 @@ KNN.multioutput<- function(X,Y,X.ts,k=10,Di=NULL,
 #' TS.tr=TS[1:(N-H)]
 #' N.tr<-length(TS.tr)
 #' TS.ts<-TS[(N-H+1):N]
+#' n=3
 #' TS.tr=array(TS.tr,c(length(TS.tr),1))
-#' E=MakeEmbedded(TS.tr,n=3,delay=0,hor=H,1)
+#' E=MakeEmbedded(TS.tr,n=n,delay=0,hor=H,1)
 #' X<-E$inp
 #' Y<-E$out
 #' N<-NROW(X)
-#' Y.cont<-KNN.acf(X,Y,rev(TS.tr[(N.tr-H):N.tr]),TS=TS.tr)
+#' Y.cont<-KNN.acf(X,Y,rev(TS.tr[(N.tr-n+1):N.tr]),TS=TS.tr)
 #' plot(t[(N-H+1):N],TS.ts)
 #' lines(t[(N-H+1):N],Y.cont)
 KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3){
@@ -392,7 +393,7 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3){
 #' Y<-E$out
 #' N<-NROW(X)
 #' ACF.lag<-5
-#' Y.cont<-KNN.acf.lin(X,Y,rev(TS.tr[(N.tr-H):N.tr]),Acf=acf(TS.tr,lag.max=ACF.lag,plot=F)$acf,Pacf=pacf(TS.tr,lag.max=ACF.lag,plot=F)$acf,TS=TS.tr)
+#' Y.cont<-KNN.acf.lin(X,Y,rev(TS.tr[(N.tr-H):N.tr]),Acf=acf(TS.tr,lag.max=ACF.lag,plot=FALSE)$acf,Pacf=pacf(TS.tr,lag.max=ACF.lag,plot=FALSE)$acf,TS=TS.tr)
 #' plot(t[(N-H+1):N],TS.ts)
 #' lines(t[(N-H+1):N],Y.cont)
 KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3){
@@ -510,19 +511,19 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3)
 #' N.tr<-length(TS.tr)
 #' TS.ts<-TS[(N-H+1):N]
 #' TS.tr=array(TS.tr,c(length(TS.tr),1))
-#' E=MakeEmbedded(TS.tr,n=3,delay=0,hor=H,1)
+#' n=3
+#' E=MakeEmbedded(TS.tr,n=n,delay=0,hor=H,1)
 #' X<-E$inp
 #' Y<-E$out
-#' N<-NROW(X)
 #' ACF.lag<-5
-#' Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-H):N.tr]))
+#' Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-n+1):N.tr]))
 #' plot(t[(N-H+1):N],TS.ts)
-#' lines(t[(N-H+1):N],Y.cont)
+#' lines(t[(N-H+1):N],Y.cont,col="red")
 #'
 #'
-#' ## Multi-step ahead time series forecasting chaotic time series
-#' rm(list=ls()
+#' rm(list=ls())
 #' require(gbcode)
+#' data(A)
 #' N<-NROW(A)
 #' H<-200 ## horizon prediction
 #' TS<-A[,1]
@@ -530,14 +531,13 @@ KNN.acf.lin<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3)
 #' N.tr<-length(TS.tr)
 #' TS.ts<-TS[(N-H+1):N]
 #' TS.tr=array(TS.tr,c(length(TS.tr),1))
+#' n=16
 #' E=MakeEmbedded(TS.tr,n=16,delay=0,hor=H,1)
 #' X<-E$inp
 #' Y<-E$out
-#' N<-NROW(X)
-#'
-#' Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-H):N.tr]))
-#' plot(t[(N-H+1):N],TS.ts)
-#' lines(t[(N-H+1):N],Y.cont)
+#' Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-n+1):N.tr]))
+#' plot((N-H+1):N,TS.ts)
+#' lines((N-H+1):N,Y.cont)
 #'
 KNN.pls<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,del=0){
   
@@ -698,9 +698,9 @@ lin.pls<- function(X,Y,X.ts){
 #' \item{lazydirect}: locally linear  direct prediction based on \link{lazy.pred} function
 #' \item{clazydirect}: locally constant direct prediction based on \link{lazy.pred} function
 #' \item{lazyiter}: recursive prediction based on \link{lazy.pred} function
-#' \item{lindirect}: direct prediction based on \link{lin.pred} function
-#' \item{rfdirect}: direct prediction based on \link{rf.pred} function
-#' \item{rfiter}: recursive prediction based on \link{rf.pred} function
+#' \item{lindirect}: direct prediction based on linear predictor
+#' \item{rfdirect}: direct prediction based on Random Forest predictor
+#' \item{rfiter}: recursive prediction based on Random Forest predictor
 #' \item{mimo}: MIMO prediction based on \link{KNN.multioutput} function
 #' \item{mimo.comb}: MIMO prediction based on \link{KNN.multioutput} function which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo.acf}: MIMO prediction based on \link{KNN.acf} function which combines a set of predictors based on different horizons and different starting points
@@ -1293,12 +1293,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #' @name MmultiplestepAhead
 #' @param TS: time series [T,m] where m>1 is the number of series
 #' @param n: embedding order
-#' @param dfmlmethods: alternative methods from \link{mmultiplestepAhead} used by DFML to predict factors
+#' @param dfmlmethods: alternative methods from \link{MmultiplestepAhead} used by DFML to predict factors
 #' @param H: horizon
-#' @param unimethod: method from \link{mmultiplestepAhead} used to predict each univariate series
+#' @param unimethod: method from \link{MmultiplestepAhead} used to predict each univariate series
 #' @param  multi:
 #' \itemize{
-#' \item{uni}: prediction based on univariate forecasting with unimethod in \link{mmultiplestepAhead}
+#' \item{uni}: prediction based on univariate forecasting with unimethod in \link{MmultiplestepAhead}
 #' \item{dfm}: prediction based on DFM
 #' \item{dfml}: prediction based on DFML
 #' \item{VAR}: prediction based on VAR 
@@ -1311,11 +1311,13 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #' @export
 #' @examples
 #' ## Multi-variate Multi-step-ahead time series forecasting
-#' require("VARshrink")
+#' rm(list=ls())
 #' require(gbcode)
-#' require(MTS)
-#' data("mts-examples")
-#' Xtr=scale(tenstocks[,2:11])
+#' require(VARshrink)
+#' N=100
+#' n=10 
+#' Xtr=array(rnorm(N*n),c(N,n))
+#' ## random data: only to show the syntax
 #' n=3
 #' H=10
 #' Xhat1=MmultiplestepAhead(Xtr,n,H,multi="uni",uni=c("lazyiter"))

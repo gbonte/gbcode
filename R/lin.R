@@ -22,6 +22,7 @@
 #' \item{ \code{e.loo}:} leave-one-out error
 #'}
 #'
+#' @export
 #'@examples
 #'N<-100
 #' n<-10
