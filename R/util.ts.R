@@ -268,6 +268,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
   eps=1e-4
   
   Ehat<-array(0,c(maxm,maxp,nm))
+  Eref<-0
   for (mm in 1:nm){ ## loop over forecasting model
     mod=models[mm]
     
@@ -275,14 +276,32 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
       
       for (s in round(seq(0,Nts-H-1,length.out=Lcv))){
         XXts=TS[(Ntr+s+1):(Ntr+s+H),]
+        
+        if (m==1 & mm==1){
+          Xref=NULL
+          for (j in 1:n)
+            Xref=cbind(Xref,multiplestepAhead(TS[1:(Ntr+s),j],m,H, method="stat_comb"))
+          Eref<-Eref+mean(apply((XXts-Xref)^2,2,mean))
+        }
         if (mod=="vars"){
           Xhat=VARspred(TS[1:(Ntr+s),],m,H,method=1)
           Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
-        }else{
-          Zhat<-array(NA,c(H,maxp))
-          muZ=mean(Z[1:(Ntr+s),1])
-          stdZ=sd(Z[1:(Ntr+s),1])+eps
-          sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
+        }
+        Zhat<-array(NA,c(H,maxp))
+        muZ=mean(Z[1:(Ntr+s),1])
+        stdZ=sd(Z[1:(Ntr+s),1])+eps
+        sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
+        if (mod=="multifs"){
+          Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method="stat_comb")
+          Zhat[,1]=Zhat[,1]*stdZ+muZ
+          
+          Xhat=(Zhat[,1])%*%array(V[1,],c(1,n))
+          Ehat[m,1,mm]<-Ehat[m,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+        }
+        
+        
+        if (!is.element(mod,c("vars","multifs"))){
+          
           Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
           Zhat[,1]=Zhat[,1]*stdZ+muZ
           
@@ -297,7 +316,14 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
           if (mod=="vars"){
             Xhat=VARspred(TS[1:(Ntr+s),],m,H,method=p)
             Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
-          }else{
+          }
+          if (mod=="multifs"){
+            Xhat=multifs(Z[1:(Ntr+s),1:p],m,H,mod="rf")%*%V[1:p,]
+            Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+          }
+          
+          
+          if (!is.element(mod,c("vars","multifs"))){
             Zhat[,p]=multiplestepAhead(sZ,n=m, H=H,method=mod,...)
             Zhat[,p]=Zhat[,p]*stdZ+muZ
             Xhat=Zhat[,1:p]%*%V[1:p,]
@@ -312,11 +338,16 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
   
   Emin=min(Ehat)
   
-  
-  bestp<-which.min(apply(Ehat,2,min))
-  bestm<-which.min(apply(Ehat,1,min))
-  bestmod=models[which.min(apply(Ehat,3,min))]
-  
+  ## comparison with univariate model
+  if (quantile(Ehat,0.05)<Eref){
+    bestp<-which.min(apply(Ehat,2,min))
+    bestm<-which.min(apply(Ehat,1,min))
+    bestmod=models[which.min(apply(Ehat,3,min))]
+  } else {
+    bestp<--1
+    bestm<-0
+    bestmod="uni"
+  }
   return (list(p=bestp,m=bestm,mod=bestmod))
 }
 
@@ -328,16 +359,34 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
-  if (dfmod=="vars")
-    return(VARspred(TS,n,H,method=p0))
+  
+  
   m<-NCOL(TS)
   p0=min(p0,m)
+  
+  if (p0<0){
+    Xhat=NULL
+    for (j in 1:m)
+      Xhat=cbind(Xhat,multiplestepAhead(TS[,j],n,H, method="stat_comb"))
+    return(Xhat)
+  }
+  
+  if (dfmod=="vars" || dfmod=="multifs")
+    return(VARspred(TS,n,H,method=p0))
+  
   N=NROW(TS)
   Zhat<-array(NA,c(H,p0))
   C=cov(TS)
   V=t(eigen(C,TRUE)$vectors[,1:p0])
   eps=1e-4
   Ztr=TS%*%t(V)
+  
+  if (dfmod=="multifs" & p0>1){
+    
+    Zhat=multifs(Ztr[,1:p0],m,H,mod="rf")
+    return(Zhat%*%V[1:p0,])
+  }
+  
   muZ=mean(Ztr[,1])
   stdZ=sd(Ztr[,1])+eps
   sZ=(Ztr[,1]-muZ)/stdZ
@@ -644,7 +693,7 @@ lstmpred2<-function(TS,n,H,nunits=10){
 }
 
 
-multifs<-function(TS,n,H,w=NULL,nfs=5,mod,...){
+multifs<-function(TS,n,H,w=NULL,nfs=3,mod,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -653,9 +702,10 @@ multifs<-function(TS,n,H,w=NULL,nfs=5,mod,...){
   
   m=NCOL(TS)
   N=NROW(TS)
+  sTS=scale(TS)
   if (is.null(w))
     w=1:m
-  M=MakeEmbedded(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   I=which(!is.na(apply(M$out,1,sum)))
   XX=M$inp[I,]
   YY=M$out[I,]
@@ -663,7 +713,7 @@ multifs<-function(TS,n,H,w=NULL,nfs=5,mod,...){
   q<-NULL
   D=0
   for (j in 1:m)
-    q<-c(q,TS[seq(N-D,N-n+1-D,by=-1),j])
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
   for (i in 1:length(w))
     for (h in 1:H){
@@ -674,6 +724,8 @@ multifs<-function(TS,n,H,w=NULL,nfs=5,mod,...){
                      class=FALSE)
       
     }
+  for (i in 1:length(w))
+    Yhat[h,i]=Yhat[h,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   return(Yhat)
 }
 

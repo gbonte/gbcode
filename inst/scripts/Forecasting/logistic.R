@@ -1,6 +1,6 @@
 rm(list=ls())
 library(gbcode)
-library(keras)
+
 TT=500
 k=3.8
 

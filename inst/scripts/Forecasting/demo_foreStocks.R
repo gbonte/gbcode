@@ -3,38 +3,40 @@ library("SLBDD")
 library("VARshrink")
 require(gbcode)
 require(MTS)
-
-
-# clothing          Cloth sales in China n=25
-
-D = get("clothing", asNamespace('SLBDD'))
+library(keras)
+source("stockMvar.R")
+D = stockMvar(c( "AAPL", "GOOG","MSFT","AMZN","UNH","META","TSM",
+                 "NVDA","WMT","PG","JPM","CVX","MA","KO","BAC","BABA","PEP","MRK"), 
+              from=700)
 print(dim(D))
 visualize=TRUE
 season=TRUE
 execute=TRUE
-methods=c("uni","VAR","VARs","dfm","dfml","multifs")
+methods=c("uni","VAR","VARs","dfm","dfml","lstm")
 colors=c("red","green","magenta","cyan","orange","blue")
 
 if (execute){
-  n=3
-  N<-2000
-  mmax<-50
-  if (NROW(D)>N)
-    D=D[1:N,]
+  n=12
+  Nmax<-1000
+  mmax<-20
+  
+  if (NROW(D)>Nmax)
+    D=D[1:Nmax,]
   if (NCOL(D)>mmax)
     D=D[,sample(1:NCOL(D),mmax)]
   D=scale(D)
-  m=NCOL(D)
   N=NROW(D)
-  H=20
+  m=NCOL(D)
+  H=min(60,round(N/5))
   SeasP<-NULL
   Ntr=N-H
   
+ 
   if (season){
     X=NULL
-    bestS=NULL
+    bestS<-NULL
     for (i in 1:m){
-      S=detectSeason(D[1:Ntr,i],Ls=N,pmin=0.1)
+      S=detectSeason(D[1:Ntr,i],Ls=N,pmin=0.01)
       X=cbind(X,D[,i]-S$spattern-S$strend)
       SeasP<-cbind(SeasP,S$spattern+S$strend)
       bestS<-c(bestS,S$best)
@@ -42,8 +44,8 @@ if (execute){
   } else {
     X=D
   }
+  print(which(!is.na(bestS)))
  
-  
   
   Xtr=X[1:Ntr,]
   Xts=D[(Ntr+1):N,]
@@ -51,7 +53,7 @@ if (execute){
     SPts=SeasP[(Ntr+1):N,]
   } 
   
-  Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1],uni=c("lazyiter"))
+  Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1],uni="stat_comb")
   cat(".")
   Xhat2=MmultiplestepAhead(Xtr,n,H,multi=methods[2])
   cat(".")
@@ -59,12 +61,12 @@ if (execute){
   cat(".")
   Xhat4=MmultiplestepAhead(Xtr,n,H,multi=methods[4])
   cat(".")
-  Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5],cdfml=2,Lcv=10,
-                           dfmlmodels=c("lindirect","lazydirect"))
+  Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5],cdfml=2,
+                           dfmlmodels=c("lindirect","stat_comb"))
   cat(".")
-  Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],uni="mimo.comb")
+  Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],uni="lazydirect")
   cat(".")
-} 
+ } 
 if (season){
   Xhat1=Xhat1+SPts
   Xhat2=Xhat2+SPts
@@ -104,8 +106,7 @@ if (visualize){
                      methods[4],":",round(mean(e.hat4),2)," | ",
                      methods[5],":",round(mean(e.hat5),2)," |",
                      methods[6],":",round(mean(e.hat6),2),"\n"),
-         ylim=range(Xts[,ns])+c(-1,1),
-         cex.main=0.5)
+         ylim=range(Xts[,ns])+c(-1,1),cex.main=0.5)
     lines(Xhat1[,ns],col=colors[1])
     lines(Xhat2[,ns],col=colors[2])
     lines(Xhat3[,ns],col=colors[3])

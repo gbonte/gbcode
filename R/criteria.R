@@ -13,6 +13,7 @@
 #' @export
 #' @examples
 #' ## random prediction
+#' library(ROCR)
 #' AUC(round(runif(100)),rnorm(100))
 #'
 AUC<-function(y,yhat){

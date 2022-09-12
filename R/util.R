@@ -1006,52 +1006,6 @@ plaw.plot2<-function(x,no.breaks=20){
 }
 
 
-yeast.n2s<-function(name,altern=T){
-  l.n<-length(name)
-  if (!altern){
-    require(YEAST)
-    n.yeast<- as.list(YEASTGENENAME)
-    n<-names(n.yeast[match(name,n.yeast)])
-    return(n)
-  } else {
-    load("/u/gbonte/datamining/data/Saccharomyces.cerevisiae/misc/standard.names.2.systematic.names.RData")
-    list.s<-NULL
-    for (i in 1:l.n){
-      list.sn<-unlist(st2sy[name[i]])
-      if (length(list.sn)>0)
-        list.s<-c(list.s,list.sn[1])
-      else
-        list.s<-c(list.s,NaN)
-    }
-    return(list.s)
-  }
-
-}
-
-
-yeast.s2n<-function(name,altern=F){
-  l.n<-length(name)
-  if (!altern){
-    require(YEAST)
-    n.yeast<- as.list(YEASTGENENAME)
-    return(unlist(n.yeast[name]))
-  } else {
-    load("/u/gbonte/datamining/data/Saccharomyces.cerevisiae/misc/standard.names.2.systematic.names.RData")
-    list.n<-NULL
-    for (i in 1:l.n){
-      list.nn<-which.element.list(name[i],st2sy)
-      if (length(list.nn)>0)
-        list.n<-c(list.n,list.nn[1])
-      else
-        list.n<-c(list.n,NaN)
-    }
-    return(list.n)
-
-  }
-}
-
-
-
 
 ## Takes as input an adjacent matrix and produces a '.tgf' file.
 ## Parameters: an adjacent matrix and a filename (default is 'adjacent.tgf').
