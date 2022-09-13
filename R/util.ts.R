@@ -318,7 +318,8 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
             Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
           }
           if (mod=="multifs"){
-            Xhat=multifs(Z[1:(Ntr+s),1:p],m,H,mod="rf")%*%V[1:p,]
+            
+            Xhat=multifs(Z[1:(Ntr+s),1:p],m,H,mod="lin")%*%V[1:p,]
             Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
           }
           
@@ -371,9 +372,11 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
     return(Xhat)
   }
   
-  if (dfmod=="vars" || dfmod=="multifs")
+  if (dfmod=="vars") 
     return(VARspred(TS,n,H,method=p0))
-  
+
+
+
   N=NROW(TS)
   Zhat<-array(NA,c(H,p0))
   C=cov(TS)
@@ -381,9 +384,12 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
   eps=1e-4
   Ztr=TS%*%t(V)
   
-  if (dfmod=="multifs" & p0>1){
-    
-    Zhat=multifs(Ztr[,1:p0],m,H,mod="rf")
+  if (dfmod=="multifs"){
+    if (p0==1){
+      Zhat=multiplestepAhead(Ztr[,1],n=m, H=H,method="stat_comb")
+      return(Zhat%*%V[1,])
+    }
+    Zhat=multifs(Ztr[,1:p0],m,H,mod="lin")
     return(Zhat%*%V[1:p0,])
   }
   
