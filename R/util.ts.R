@@ -387,7 +387,7 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
   if (dfmod=="multifs"){
     if (p0==1){
       Zhat=multiplestepAhead(Ztr[,1],n=m, H=H,method="stat_comb")
-      return(Zhat%*%V[1,])
+      return(Zhat%*%array(V[1:p0,],c(1,m)))
     }
     Zhat=multifs(Ztr[,1:p0],m,H,mod="lin")
     return(Zhat%*%V[1:p0,])
@@ -398,7 +398,7 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
   sZ=(Ztr[,1]-muZ)/stdZ
   Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=dfmod,...)
   Zhat[,1]=(Zhat[,1]*stdZ+muZ)
-  if (p0>1)
+  if (p0>1){
     for (p in 2:p0){
       muZ=mean(Ztr[,p])
       stdZ=sd(Ztr[,p])+eps
@@ -406,7 +406,7 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
       Zhat[,p]=multiplestepAhead(sZ,n=n, H=H,method=dfmod,...)
       Zhat[,p]=(Zhat[,p]*stdZ+muZ)
     }
-  if (p0>1){
+  
     Xhat=Zhat[,1:p0]%*%V[1:p0,]
     return(Xhat)
   }
