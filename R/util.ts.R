@@ -767,7 +767,7 @@ multipls<-function(TS,n,H,w=NULL,nfs=3,...){
   names(DXX)<-as.character(1:NCOL(XX))
   DXts<-data.frame(Xts)
   names(DXts)<-as.character(1:NCOL(Xts))
- 
+  
   
   MV<-plsr(YY~.,data=DXX,validation="LOO")
   LP<-predict(MV,newdata=DXts)
@@ -785,7 +785,7 @@ multipls<-function(TS,n,H,w=NULL,nfs=3,...){
 
 
 multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
-                   maxLambda=1000,stepLambda=0.5,...){
+                   maxLambda=1000,stepLambda=0.5,QRdec=TRUE,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -823,11 +823,13 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   for (lambdah in seq(minLambda,maxLambda,by=stepLambda)){
     
     H1<-ginv(XXX+lambdah*diag(p))
-    #beta.hat<-H1%*%t(R)%*%t(Q)%*%YY 
-    # HH=XX%*%t(R)%*%H1%*%t(Q)
-    
-    beta.hat<-H1%*%t(XX)%*%YY
-    HH=XX%*%H1%*%t(XX)
+    if (QRdec){
+      beta.hat<-H1%*%t(R)%*%t(Q)%*%YY 
+      HH=XX%*%t(R)%*%H1%*%t(Q)
+    } else {
+      beta.hat<-H1%*%t(XX)%*%YY
+      HH=XX%*%H1%*%t(XX)
+    }
     Y.hat<-HH%*%YY
     e<-YY-Y.hat
     e.loo<-e
@@ -841,7 +843,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
-     
+      
     }
     
   }
