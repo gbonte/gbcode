@@ -374,9 +374,9 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
   
   if (dfmod=="vars") 
     return(VARspred(TS,n,H,method=p0))
-
-
-
+  
+  
+  
   N=NROW(TS)
   Zhat<-array(NA,c(H,p0))
   C=cov(TS)
@@ -386,7 +386,8 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
   
   if (dfmod=="multifs"){
     if (p0==1){
-      Zhat=multiplestepAhead(Ztr[,1],n=m, H=H,method="stat_comb")
+      Zhat=multiplestepAhead(Ztr[,1],n=n, H=H,method="stat_comb")
+      
       return(Zhat%*%array(V[1:p0,],c(1,m)))
     }
     Zhat=multifs(Ztr[,1:p0],m,H,mod="lin")
@@ -406,7 +407,7 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
       Zhat[,p]=multiplestepAhead(sZ,n=n, H=H,method=dfmod,...)
       Zhat[,p]=(Zhat[,p]*stdZ+muZ)
     }
-  
+    
     Xhat=Zhat[,1:p0]%*%V[1:p0,]
     return(Xhat)
   }
@@ -731,13 +732,83 @@ multifs<-function(TS,n,H,w=NULL,nfs=3,mod,...){
       
     }
   for (i in 1:length(w))
-    Yhat[h,i]=Yhat[h,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   return(Yhat)
 }
 
+multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
+                   maxLambda=1000,stepLambda=0.5,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  sTS=scale(TS)
+  if (is.null(w))
+    w=1:m
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-1
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+  N<-NROW(XX) # number training data
+  nn<-NCOL(XX) # number input variables
+  p<-nn+1
+  XX<-cbind(array(1,c(N,1)),as.matrix(XX))
+  QR=qr(XX)
+  Q=qr.Q(QR)
+  R=qr.R(QR)
+  #HH=Q%*%t(Q)
+  #XXX<-R%*%t(R)  
+  XXX<-t(XX)%*%(XX)
+  min.MSE.loo<-Inf
+  
+  for (lambdah in seq(minLambda,maxLambda,by=stepLambda)){
+    
+    H1<-ginv(XXX+lambdah*diag(p))
+    #beta.hat<-H1%*%t(R)%*%t(Q)%*%YY 
+    # HH=XX%*%t(R)%*%H1%*%t(Q)
+    
+    beta.hat<-H1%*%t(XX)%*%YY
+    HH=XX%*%H1%*%t(XX)
+    Y.hat<-HH%*%YY
+    e<-YY-Y.hat
+    e.loo<-e
+    for (j in 1:NCOL(e)){
+      e.loo[,j]<-e[,j]/(1-diag(HH))
+      w.na<-which(is.na(e.loo[,j]))
+      if (length(w.na)>0)
+        e.loo[w.na,j]=1
+    }
+    MSE.loo<-mean(e.loo^2 )
+    if (MSE.loo<min.MSE.loo){
+      lambda<-lambdah
+      min.MSE.loo<-MSE.loo
+     
+    }
+    
+  }
+  print(lambda)
+  H1<-ginv(XXX+lambda*diag(p))
+  beta.hat<-H1%*%t(R)%*%t(Q)%*%YY 
+  Yhat=array(Xts%*%beta.hat,c(H,m))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  
+  
+  return(Yhat)
+}
 
-
-multifs2<-function(TS,n,H,mod,...){
+multifs3<-function(TS,n,H,mod,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -908,12 +979,13 @@ VARpred2<-function (x,model, h = 1, orig = 0, Out.level = F,verbose=FALSE) {
 }
 
 detectSeason<-function(TS,maxs=20,Ls=100,pmin=0.1,debug=FALSE){
+  ## Ls length total output series
   if (length(TS)<20 || sd(TS)<0.01)
-    return(list(best=1,spattern=numeric(LS),strend=numeric(LS)))
+    return(list(best=1,spattern=numeric(Ls),strend=numeric(Ls)))
   if (any(is.infinite(TS)))
-    return(list(best=1,spattern=numeric(LS),strend=numeric(LS)))
+    return(list(best=1,spattern=numeric(Ls),strend=numeric(Ls)))
   if (sd(TS,na.rm=TRUE)<0.01)
-    return(list(best=1,spattern=numeric(LS),strend=numeric(LS)))
+    return(list(best=1,spattern=numeric(Ls),strend=numeric(Ls)))
   
   N=length(TS)
   maxs=min(maxs,round(N/6))

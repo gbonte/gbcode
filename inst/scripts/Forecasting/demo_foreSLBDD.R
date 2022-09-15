@@ -17,13 +17,13 @@ print(dim(D))
 visualize=TRUE
 season=TRUE
 execute=TRUE
-methods=c("uni","VAR","VARs","dfml","dfml","multifs")
+methods=c("uni","VAR","VARs","dfml","dfm","multifs")
 colors=c("red","green","magenta","cyan","orange","blue")
 
 if (execute){
   n=5
   Nmax<-1500
-  mmax<-50
+  mmax<-10
   
   if (NROW(D)>Nmax)
     D=D[1:Nmax,]
@@ -32,7 +32,7 @@ if (execute){
   D=scale(D)
   N=NROW(D)
   m=NCOL(D)
-  H=min(20,round(N/5))
+  H=min(10,round(N/5))
   
   E.hat1=NULL
   E.hat2=NULL
@@ -74,10 +74,12 @@ if (execute){
     Xhat4=MmultiplestepAhead(Xtr,n,H,multi=methods[4],
                              dfmlmodels=c("stat_comb","lazydirect"),cdfml=2,Lcv=5)
     cat(".")
-    Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5],cdfml=2, Lcv=5, dfmlmodels=c("multifs"))
+    Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5], dfmlmodels=c("multifs"))
     cat(".")
     Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],uni="lazydirect")
     cat(".")
+    
+    
     
     if (season){
       Xhat1=Xhat1+SPts

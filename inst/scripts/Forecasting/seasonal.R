@@ -6,11 +6,11 @@ load("./data/bench.temp.200.Rdata")
 
 
 D = get("clothing", asNamespace('SLBDD'))
-D=remNA(Temp[1:400,1])
+D=remNA(Temp[1:400,3])
 S=detectSeason(D,Ls=length(D),debug=FALSE)
 
 
-par(mfrow=c(4,1))
+par(mfrow=c(4,1),mar=2*c(1,1,1,1))
 plot(D,type="l")
 lines(S$spattern+S$strend,col="red")
 plot(D-S$spattern+S$strend,type="l",main="residual")
