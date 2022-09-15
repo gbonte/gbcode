@@ -736,6 +736,54 @@ multifs<-function(TS,n,H,w=NULL,nfs=3,mod,...){
   return(Yhat)
 }
 
+multipls<-function(TS,n,H,w=NULL,nfs=3,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  sTS=scale(TS)
+  if (is.null(w))
+    w=1:m
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-1
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+  N<-NROW(XX) # number training data
+  nn<-NCOL(XX) # number input variables
+  p<-nn+1
+  XX<-cbind(array(1,c(N,1)),as.matrix(XX))
+  DXX<-data.frame(XX)
+  names(DXX)<-as.character(1:NCOL(XX))
+  DXts<-data.frame(Xts)
+  names(DXts)<-as.character(1:NCOL(Xts))
+ 
+  
+  MV<-plsr(YY~.,data=DXX,validation="LOO")
+  LP<-predict(MV,newdata=DXts)
+  nc<-which.min(apply(MV$validation$PRESS,2,mean,na.rm=T))
+  
+  Yhat<-c(LP[,,nc])
+  Yhat=array(Yhat,c(H,m))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  
+  
+  return(Yhat)
+}
+
+
+
 multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
                    maxLambda=1000,stepLambda=0.5,...){
   args<-list(...)

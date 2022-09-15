@@ -1381,6 +1381,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   
   if (multi=="multifs2")
     Yhat=multifs2(TS,n,H,mod=mod,...)
+  if (multi=="multipls")
+    Yhat=multipls(TS,n,H,mod=mod,...)
   if (multi=="comb"){
     YYhat=array(NA,c(H,m,3))
     YYhat[,,1]=multifs(TS,n,H,mod=mod,...)
