@@ -782,32 +782,8 @@ multipls<-function(TS,n,H,w=NULL,nfs=3,...){
   return(Yhat)
 }
 
-
-
-multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
-                   maxLambda=1000,stepLambda=0.5,QRdec=TRUE,...){
-  args<-list(...)
-  if (length(args)>0)
-    for(i in 1:length(args)) {
-      assign(x = names(args)[i], value = args[[i]])
-    }
-  
-  m=NCOL(TS)
-  N=NROW(TS)
-  sTS=scale(TS)
-  if (is.null(w))
-    w=1:m
-  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
-  I=which(!is.na(apply(M$out,1,sum)))
-  XX=M$inp[I,]
-  YY=M$out[I,]
-  
-  q<-1
-  D=0
-  for (j in 1:m)
-    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
-  Xts=array(q,c(1,length(q)))
-  
+mlin<-function(XX,YY,minLambda=0.1,
+               maxLambda=1000,stepLambda=0.5,QRdec=TRUE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
@@ -816,8 +792,10 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   Q=qr.Q(QR)
   R=qr.R(QR)
   #HH=Q%*%t(Q)
-  #XXX<-R%*%t(R)  
-  XXX<-t(XX)%*%(XX)
+  if (QRdec)
+    XXX<-R%*%t(R)  
+  else
+    XXX<-t(XX)%*%(XX)
   min.MSE.loo<-Inf
   
   for (lambdah in seq(minLambda,maxLambda,by=stepLambda)){
@@ -847,10 +825,57 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     }
     
   }
-  print(lambda)
+  ##print(lambda)
   H1<-ginv(XXX+lambda*diag(p))
+  
   beta.hat<-H1%*%t(R)%*%t(Q)%*%YY 
+  return(beta.hat)
+}
+
+multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
+                   maxLambda=1000,stepLambda=0.5,QRdec=TRUE,B=5,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  sTS=scale(TS)
+  if (is.null(w))
+    w=1:m
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-1
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+ 
+  beta.hat<-mlin(XX,YY,minLambda,
+                           maxLambda,stepLambda,QRdec)
+    
   Yhat=array(Xts%*%beta.hat,c(H,m))
+  
+  if (B>0){
+    BYhat=array(NA,c(H,m,B+1))
+    BYhat[,,1]=Yhat
+    for (b in 1:B){
+      Ib=sample(1:NCOL(XX),min(5,NCOL(XX)-1))
+      beta.hatb<-mlin(XX[,Ib],YY,0.1,
+                      maxLambda,stepLambda*2,QRdec)
+      
+      BYhat[,,b+1]=array(Xts%*%beta.hat,c(H,m))
+    }
+    Yhat<-apply(BYhat,c(1,2),mean)
+   
+  }
+  
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   
