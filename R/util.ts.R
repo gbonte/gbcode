@@ -769,7 +769,7 @@ multipls<-function(TS,n,H,w=NULL,nfs=3,...){
   names(DXts)<-as.character(1:NCOL(Xts))
   
   
-  MV<-plsr(YY~.,data=DXX,validation="LOO")
+  MV<-plsr(YY~.,data=DXX,validation="CV",segments=3)
   LP<-predict(MV,newdata=DXts)
   nc<-which.min(apply(MV$validation$PRESS,2,mean,na.rm=T))
   
