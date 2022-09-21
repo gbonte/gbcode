@@ -846,6 +846,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(c(p+trnd.ts))
   }
   
+  if (method=="mimolin"){
+    p=multifs2(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE) 
+    return(c(p+trnd.ts))
+  }
+  
   
   ### keras based RNN: it requires keras
   if (method=="rnn"){
@@ -1346,8 +1351,12 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     stop("Only for multivariate series")
   Yhat=array(NA,c(H,m))
   if (multi=="uni")
-    for (j in 1:m)
-      Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod,...)
+    for (j in 1:m){
+      Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod,minLambda=0.1,
+                                 maxLambda=100,stepLambda=0.5,...)
+      if (unimethod=="mimolin")
+        cat("+")
+    }
   if (multi=="rnn")
     Yhat=rnnpred(TS,H,...)
   if (multi=="lstm")
@@ -1373,7 +1382,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=VARpred2(TS,m=MTS::VAR(TS,p=n,output=FALSE),h=H,Out=FALSE)$pred 
   }
   if (multi=="VARs"){
-   
+    
     Yhat=VARspred(TS,n,H)
   }
   if (multi=="multifs")

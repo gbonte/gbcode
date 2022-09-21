@@ -819,7 +819,7 @@ mlin<-function(XX,YY,minLambda=0.1,
       if (length(w.na)>0)
         e.loo[w.na,j]=1
     }
-    MSE.loo<-mean(e.loo^2 )
+    MSE.loo<-mean(e.loo[round(N/2):N,]^2 )
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
@@ -837,7 +837,7 @@ mlin<-function(XX,YY,minLambda=0.1,
 }
 
 multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
-                   maxLambda=1000,stepLambda=0.5,QRdec=TRUE,B=5,...){
+                   maxLambda=1000,stepLambda=0.5,QRdec=FALSE,B=5,verbose=FALSE,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -863,6 +863,8 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   ML<-mlin(XX,YY,minLambda, maxLambda,stepLambda,QRdec)
   beta.hat=ML$beta.hat 
   w=ML$minMSE
+  if (verbose)
+    cat("lambda=",ML$lambda)
   Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
  
   
