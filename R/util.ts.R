@@ -181,6 +181,8 @@ MakeEmbedded<-function(ts, n, delay,hor=1,w=1){
       Output=Output[-wna,]
     }
   }
+  if (sum(n)==1)
+    Input=array(Input,c(length(Input),1))
   list(inp=Input,out=Output)
 }
 
@@ -293,6 +295,8 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
         sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
         if (mod=="multifs"){
           Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method="stat_comb")
+          
+          ##Zhat[,1]=multifs2(array(sZ,c(length(sZ),1)),n=m, H=H)
           Zhat[,1]=Zhat[,1]*stdZ+muZ
           
           Xhat=(Zhat[,1])%*%array(V[1,],c(1,n))
@@ -782,6 +786,52 @@ multipls<-function(TS,n,H,w=NULL,nfs=3,...){
   return(Yhat)
 }
 
+multirr<-function(TS,n,H,w=NULL,nfs=3,...){
+  require(rrpack)
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  sTS=scale(TS)
+  if (is.null(w))
+    w=1:m
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-1
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+  N<-NROW(XX) # number training data
+  nn<-NCOL(XX) # number input variables
+  p<-nn+1
+  XX<-cbind(array(1,c(N,1)),as.matrix(XX))
+  DXX<-data.frame(XX)
+  names(DXX)<-as.character(1:NCOL(XX))
+  DXts<-data.frame(Xts)
+  names(DXts)<-as.character(1:NCOL(Xts))
+ 
+  rfit<-cv.rrr(YY, XX, nfold = 10)
+  ##rrs.fit(YY, XX)
+  
+  Yhat<-Xts%*%rfit$coef
+   Yhat=array(Yhat,c(H,m))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  
+  
+  return(Yhat)
+}
+
+
 mlin<-function(XX,YY,minLambda=0.1,
                maxLambda=1000,stepLambda=0.5,QRdec=TRUE){
   N<-NROW(XX) # number training data
@@ -802,7 +852,8 @@ mlin<-function(XX,YY,minLambda=0.1,
   
   for (lambdah in seq(minLambda,maxLambda,by=stepLambda)){
     
-    H1<-ginv(XXX+lambdah*diag(p))
+    H1<-solve(XXX+lambdah*diag(p))
+    
     if (QRdec){
       beta.hat<-H1%*%t(R)%*%t(Q)%*%YY 
       HH=XX%*%t(R)%*%H1%*%t(Q)
@@ -819,11 +870,11 @@ mlin<-function(XX,YY,minLambda=0.1,
       if (length(w.na)>0)
         e.loo[w.na,j]=1
     }
-    MSE.loo<-mean(e.loo[round(N/2):N,]^2 )
+    MSE.loo<-mean(e.loo[round(2*N/3):N,]^2 )
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
-      
+     
     }
     
   }
@@ -837,19 +888,22 @@ mlin<-function(XX,YY,minLambda=0.1,
 }
 
 multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
-                   maxLambda=1000,stepLambda=0.5,QRdec=FALSE,B=5,verbose=FALSE,...){
+                   maxLambda=1000,stepLambda=0.5,QRdec=FALSE,B=5,
+                   verbose=FALSE,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
   
-  m=NCOL(TS)
-  N=NROW(TS)
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
  
   if (is.null(w))
     w=1:m
-  M=MakeEmbedded(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  
   I=which(!is.na(apply(M$out,1,sum)))
   XX=M$inp[I,]
   YY=M$out[I,]
@@ -857,18 +911,19 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   q<-NULL
   D=0
   for (j in 1:m)
-    q<-c(q,TS[seq(N-D,N-n+1-D,by=-1),j])
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
   
   ML<-mlin(XX,YY,minLambda, maxLambda,stepLambda,QRdec)
   beta.hat=ML$beta.hat 
   w=ML$minMSE
+  
   if (verbose)
-    cat("lambda=",ML$lambda)
+    cat("lambda=",ML$lambda, "minMSE=",ML$minMSE,"\n")
   Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
  
   
-  if (B>0){
+  if (B>0 & NCOL(XX)>3){
     BYhat=array(NA,c(H,m,B+1))
     BYhat[,,1]=Yhat
     for (b in 1:B){
@@ -888,8 +943,8 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
       
     }
     
-   # for (i in 1:NCOL(Yhat))
-  #    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+   for (i in 1:NCOL(Yhat))
+      Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   
     
     return(Yhat)

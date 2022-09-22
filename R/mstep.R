@@ -847,11 +847,14 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   }
   
   if (method=="mimolin"){
-    p=multifs2(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE) 
+    p=multifs2(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE,verbose=verbose,...) 
     return(c(p+trnd.ts))
   }
   
-  
+  if (method=="mimorr"){
+    p=multirr(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE,verbose=verbose,...) 
+    return(c(p+trnd.ts))
+  }
   ### keras based RNN: it requires keras
   if (method=="rnn"){
     
@@ -1390,6 +1393,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   
   if (multi=="multifs2")
     Yhat=multifs2(TS,n,H,mod=mod,...)
+  if (multi=="multirr")
+    Yhat=multirr(TS,n,H,mod=mod,...)
   if (multi=="multipls")
     Yhat=multipls(TS,n,H,mod=mod,...)
   if (multi=="comb"){
