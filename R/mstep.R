@@ -855,6 +855,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     p=multirr(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE,verbose=verbose,...) 
     return(c(p+trnd.ts))
   }
+  if (method=="mimocca"){
+    p=multicca(array(TS,c(length(TS),1)),n,H,...) 
+    return(c(p+trnd.ts))
+  }
+  
   ### keras based RNN: it requires keras
   if (method=="rnn"){
     
@@ -1395,6 +1400,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=multifs2(TS,n,H,mod=mod,...)
   if (multi=="multirr")
     Yhat=multirr(TS,n,H,mod=mod,...)
+  if (multi=="multicca")
+    Yhat=multicca(TS,n,H,mod=mod,...)
   if (multi=="multipls")
     Yhat=multipls(TS,n,H,mod=mod,...)
   if (multi=="comb"){

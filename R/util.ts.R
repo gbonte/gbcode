@@ -831,6 +831,52 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
   return(Yhat)
 }
 
+multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
+                   maxLambda=1000,stepLambda=0.5,...){
+ 
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  m=NCOL(TS)
+  N=NROW(TS)
+  sTS=scale(TS)
+  
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-NULL
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+  N<-NROW(XX) # number training data
+  nn<-NCOL(XX) # number input variables
+  
+  cxy <- cancor(XX, YY)
+  
+  nfs<-max(2,length(which(cxy$cor>0.5)))
+  U=cxy$xcoef
+  XXc<-XX%*%U[,1:min(nfs,NCOL(U)-1)]
+  Xtsc<-Xts%*%U[,1:min(nfs,NCOL(U)-1)]
+  ML<-mlin(XXc,YY,minLambda, maxLambda,stepLambda,QRdec=FALSE)
+  beta.hat=ML$beta.hat 
+
+  Yhat=array(c(1,Xtsc)%*%beta.hat,c(H,m))
+  
+  Yhat=array(Yhat,c(H,m))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  
+  
+  return(Yhat)
+}
+
 
 mlin<-function(XX,YY,minLambda=0.1,
                maxLambda=1000,stepLambda=0.5,QRdec=TRUE){
@@ -887,6 +933,7 @@ mlin<-function(XX,YY,minLambda=0.1,
   return(list(beta.hat=beta.hat,minMSE=min.MSE.loo,lambda=lambda))
 }
 
+## multi-output ridge regression with lambda selection by PRESS
 multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
                    maxLambda=1000,stepLambda=0.5,QRdec=FALSE,B=5,
                    verbose=FALSE,...){
