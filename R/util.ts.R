@@ -857,13 +857,15 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
-  
+  colnames(XX)<-1:NCOL(XX)
+  colnames(Xts)<-colnames(XX)
   cxy <- cancor(XX, YY)
   
   nfs<-max(2,length(which(cxy$cor>0.5)))
   U=cxy$xcoef
-  XXc<-XX%*%U[,1:min(nfs,NCOL(U)-1)]
-  Xtsc<-Xts%*%U[,1:min(nfs,NCOL(U)-1)]
+  
+  XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
+  Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
   ML<-mlin(XXc,YY,minLambda, maxLambda,stepLambda,QRdec=FALSE)
   beta.hat=ML$beta.hat 
 
