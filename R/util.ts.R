@@ -704,6 +704,8 @@ lstmpred2<-function(TS,n,H,nunits=10){
 }
 
 
+# for each series and for each horizon it selects relevant features and
+# return the forecast
 multifs<-function(TS,n,H,w=NULL,nfs=3,mod,...){
   args<-list(...)
   if (length(args)>0)
@@ -819,7 +821,7 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
   DXts<-data.frame(Xts)
   names(DXts)<-as.character(1:NCOL(Xts))
  
-  rfit<-cv.rrr(YY, XX, nfold = 10)
+  rfit<-cv.rrr(YY, XX, nfold = 3)
   ##rrs.fit(YY, XX)
   
   Yhat<-Xts%*%rfit$coef
@@ -856,6 +858,10 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   Xts=array(q,c(1,length(q)))
   
   N<-NROW(XX) # number training data
+  XX=XX[round(N/2):N,]
+  YY=YY[round(N/2):N,]
+  N<-NROW(XX) 
+  
   nn<-NCOL(XX) # number input variables
   colnames(XX)<-1:NCOL(XX)
   colnames(Xts)<-colnames(XX)
@@ -881,7 +887,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,minLambda=0.1,
-               maxLambda=1000,stepLambda=0.5,QRdec=TRUE){
+               maxLambda=1000,nLambdas=5,QRdec=TRUE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
@@ -898,7 +904,7 @@ mlin<-function(XX,YY,minLambda=0.1,
   }
   min.MSE.loo<-Inf
   
-  for (lambdah in seq(minLambda,maxLambda,by=stepLambda)){
+  for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
     
     H1<-solve(XXX+lambdah*diag(p))
     
@@ -937,7 +943,7 @@ mlin<-function(XX,YY,minLambda=0.1,
 
 ## multi-output ridge regression with lambda selection by PRESS
 multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
-                   maxLambda=1000,stepLambda=0.5,QRdec=FALSE,B=5,
+                   maxLambda=1000,nLambdas=10,QRdec=FALSE,B=0,
                    verbose=FALSE,...){
   args<-list(...)
   if (length(args)>0)
@@ -963,7 +969,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
   
-  ML<-mlin(XX,YY,minLambda, maxLambda,stepLambda,QRdec)
+  ML<-mlin(XX,YY,minLambda, maxLambda,nLambdas,QRdec)
   beta.hat=ML$beta.hat 
   w=ML$minMSE
   

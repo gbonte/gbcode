@@ -398,7 +398,7 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
     X.ts=scale(X.ts,attr(X,"scaled:center"), attr(X,"scaled:scale"))
     if (any(is.na(X))| any(is.na(X.ts)))
       return(mean(Y))
-##      stop("NA values")
+    ##      stop("NA values")
   }
   
   if (class){ ## classification
@@ -1689,11 +1689,11 @@ xgboost.pred<-function(X,Y,X.ts,classi,...){
     
     X<-data.matrix(X)
     X.ts<-data.matrix(X.ts)
-  
+    
     bst <- xgboost(data =X, nrounds=10, label = Y,verbose=0,...)
     Yhat<-predict(bst,X.ts)
     
-   return(Yhat)
+    return(Yhat)
     
     
     
@@ -1763,4 +1763,18 @@ stacked.pred<-function(X,Y,X.ts,classi,M=20,R=Inf,algo2="lazy",...){
   
   list(prob=prob,pred=pred)
   
+}
+
+
+kern.pred<-function(X,Y,X.ts,lambda=0.01,...){
+  
+  require(kernlab)
+  N=NROW(X)
+  Nts=NROW(X.ts)
+  rbf <- rbfdot(sigma = 0.5)
+  ## calculate kernel matrix
+  K=kernelMatrix(rbf, X)
+  Kts=kernelMatrix(rbf, array(X.ts,c(Nts,NCOL(X))),X)
+  alpha=solve(K+lambda*diag(N))%*%Y
+  Yhat=Kts%*%alpha
 }
