@@ -858,12 +858,13 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   Xts=array(q,c(1,length(q)))
   
   N<-NROW(XX) # number training data
-  XX=XX[round(N/2):N,]
-  YY=YY[round(N/2):N,]
+  ##XX=XX[round(N/2):N,]
+  ##YY=YY[round(N/2):N,]
   N<-NROW(XX) 
   
   nn<-NCOL(XX) # number input variables
   colnames(XX)<-1:NCOL(XX)
+  rownames(XX)<-1:NROW(XX)
   colnames(Xts)<-colnames(XX)
   cxy <- cancor(XX, YY)
   
