@@ -868,7 +868,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   colnames(Xts)<-colnames(XX)
   cxy <- cancor(XX, YY)
   
-  nfs<-max(2,length(which(cxy$cor>0.5)))
+  nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
   U=cxy$xcoef
   
   XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
