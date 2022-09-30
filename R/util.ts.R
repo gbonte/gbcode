@@ -834,7 +834,7 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
 }
 
 multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
-                   maxLambda=1000,stepLambda=0.5,...){
+                   maxLambda=1000,...){
  
   args<-list(...)
   if (length(args)>0)
@@ -873,7 +873,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   
   XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
   Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
-  ML<-mlin(XXc,YY,minLambda, maxLambda,stepLambda,QRdec=FALSE)
+  ML<-mlin(XXc,YY)
   beta.hat=ML$beta.hat 
 
   Yhat=array(c(1,Xtsc)%*%beta.hat,c(H,m))
@@ -888,7 +888,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,minLambda=0.1,
-               maxLambda=1000,nLambdas=5,QRdec=TRUE){
+               maxLambda=1000,nLambdas=10,QRdec=TRUE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
@@ -970,7 +970,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
   
-  ML<-mlin(XX,YY,minLambda, maxLambda,nLambdas,QRdec)
+  ML<-mlin(XX,YY)
   beta.hat=ML$beta.hat 
   w=ML$minMSE
   
@@ -984,8 +984,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     BYhat[,,1]=Yhat
     for (b in 1:B){
       Ib=sample(1:NCOL(XX),round(NCOL(XX)/3))
-      MLb<-mlin(XX[,Ib],YY,0.1,
-               maxLambda,stepLambda*2,QRdec)
+      MLb<-mlin(XX[,Ib],YY)
       beta.hatb<-MLb$beta.hat
       w=c(w,MLb$minMSE)
       
