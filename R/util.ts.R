@@ -888,7 +888,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,minLambda=0.1,
-               maxLambda=1000,nLambdas=10,QRdec=TRUE){
+               maxLambda=1000,nLambdas=10,QRdec=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
@@ -969,7 +969,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   for (j in 1:m)
     q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
-  
+ 
   ML<-mlin(XX,YY)
   beta.hat=ML$beta.hat 
   w=ML$minMSE
