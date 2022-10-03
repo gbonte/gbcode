@@ -1186,7 +1186,11 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
       return(list(best=1,spattern=numeric(Ls),strend=numeric(Ls)))
     
     N=length(TS)
-    maxs=min(maxs,round(N/6))
+    if (!forced){
+      maxs=min(maxs,round(N/5))
+    }else {
+      pmin=0.5
+    }
     trndmod=lm(TS ~ seq(TS))
     trnd=numeric(N)
     summmod=summary(trndmod)
@@ -1198,7 +1202,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     
     S<-TS-trnd  ## detrended series
     
-    for (s in 2:maxs){
+    for (s in 4:maxs){
       PV=NULL
       V=NULL
       m_S = t(matrix(data = S[1:(floor(N/s)*s)], nrow = s))
@@ -1219,6 +1223,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     if (mVS>0 | forced) { 
       
       bests=which.max(VS)  ## lowest conditional variance 
+      
       m_S = t(matrix(data = S[1:(floor(N/bests)*bests)], nrow = bests))
       spattern=apply(m_S,2,mean)
       spattern=rep(spattern,length.out=Ls)
