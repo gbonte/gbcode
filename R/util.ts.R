@@ -1175,7 +1175,8 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     VARpred <- list(pred = pred, se.err = se, mse = mse)
   }
   
-  detectSeason<-function(TS,maxs=20,Ls=100,pmin=0.1,debug=FALSE){
+  detectSeason<-function(TS,maxs=20,Ls=100,pmin=0.1,forced=FALSE, debug=FALSE){
+    ## forced force the detection of seasonality
     ## Ls length total output series
     if (length(TS)<20 || sd(TS)<0.01)
       return(list(best=1,spattern=numeric(Ls),strend=numeric(Ls)))
@@ -1215,7 +1216,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
       browser()
     I=1:Ls
     trnd2=pred("lin",1:length(trnd),trnd,1:Ls,classi=FALSE,lambda=1e-3)
-    if (mVS>0) { 
+    if (mVS>0 | forced) { 
       
       bests=which.max(VS)  ## lowest conditional variance 
       m_S = t(matrix(data = S[1:(floor(N/bests)*bests)], nrow = bests))
