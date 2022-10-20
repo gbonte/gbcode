@@ -29,7 +29,7 @@ genfreq<-function(N,m=1,F=20,sdw=0.5){
     nl=sample(1:3,1)
     for (f in 1:F){
       if (nl==1)
-        Y=Y+SD[f]*sin(2*pi*omega[f]*T)+SD[F+f]*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
+        Y=Y+SD[f]*sin(2*pi*rnorm(N,omega[f],sd=sdf)*T)+SD[F+f]*cos(2*pi*rnorm(N,omega[f],sd=sdf)*T)+rnorm(N,sd=sdw/F)
       if (nl==2)
         Y=Y+SD[f]*sin(2*pi*omega[f]*T)*SD[F+f]*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
       if (nl==3)
@@ -38,20 +38,22 @@ genfreq<-function(N,m=1,F=20,sdw=0.5){
   }
   if (m>1){
     Y=array(0,c(N,m))
-    nl=sample(1:3,1)
+    nl=1
+    sdf=0.0001
     for (f in 1:F){
       if (nl==1)
         for (mm in 1:m)
           if (runif(1)<0.5)
-            Y[,mm]=Y[,mm]+runif(1,1,2)*sin(2*pi*omega[f]*T)+runif(1,1,2)*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
+            Y[,mm]=Y[,mm]+runif(1,-1,1)*sin(2*pi*rnorm(N,omega[f],sd=sdf)*T)+
+              runif(1,-1,1)*cos(2*pi*rnorm(N,omega[f],sd=sdf)*T)+rnorm(N,sd=sdw/F)
       if (nl==2)
         for (mm in 1:m)
           if (runif(1)<0.5)
-            Y[,mm]=Y[,mm]+runif(1,1,2)*sin(2*pi*omega[f]*T)*runif(1,1,2)*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
+            Y[,mm]=Y[,mm]+runif(1,1,2)*sin(2*pi*rnorm(N,omega[f],sd=sdf)*T)*runif(1,1,2)*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
       if (nl==3)
         for (mm in 1:m)
           if (runif(1)<0.5)
-            Y[,mm]=Y[,mm]*runif(1,1,2)*sin(2*pi*omega[f]*T)+abs(runif(1,1,2)*cos(2*pi*omega[f]*T))+rnorm(N,sd=sdw/F)
+            Y[,mm]=Y[,mm]*runif(1,1,2)*sin(2*pi*rnorm(N,omega[f],sd=sdf)*T)+abs(runif(1,1,2)*cos(2*pi*omega[f]*T))+rnorm(N,sd=sdw/F)
     }
   }
   
