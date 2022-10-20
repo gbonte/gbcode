@@ -24,6 +24,7 @@ genfreq<-function(N,m=1,F=20,sdw=0.5){
   omega=runif(F,1/(8*N),(N-1)/(2*N))
   SD=runif(2*F,1,2)
   T=1:N
+  sdf=0.0001
   if (m==1){
     Y=numeric(N)
     nl=sample(1:3,1)
@@ -39,7 +40,7 @@ genfreq<-function(N,m=1,F=20,sdw=0.5){
   if (m>1){
     Y=array(0,c(N,m))
     nl=1
-    sdf=0.0001
+    
     for (f in 1:F){
       if (nl==1)
         for (mm in 1:m)
