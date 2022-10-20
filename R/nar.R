@@ -16,7 +16,7 @@ genlog<-function(N,k=3.8, y0=0.1){
   return(y[1:N])
 }
 
-genfreq<-function(N,m=1,F=20,sdw=0.5){
+genfreq<-function(N,m=1,F=20,sdw=0.5,ksdf=1){
   ## it generates a time series with F frequencies
   ## F: number of frequencies
   ## N: number of observations
@@ -24,7 +24,7 @@ genfreq<-function(N,m=1,F=20,sdw=0.5){
   omega=runif(F,1/(8*N),(N-1)/(2*N))
   SD=runif(2*F,1,2)
   T=1:N
-  sdf=0.0001
+  sdf=ksdf*0.0001
   if (m==1){
     Y=numeric(N)
     nl=sample(1:3,1)
