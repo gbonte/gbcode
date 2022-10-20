@@ -21,7 +21,7 @@ genfreq<-function(N,m=1,F=20,sdw=0.5){
   ## F: number of frequencies
   ## N: number of observations
   
-  omega=runif(F,1/N,(N-1)/(N))
+  omega=runif(F,1/4*N,(N-1)/(2*N))
   SD=runif(2*F,1,2)
   T=1:N
   if (m==1){
