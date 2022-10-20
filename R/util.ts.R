@@ -894,7 +894,7 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
   DXts<-data.frame(Xts)
   names(DXts)<-as.character(1:NCOL(Xts))
   
-  rfit<-cv.rrr(YY, XX, nfold = 3,maxrank=min(c(NCOL(YY),nn,10)))
+  rfit<-cv.rrr(YY, XX, nfold = 3,maxrank=min(c(NCOL(YY),NCOL(XX),10)))
   ##rrs.fit(YY, XX)
   
   Yhat<-Xts%*%rfit$coef
