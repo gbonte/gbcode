@@ -43,7 +43,6 @@ genfreq<-function(N,m=1,F=20,sdw=0.5){
     for (f in 1:F){
       if (nl==1)
         for (mm in 1:m)
-          if (runif(1)<0.5)
             Y[,mm]=Y[,mm]+runif(1,-1,1)*sin(2*pi*rnorm(N,omega[f],sd=sdf)*T)+
               runif(1,-1,1)*cos(2*pi*rnorm(N,omega[f],sd=sdf)*T)+rnorm(N,sd=sdw/F)
       if (nl==2)
