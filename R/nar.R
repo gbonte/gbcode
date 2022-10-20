@@ -1,5 +1,5 @@
 genlog<-function(N,k=3.8, y0=0.1){
- ## it generates a chaotic logistic discrete time time series
+  ## it generates a chaotic logistic discrete time time series
   if (k<3.57){
     stop("No chaotic behavior is generated for such k")
   }
@@ -14,6 +14,48 @@ genlog<-function(N,k=3.8, y0=0.1){
     
   }
   return(y[1:N])
+}
+
+genfreq<-function(N,m=1,F=20,sdw=0.5){
+  ## it generates a time series with F frequencies
+  ## F: number of frequencies
+  ## N: number of observations
+  
+  omega=runif(F,1/N,(N-1)/(2*N))
+  SD=runif(2*F,1,2)
+  T=1:N
+  if (m==1){
+    Y=numeric(N)
+    nl=sample(1:3,1)
+    for (f in 1:F){
+      if (nl==1)
+        Y=Y+SD[f]*sin(2*pi*omega[f]*T)+SD[F+f]*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
+      if (nl==2)
+        Y=Y+SD[f]*sin(2*pi*omega[f]*T)*SD[F+f]*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
+      if (nl==3)
+        Y=Y*SD[f]*sin(2*pi*omega[f]*T)+abs(SD[F+f]*cos(2*pi*omega[f]*T))+rnorm(N,sd=sdw/F)
+    }
+  }
+  if (m>1){
+    Y=array(0,c(N,m))
+    nl=sample(1:3,1)
+    for (f in 1:F){
+      if (nl==1)
+        for (mm in 1:m)
+          if (runif(1)<0.5)
+            Y[,mm]=Y[,mm]+runif(1,1,2)*sin(2*pi*omega[f]*T)+runif(1,1,2)*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
+      if (nl==2)
+        for (mm in 1:m)
+          if (runif(1)<0.5)
+            Y[,mm]=Y[,mm]+runif(1,1,2)*sin(2*pi*omega[f]*T)*runif(1,1,2)*cos(2*pi*omega[f]*T)+rnorm(N,sd=sdw/F)
+      if (nl==3)
+        for (mm in 1:m)
+          if (runif(1)<0.5)
+            Y[,mm]=Y[,mm]*runif(1,1,2)*sin(2*pi*omega[f]*T)+abs(runif(1,1,2)*cos(2*pi*omega[f]*T))+rnorm(N,sd=sdw/F)
+    }
+  }
+  
+  return(Y)
 }
 
 nar<-function(Y,number=1){

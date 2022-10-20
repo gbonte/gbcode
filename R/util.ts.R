@@ -441,20 +441,29 @@ kfml<-function(TS,n,H,p0=3,dfmod="lindirect",adaptive=FALSE,...){
   A=V[1:p0,]
   
   Phi=array(0,c(p0,p0))
+  sdw=1
+  Q=sdw*diag(p0)
+  R=sdw*diag(m)
+  Sigma0=sdw*diag(p0)
+  lambda=0.001
+  R<-chol(cov(TS-Ztr[,1:p0]%*%V[1:p0,])+lambda*diag(m))
+  
+  E<-NULL
   for (j in 1:p0){
     X=Ztr[1:(N-1),]
     Y=Ztr[2:N,j]
     Phi[j,]=solve(t(X)%*%X)%*%t(X)%*%Y
+    E=cbind(E,(Y-X%*%array(Phi[j,],c(p0,1))))
   }
-  sdw=0.1
-  Q=sdw*diag(p0)
-  R=sdw*diag(m)
-  Sigma0=sdw*diag(p0)
+  Q=chol(cov(E)+lambda*diag(p0))
+  
+  
   mu0=array(Ztr[1,],c(p0,1))
   if (adaptive){
-    E<-EM(TS,A=t(A),Q=Q,R=R, Phi=Phi,
-          mu0=mu0,
-          Sigma0=Sigma0)
+    invisible(capture.output(E<-EM(TS,A=t(A),Q=Q,R=R, Phi=Phi,
+                                   mu0=mu0,
+                                   Sigma0=Sigma0)))
+    
     
     mu=E$mu0
     Sigma0=E$Sigma0
@@ -476,6 +485,7 @@ kfml<-function(TS,n,H,p0=3,dfmod="lindirect",adaptive=FALSE,...){
       Zhat[,p]=(Zhat[,p]*stdZ+muZ)
     }
   }
+  
   Zhat=multifs2(Ztr[,1:p0],m,H)
   Xhat=Zhat[,1:p0]%*%V[1:p0,]
   
@@ -931,7 +941,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   colnames(Xts)<-colnames(XX)
   cxy <- cancor(XX, YY)
   
-  nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
+  nfs<-max(2,length(which(abs(cxy$cor)>0.2)))
   U=cxy$xcoef
   
   XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
