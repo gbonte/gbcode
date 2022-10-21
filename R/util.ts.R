@@ -941,12 +941,12 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   colnames(Xts)<-colnames(XX)
   cxy <- cancor(XX, YY)
   
-  nfs<-max(2,length(which(abs(cxy$cor)>0.2)))
+  nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
   U=cxy$xcoef
   
   XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
   Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
-  ML<-mlin(XXc,YY)
+  ML<-mlin(XXc,YY,H=H)
   beta.hat=ML$beta.hat 
   
   Yhat=array(c(1,Xtsc)%*%beta.hat,c(H,m))
@@ -960,7 +960,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 }
 
 
-mlin<-function(XX,YY,minLambda=0.1,
+mlin<-function(XX,YY,H,minLambda=0.1,
                maxLambda=1000,nLambdas=50,QRdec=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
@@ -993,7 +993,7 @@ mlin<-function(XX,YY,minLambda=0.1,
     e<-YY-Y.hat
     e.loo<-e
     Y.loo=YY
-    corY=numeric(NROW(e))
+    
     for (j in 1:NCOL(e)){
       e.loo[,j]<-e[,j]/(1-diag(HH))
       w.na<-which(is.na(e.loo[,j]))
@@ -1002,10 +1002,21 @@ mlin<-function(XX,YY,minLambda=0.1,
       Y.loo[,j]=Y.loo[,j]-e.loo[,j]
       
     }
-    for (j in 1:NROW(YY))
-      corY[j]=cor(YY[j,],Y.loo[j,])
+    MSE.loo<-mean(e.loo^2 )
     
-    MSE.loo<-mean(e.loo[round(2*N/3):N,]^2 )+mean(1-corY)
+    ## correlation between predicted sequence and real sequence
+    if (H>5){
+      m=NCOL(YY)/H
+      corY=numeric(m)
+      for (j in 1:m){
+        ccY=NULL
+        for (i in 1:NROW(YY))
+          ccY=c(ccY,cor(YY[i,((j-1)*H+1):(j*H)],Y.loo[i,((j-1)*H+1):(j*H)]))
+        corY[j]=mean(ccY)
+      }
+      MSE.loo<-MSE.loo+mean(1-corY)
+    }
+    
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
@@ -1050,7 +1061,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
   
-  ML<-mlin(XX,YY)
+  ML<-mlin(XX,YY,H=H)
   beta.hat=ML$beta.hat 
   w=ML$minMSE
   
@@ -1064,7 +1075,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
     BYhat[,,1]=Yhat
     for (b in 1:B){
       Ib=sample(1:NCOL(XX),round(NCOL(XX)/3))
-      MLb<-mlin(XX[,Ib],YY)
+      MLb<-mlin(XX[,Ib],YY,H=H)
       beta.hatb<-MLb$beta.hat
       w=c(w,MLb$minMSE)
       
