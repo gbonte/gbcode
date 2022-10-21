@@ -992,13 +992,20 @@ mlin<-function(XX,YY,minLambda=0.1,
     Y.hat<-HH%*%YY
     e<-YY-Y.hat
     e.loo<-e
+    Y.loo=Y.hat
+    corY=numeric(NROW(e))
     for (j in 1:NCOL(e)){
       e.loo[,j]<-e[,j]/(1-diag(HH))
       w.na<-which(is.na(e.loo[,j]))
       if (length(w.na)>0)
         e.loo[w.na,j]=1
+      Y.loo[,j]=Y.loo[,j]+e.loo[,j]
+      
     }
-    MSE.loo<-mean(e.loo[round(2*N/3):N,]^2 )
+    for (j in 1:NROW(YY))
+      corY[j]=cor(YY[j,],Y.loo[j,])
+    
+    MSE.loo<-mean(e.loo[round(2*N/3):N,]^2 )+mean(1-corY)
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
