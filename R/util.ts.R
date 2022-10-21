@@ -992,14 +992,14 @@ mlin<-function(XX,YY,minLambda=0.1,
     Y.hat<-HH%*%YY
     e<-YY-Y.hat
     e.loo<-e
-    Y.loo=Y.hat
+    Y.loo=YY
     corY=numeric(NROW(e))
     for (j in 1:NCOL(e)){
       e.loo[,j]<-e[,j]/(1-diag(HH))
       w.na<-which(is.na(e.loo[,j]))
       if (length(w.na)>0)
         e.loo[w.na,j]=1
-      Y.loo[,j]=Y.loo[,j]+e.loo[,j]
+      Y.loo[,j]=Y.loo[,j]-e.loo[,j]
       
     }
     for (j in 1:NROW(YY))
