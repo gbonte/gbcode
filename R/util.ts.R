@@ -942,14 +942,20 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   cxy <- cancor(XX, YY)
   
   nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
-  U=cxy$xcoef
-  
-  XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
-  Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
-  ML<-mlin(XXc,YY,H=H)
-  beta.hat=ML$beta.hat 
-  
-  Yhat=array(c(1,Xtsc)%*%beta.hat,c(H,m))
+  if (nfs< round(nn/2)){
+    U=cxy$xcoef
+    
+    XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
+    Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
+    ML<-mlin(XXc,YY,H=H)
+    beta.hat=ML$beta.hat 
+    
+    Yhat=array(c(1,Xtsc)%*%beta.hat,c(H,m))
+  } else { ## in case of too ùany coefficients equal to 1 it boils dow to ridge regr
+    ML<-mlin(XX,YY,H=H)
+    beta.hat=ML$beta.hat 
+    Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
+  }
   
   Yhat=array(Yhat,c(H,m))
   for (i in 1:NCOL(Yhat))
