@@ -943,7 +943,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   
   nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
   if (nfs< round(nn/2)){
-    U=cxy$xcoef
+    U=cxy$xcoef 
     
     XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
     Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
