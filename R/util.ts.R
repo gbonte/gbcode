@@ -961,7 +961,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,minLambda=0.1,
-               maxLambda=1000,nLambdas=10,QRdec=FALSE){
+               maxLambda=1000,nLambdas=50,QRdec=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
