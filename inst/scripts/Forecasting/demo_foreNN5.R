@@ -5,7 +5,7 @@ library(gbcode)
 data(NN5)
 
 nseries<-NCOL(NN5)
-H=12
+H=7
 N=NROW(NN5)
 NMSE=NULL
 NMSE2=NULL
@@ -14,28 +14,29 @@ NMSE4=NULL
 NMSE5=NULL
 NMSE6=NULL
 
-method1="liniter"
-method2="lindirect"
-method3="lazyiter"
-method4="stat_holt"
-method5="lazydirect"
+method1="mimolin"
+method2="mimorr"
+method3="mimocca"
+method4="stat_comb"
+method5="arima"
 method6="mimo.comb"
 colors=c("red","green","magenta","cyan","orange","blue")
 visualize=FALSE
 detrend=1
-n=7
+n=12
 maxfs=5
 for (i in 2:nseries){
   TS=remNA(NN5[,i])
   
   N=length(TS)
-  for (Ntr in round(seq (500,N-H,length.out=3))){
+  for (Ntr in round(seq (round(2*N/3),N-H,length.out=10))){
     
     TStr=TS[1:Ntr]
     TSts=TS[(Ntr+1):(Ntr+H)]
     Yn=multiplestepAhead(TStr,n=n, H=H,method="stat_naive")
     
-    Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1,detrend=detrend,C=5,Kmin=5)
+    Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1,
+                             detrend=detrend)
     NMSE=c(NMSE,mean((TSts-Y.cont)^2)/(mean((TSts-Yn)^2)))
     
     Y.cont2=multiplestepAhead(TStr,n=n, H=H,method=method2,detrend=detrend,C=5,Kmin=5)
