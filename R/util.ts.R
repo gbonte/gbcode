@@ -951,7 +951,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
     beta.hat=ML$beta.hat 
     
     Yhat=array(c(1,Xtsc)%*%beta.hat,c(H,m))
-  } else { ## in case of too ùany coefficients equal to 1 it boils dow to ridge regr
+  } else { ## in case of too many coefficients equal to 1 it boils dow to ridge regr
     ML<-mlin(XX,YY,H=H)
     beta.hat=ML$beta.hat 
     Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
@@ -1020,7 +1020,10 @@ mlin<-function(XX,YY,H,minLambda=0.1,
           ccY=c(ccY,cor(YY[i,((j-1)*H+1):(j*H)],Y.loo[i,((j-1)*H+1):(j*H)]))
         corY[j]=mean(ccY)
       }
-      MSE.loo<-MSE.loo+mean(1-corY)
+      cc=mean(1-corY,na.rm=TRUE)
+      if (is.na(cc))
+        cc=0
+      MSE.loo<-MSE.loo+cc
     }
     
     if (MSE.loo<min.MSE.loo){
