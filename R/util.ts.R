@@ -1080,7 +1080,7 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     MSE.loo<-mean(e.loo^2 )
     
     ## correlation between predicted sequence and real sequence
-    if (H>5){
+    if (FALSE){
       m=NCOL(YY)/H
       corY=numeric(m)
       for (j in 1:m){
@@ -1094,6 +1094,9 @@ mlin<-function(XX,YY,H,minLambda=0.1,
         cc=0
       MSE.loo<-MSE.loo+cc
     }
+    require(shapes)
+    MSE.loo<-MSE.loo+distcov(cov(YY),cov(Y.loo),"ProcrustesShape")
+    
     
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
