@@ -886,6 +886,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(c(p+trnd.ts))
   }
   
+  if (method=="nbeatsens"){
+    
+    p=nbeatsenspred(array(TS,c(length(TS),1)),n=n,  H=H,...)
+    return(c(p+trnd.ts))
+  }
+  
   if (sd_trim(TS)<0.001 && method !="timefit" )
     return (numeric(H)+TS[1]+trnd.ts)
   TS<-array(TS,c(N,1))

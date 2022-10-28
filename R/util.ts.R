@@ -690,6 +690,42 @@ nbeatspred<-function(TS,H=10,n=4,nepochs=5){
   return(Yhat)
 }
 
+nbeatsenspred<-function(TS,H=10,n=4,nepochs=5){
+  require(modeltime.gluonts)
+  N=NROW(TS)
+  DatesX=as.Date(1:(N+H),origin="2000/1/2")
+  
+  X<-data.frame(DatesX[1:N],
+                rep("id",N),
+                TS)
+  
+  colnames(X)=c("date","id","value")
+  
+  
+  
+  invisible(capture.output(model_fit <- nbeats(
+    id                    = "id",
+    freq                  = "D",
+    prediction_length     = H,
+    lookback_length       = n,
+    epochs                = nepochs
+  ) %>%
+    set_engine("gluonts_nbeats_ensemble") %>%
+    fit(value ~ date+id, X)))
+  
+  # ---- FORECAST ----
+  new_data <- tibble(
+    id   = factor("id"),
+    date = DatesX[(N+1):(N+H)]
+  )
+  
+  P<-predict(model_fit, new_data)
+  
+  Yhat<-unlist(P%>%
+                 dplyr::select(".pred"))
+  return(Yhat)
+}
+
 gluonpred<-function(TS,H=10,n=4,nepochs=5){
   require(modeltime.gluonts)
   N=NROW(TS)
