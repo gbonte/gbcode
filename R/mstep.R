@@ -945,8 +945,16 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   ##  D=0:  q=[TS(N), TS(N-1),...,TS(N-n+1)]
   switch(method,
          arima={
-           ##fit <- arima(TS,c(n,D,1))
-           fit <- arima(TS,arimaorder(auto.arima(TS)))
+           
+           fit <- tryCatch(
+             {
+               arima(TS,arimaorder(auto.arima(TS)))
+             },
+             error = function(e){
+               arima(TS,c(0,D,1))
+             }
+           )
+           
            p<-forecast(fit,h=H)$mean
          },
          timefit={

@@ -999,8 +999,15 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
   DXts<-data.frame(Xts)
   names(DXts)<-as.character(1:NCOL(Xts))
   
-  rfit<-cv.rrr(YY, XX, nfold = 10,maxrank=min(c(NCOL(YY),NCOL(XX),5)))
-  ##rrs.fit(YY, XX)
+  rfit <- tryCatch(
+    {
+      cv.rrr(YY, XX, nfold = 10,maxrank=min(c(NCOL(YY),NCOL(XX),5)))
+    },
+    error = function(e){
+      rrs.fit(YY, XX,nrank=3)
+    }
+  )
+ 
   
   Yhat<-Xts%*%rfit$coef
   Yhat=array(Yhat,c(H,m))
