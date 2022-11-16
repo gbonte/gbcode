@@ -847,7 +847,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   }
   
   if (method=="mimolin"){
-    p=multiridge(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE,verbose=verbose,...)$Yhat 
+    p=multiridge(array(TS,c(length(TS),1)),n,H,verbose=verbose,...)$Yhat 
     return(c(p+trnd.ts))
   }
   
@@ -1386,10 +1386,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   Yhat=array(NA,c(H,m))
   if (multi=="uni")
     for (j in 1:m){
-      Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod,minLambda=0.1,
-                                 maxLambda=100,stepLambda=0.5,...)
-      if (unimethod=="mimolin")
-        cat("+")
+      Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod,...)
     }
   if (multi=="rnn")
     Yhat=rnnpred(TS,H,...)

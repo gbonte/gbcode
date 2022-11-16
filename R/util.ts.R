@@ -1086,7 +1086,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,H,minLambda=0.1,
-               maxLambda=1000,nLambdas=50){
+               maxLambda=1000,nLambdas=100){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
@@ -1134,8 +1134,7 @@ mlin<-function(XX,YY,H,minLambda=0.1,
 }
 
 ## multi-output ridge regression with lambda selection by PRESS
-multiridge<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
-                   maxLambda=1000,nLambdas=10,QRdec=FALSE,B=0,
+multiridge<-function(TS,n,H,
                    verbose=FALSE,...){
   args<-list(...)
   if (length(args)>0)
@@ -1147,15 +1146,12 @@ multiridge<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   m=NCOL(sTS)
   N=NROW(sTS)
   
-  if (is.null(w))
-    w=1:m
+
   M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   
   I=which(!is.na(apply(M$out,1,sum)))
   XX=M$inp[I,]
   YY=M$out[I,]
-  
-  
   
   q<-NULL
   D=0
