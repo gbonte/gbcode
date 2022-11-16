@@ -1428,8 +1428,23 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (multi=="multifs")
     Yhat=multifs(TS,n,H,mod=mod,debug=debug,...)
   
-  if (multi=="multifs2")
-    Yhat=multifs2(TS,n,H,mod=mod,...)
+  if (multi=="multiridge")
+    Yhat=multiridge(TS,n,H,mod=mod,...)$Yhat
+  
+  if (multi=="unimultiridge"){
+    MR=multiridge(TS,n,H,mod=mod,...)
+    Yhat=MR$Yhat
+    uYhat=array(NA,c(H,m))
+    uMSE=NULL
+    for (i in 1:m){
+      MRi=multiridge(TS[,i],n,H,mod=mod,...)
+      uMSE<-c(uMSE,MRi$MSE)
+      uYhat[,i]=MRi$Yhat
+    }
+    if (mean(uMSE)<MR$MSE)
+      return(uYhat)
+    return(Yhat)
+  }
   if (multi=="multirr")
     Yhat=multirr(TS,n,H,mod=mod,...)
   if (multi=="multicca")

@@ -753,9 +753,9 @@ gluonpred<-function(TS,H=10,n=4,nepochs=5){
   )
   
   P<-predict(model_fit_deepar, new_data)
-
+  
   Yhat<-unlist(P%>%
-              dplyr::select(".pred"))
+                 dplyr::select(".pred"))
   return(Yhat)
 }
 
@@ -1007,7 +1007,7 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
       rrs.fit(YY, XX,nrank=3)
     }
   )
- 
+  
   
   Yhat<-Xts%*%rfit$coef
   Yhat=array(Yhat,c(H,m))
@@ -1051,7 +1051,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   colnames(XX)<-1:NCOL(XX)
   rownames(XX)<-1:NROW(XX)
   colnames(Xts)<-colnames(XX)
-   nfs <- tryCatch(
+  nfs <- tryCatch(
     {
       cxy<-cancor(XX, YY)
       max(2,length(which(abs(cxy$cor)>0.1)))
@@ -1086,34 +1086,21 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,H,minLambda=0.1,
-               maxLambda=1000,nLambdas=50,QRdec=FALSE){
+               maxLambda=1000,nLambdas=50){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
   XX<-cbind(array(1,c(N,1)),as.matrix(XX))
+  XXX<-t(XX)%*%(XX)
   
-  #HH=Q%*%t(Q)
-  if (QRdec){
-    QR=qr(XX)
-    Q=qr.Q(QR)
-    R=qr.R(QR)
-    XXX<-R%*%t(R)  
-  } else {
-    XXX<-t(XX)%*%(XX)
-  }
   min.MSE.loo<-Inf
   
   for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
-    
     H1<-solve(XXX+lambdah*diag(p))
     
-    if (QRdec){
-      beta.hat<-H1%*%t(R)%*%t(Q)%*%YY 
-      HH=XX%*%t(R)%*%H1%*%t(Q)
-    } else {
-      beta.hat<-H1%*%t(XX)%*%YY
-      HH=XX%*%H1%*%t(XX)
-    }
+    beta.hat<-H1%*%t(XX)%*%YY
+    HH=XX%*%H1%*%t(XX)
+    
     Y.hat<-HH%*%YY
     e<-YY-Y.hat
     e.loo<-e
@@ -1130,20 +1117,6 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     MSE.loo<-mean(e.loo^2,na.rm=TRUE )
     
     ## correlation between predicted sequence and real sequence
-    if (FALSE){
-      m=NCOL(YY)/H
-      corY=numeric(m)
-      for (j in 1:m){
-        ccY=NULL
-        for (i in 1:NROW(YY))
-          ccY=c(ccY,cor(YY[i,((j-1)*H+1):(j*H)],Y.loo[i,((j-1)*H+1):(j*H)]))
-        corY[j]=mean(ccY)
-      }
-      cc=mean(1-corY,na.rm=TRUE)
-      if (is.na(cc))
-        cc=0
-      MSE.loo<-MSE.loo+cc
-    }
     #require(shapes)
     #MSE.loo<-MSE.loo+distcov(cov(YY),cov(Y.loo),"ProcrustesShape")
     
@@ -1152,21 +1125,16 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
-      
     }
     
   }
-  ##print(lambda)
-  H1<-ginv(XXX+lambda*diag(p))
-  if (QRdec)
-    beta.hat<-H1%*%t(R)%*%t(Q)%*%YY 
-  else
-    beta.hat<-H1%*%t(XX)%*%YY
+  H1<-solve(XXX+lambda*diag(p))
+  beta.hat<-H1%*%t(XX)%*%YY
   return(list(beta.hat=beta.hat,minMSE=min.MSE.loo,lambda=lambda))
 }
 
 ## multi-output ridge regression with lambda selection by PRESS
-multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
+multiridge<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
                    maxLambda=1000,nLambdas=10,QRdec=FALSE,B=0,
                    verbose=FALSE,...){
   args<-list(...)
@@ -1187,7 +1155,7 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   XX=M$inp[I,]
   YY=M$out[I,]
   
- 
+  
   
   q<-NULL
   D=0
@@ -1197,37 +1165,16 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   
   ML<-mlin(XX,YY,H=H)
   beta.hat=ML$beta.hat 
-  w=ML$minMSE
+  
   
   if (verbose)
     cat("lambda=",ML$lambda, "minMSE=",ML$minMSE,"\n")
   Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
   
-  
-  if (B>0 & NCOL(XX)>3){
-    BYhat=array(NA,c(H,m,B+1))
-    BYhat[,,1]=Yhat
-    for (b in 1:B){
-      Ib=sample(1:NCOL(XX),round(NCOL(XX)/3))
-      MLb<-mlin(XX[,Ib],YY,H=H)
-      beta.hatb<-MLb$beta.hat
-      w=c(w,MLb$minMSE)
-      
-      BYhat[,,b+1]=array(c(1,Xts[Ib])%*%beta.hatb,c(H,m))
-    }
-    w=1/w
-    w=w/sum(w)
-    Yhat=array(0,c(H,m))
-    for (b in (1:B+1))
-      Yhat<-Yhat+w[b]*BYhat[,,b]
-    
-  }
-  
+ 
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
-  
-  
-  return(Yhat)
+  return(list(Yhat=Yhat,MSE=ML$minMSE))
 }
 
 multifs3<-function(TS,n,H,mod,...){
