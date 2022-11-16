@@ -1051,9 +1051,16 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   colnames(XX)<-1:NCOL(XX)
   rownames(XX)<-1:NROW(XX)
   colnames(Xts)<-colnames(XX)
-  cxy <- cancor(XX, YY)
+  cxy <- tryCatch(
+    {
+      cancor(XX, YY)
+      nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
+    },
+    error = function(e){
+      nfs=0
+    }
+  ) 
   
-  nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
   if (nfs< round(nn/2)){
     U=cxy$xcoef 
     
@@ -1179,6 +1186,8 @@ multifs2<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   I=which(!is.na(apply(M$out,1,sum)))
   XX=M$inp[I,]
   YY=M$out[I,]
+  
+ 
   
   q<-NULL
   D=0
