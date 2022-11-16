@@ -847,7 +847,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   }
   
   if (method=="mimolin"){
-    p=multiridge(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE,verbose=verbose,...) 
+    p=multiridge(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE,verbose=verbose,...)$Yhat 
     return(c(p+trnd.ts))
   }
   
