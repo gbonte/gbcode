@@ -1166,7 +1166,7 @@ multiridge<-function(TS,n,H,w=NULL,nfs=3,minLambda=0.1,
   ML<-mlin(XX,YY,H=H)
   beta.hat=ML$beta.hat 
   
-  
+    
   if (verbose)
     cat("lambda=",ML$lambda, "minMSE=",ML$minMSE,"\n")
   Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
