@@ -1051,13 +1051,13 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   colnames(XX)<-1:NCOL(XX)
   rownames(XX)<-1:NROW(XX)
   colnames(Xts)<-colnames(XX)
-  cxy <- tryCatch(
+   nfs <- tryCatch(
     {
-      cancor(XX, YY)
-      nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
+      cxy<-cancor(XX, YY)
+      max(2,length(which(abs(cxy$cor)>0.1)))
     },
     error = function(e){
-      nfs=Inf
+      Inf
     }
   ) 
   
