@@ -1140,7 +1140,8 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     #require(shapes)
     #MSE.loo<-MSE.loo+distcov(cov(YY),cov(Y.loo),"ProcrustesShape")
     
-    
+    if (is.na(MSE.loo))
+      browser()
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
