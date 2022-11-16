@@ -1057,7 +1057,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
       nfs<-max(2,length(which(abs(cxy$cor)>0.1)))
     },
     error = function(e){
-      nfs=0
+      nfs=Inf
     }
   ) 
   
