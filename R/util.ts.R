@@ -1113,14 +1113,14 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     Y.loo=YY
     
     for (j in 1:NCOL(e)){
-      e.loo[,j]<-e[,j]/(1-diag(HH))
+      e.loo[,j]<-e[,j]/pmax(1-diag(HH),0.01)
       w.na<-which(is.na(e.loo[,j]))
       if (length(w.na)>0)
         e.loo[w.na,j]=1
       Y.loo[,j]=Y.loo[,j]-e.loo[,j]
       
     }
-    MSE.loo<-mean(e.loo^2 )
+    MSE.loo<-mean(e.loo^2,na.rm=TRUE )
     
     ## correlation between predicted sequence and real sequence
     if (FALSE){
