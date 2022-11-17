@@ -1431,17 +1431,11 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (multi=="unimultiridge"){
     MR=multiridge(TS,n,H,mod=mod,...)
     Yhat=MR$Yhat
-    uYhat=array(NA,c(H,m))
-    uMSE=NULL
     for (i in 1:m){
       MRi=multiridge(TS[,i],n,H,mod=mod,...)
-      uMSE<-c(uMSE,MRi$MSE)
-      uYhat[,i]=MRi$Yhat
+      if (MRi$MSE<MR$MSE[i])
+        Yhat[,i]=MRi$Yhat
     }
-    
-    for (i in 1:m)
-    if (uMSE<MR$MSE[i])
-      Yhat[,i]=uYhat[,i]
     return(Yhat)
   }
   if (multi=="multirr")
