@@ -1438,9 +1438,9 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
       uMSE<-c(uMSE,MRi$MSE)
       uYhat[,i]=MRi$Yhat
     }
-    browser()
+    
     for (i in 1:m)
-    if (uMSE<MR$MSE[,i])
+    if (uMSE<MR$MSE[i])
       Yhat[,i]=uYhat[,i]
     return(Yhat)
   }
