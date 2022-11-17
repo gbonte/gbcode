@@ -1438,9 +1438,9 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
       uMSE<-c(uMSE,MRi$MSE)
       uYhat[,i]=MRi$Yhat
     }
-    browser()
-    if (mean(uMSE)<MR$MSE)
-      return(uYhat)
+    for (i in 1:m)
+    if (uMSE<MR$MSE[,i])
+      Yhat[,i]=uYhat[,i]
     return(Yhat)
   }
   if (multi=="multirr")

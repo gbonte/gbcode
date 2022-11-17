@@ -1114,7 +1114,8 @@ mlin<-function(XX,YY,H,minLambda=0.1,
       Y.loo[,j]=Y.loo[,j]-e.loo[,j]
       
     }
-    MSE.loo<-mean(e.loo^2,na.rm=TRUE )
+    uMSE.loo<-apply(e.loo^2,2,mean)
+    MSE.loo<-mean(uMSE.loo,na.rm=TRUE )
     
     ## correlation between predicted sequence and real sequence
     #require(shapes)
@@ -1125,12 +1126,14 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
+      min.uMSE.loo<-uMSE.loo
     }
     
   }
   H1<-solve(XXX+lambda*diag(p))
   beta.hat<-H1%*%t(XX)%*%YY
-  return(list(beta.hat=beta.hat,minMSE=min.MSE.loo,lambda=lambda))
+  return(list(beta.hat=beta.hat,minMSE=min.MSE.loo,
+              minuMSE=min.uMSE.loo,lambda=lambda))
 }
 
 ## multi-output ridge regression with lambda selection by PRESS
@@ -1170,7 +1173,7 @@ multiridge<-function(TS,n,H,
  
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
-  return(list(Yhat=Yhat,MSE=ML$minMSE))
+  return(list(Yhat=Yhat,MSE=ML$minuMSE))
 }
 
 multifs3<-function(TS,n,H,mod,...){
