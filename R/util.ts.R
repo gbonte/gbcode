@@ -1101,7 +1101,7 @@ mlin<-function(XX,YY,H,minLambda=0.1,
         solve(XXX+lambdah*diag(p))
       },
       error = function(e){
-        ginv(XXX+lambdah*diag(p))
+        ginv(XXX+100*lambdah*diag(p))
       }
     )
     
