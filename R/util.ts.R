@@ -1096,7 +1096,15 @@ mlin<-function(XX,YY,H,minLambda=0.1,
   min.MSE.loo<-Inf
   
   for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
-    H1<-solve(XXX+lambdah*diag(p))
+    H1<- tryCatch(
+      {
+        solve(XXX+lambdah*diag(p))
+      },
+      error = function(e){
+        ginv(XXX+lambdah*diag(p))
+      }
+    )
+    
     
     beta.hat<-H1%*%t(XX)%*%YY
     HH=XX%*%H1%*%t(XX)
@@ -1138,7 +1146,7 @@ mlin<-function(XX,YY,H,minLambda=0.1,
 
 ## multi-output ridge regression with lambda selection by PRESS
 multiridge<-function(TS,n,H,
-                   verbose=FALSE,...){
+                     verbose=FALSE,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -1149,7 +1157,7 @@ multiridge<-function(TS,n,H,
   m=NCOL(sTS)
   N=NROW(sTS)
   
-
+  
   M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   
   I=which(!is.na(apply(M$out,1,sum)))
@@ -1165,12 +1173,12 @@ multiridge<-function(TS,n,H,
   ML<-mlin(XX,YY,H=H)
   beta.hat=ML$beta.hat 
   
-    
+  
   if (verbose)
     cat("lambda=",ML$lambda, "minMSE=",ML$minMSE,"\n")
   Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
   
- 
+  
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   return(list(Yhat=Yhat,MSE=ML$minuMSE))
