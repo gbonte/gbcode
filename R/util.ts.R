@@ -1138,7 +1138,14 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     }
     
   }
-  H1<-solve(XXX+lambda*diag(p))
+  H1<- tryCatch(
+    {
+      solve(XXX+lambda*diag(p))
+    },
+    error = function(e){
+      ginv(XXX+100*lambda*diag(p))
+    }
+  )
   beta.hat<-H1%*%t(XX)%*%YY
   return(list(beta.hat=beta.hat,minMSE=min.MSE.loo,
               minuMSE=min.uMSE.loo,lambda=lambda))
