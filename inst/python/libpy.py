@@ -5,6 +5,9 @@
 
 
 import numpy as np
+import warnings 
+warnings.filterwarnings("ignore")
+  
 #import pandas as pd
 #import matplotlib.pyplot as plt
 #from sklearn import preprocessing
@@ -28,7 +31,7 @@ if r.pym==1:
   r.pyY=np.ravel(r.pyY)
 ## CLASSIFICATION 
 
-if r.plearn=="sgd_class":
+if r.plearn=="sgd_class": 
   from sklearn.linear_model import SGDClassifier
   sgd_clf = SGDClassifier(random_state=42)
   sgd_clf.fit(r.pyX, r.pyY)
