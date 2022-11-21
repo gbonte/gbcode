@@ -68,7 +68,8 @@ if r.plearn=="lasso_regr":
   if r.pym==1:
     reg = LassoCV(cv=10, random_state=0).fit(r.pyX, r.pyY)
   else:
-    reg = MultiTaskLassoCV(cv=5, random_state=0,max_iter=100,n_jobs=-1,verbose=0).fit(r.pyX, r.pyY)
+    reg = MultiTaskLassoCV(cv=5, random_state=0,max_iter=100,
+    verbose=0).fit(r.pyX, r.pyY)
   yhat = reg.predict(r.pyXts)
   
 if r.plearn=="lin_regr":
@@ -96,7 +97,7 @@ if r.plearn=="rf_regr":
                'min_samples_leaf': min_samples_leaf}
   rf_r = RandomForestRegressor()
   rf_regressor = RandomizedSearchCV(estimator = rf_r, param_distributions = random_grid,
-  n_iter = 50, cv = 3, verbose=0, random_state=42, n_jobs = -1)
+  n_iter = 50, cv = 3, verbose=0, random_state=42)
   rf_regressor.fit(r.pyX, r.pyY)
   yhat = rf_regressor.predict(r.pyXts)
  
