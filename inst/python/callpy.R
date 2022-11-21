@@ -31,7 +31,7 @@ for (j in 1:m)
   Yts=cbind(Yts,fct(Xts,class=class))
 pyX<<-X;   pyXts<<-Xts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-Nts;  pym<<-m;
 plearn<<-"lasso_regr"
-py_run_file("libpy.py")
+py_run_file(system.file("python", "libpy.py", package = "gbcode"))
 if (!class){
   print(mean((py$yhat-Yts)^2)/var(c(Yts)))
 } else

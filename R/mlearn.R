@@ -161,6 +161,7 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
 py.rf.pred<- function(X,Y,X.ts,class=FALSE,...){
   n<-NCOL(X)
   N<-NROW(X)
+  m<-NCOL(Y)
   if (is.vector(X.ts) & n>1){
     N.ts<-1
     X.ts<-array(X.ts,c(1,n))
