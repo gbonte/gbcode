@@ -1486,6 +1486,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=multirr(TS,n,H,mod=mod,...)
   if (multi=="multilasso")
     Yhat=multiml(TS,n,H,mod=mod,learner="py.lasso",...)
+  if (multi=="multirf")
+    Yhat=multiml(TS,n,H,mod=mod,learner="py.rf",...)
   if (multi=="multicca")
     Yhat=multicca(TS,n,H,mod=mod,...)
   if (multi=="multipls")
