@@ -1122,8 +1122,10 @@ mlin<-function(XX,YY,H,minLambda=0.1,
       Y.loo[,j]=Y.loo[,j]-e.loo[,j]
       
     }
-    uMSE.loo<-apply(e.loo^2,2,mean)
-    MSE.loo<-mean(uMSE.loo,na.rm=TRUE )
+    uMSE.loo<-NULL
+    for (i in 1:(NCOL(YY)/H))
+      uMSE.loo<-c(uMSE.loo,mean(e.loo[,((i-1)*H+1):(i*H)]^2))
+    MSE.loo<-mean(e.loo^2,na.rm=TRUE )
     
     ## correlation between predicted sequence and real sequence
     #require(shapes)
@@ -1189,6 +1191,41 @@ multiridge<-function(TS,n,H,
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   return(list(Yhat=Yhat,MSE=ML$minuMSE))
+}
+
+## multi-output learner
+multiml<-function(TS,n,H,learner,
+                     verbose=FALSE,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
+  
+  
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-NULL
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+  Yhat<-pred(learner,XX,YY,Xts,classi=FALSE)
+  Yhat<-array(Yhat,c(H,m))
+  
+  
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(Yhat=Yhat)
 }
 
 multifs3<-function(TS,n,H,mod,...){

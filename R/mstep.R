@@ -750,7 +750,7 @@ lin.pls<- function(X,Y,X.ts){
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             FF=0,smooth=FALSE,maxfs=6,
                             XC=NULL,detrend=0, forget=-1, engin=FALSE,
-                            Kmin=3,C=2,debug=FALSE,
+                            Kmin=3,C=2,debug=FALSE, learner="rf",
                             verbose=FALSE,...){
   
   args<-list(...)
@@ -1087,6 +1087,21 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              }
            }
          },
+         mldirect={
+           p<-numeric(H)
+           for (h  in 1:H){
+             wna=which(!is.na(Y[,h]))
+             if (length(wna)<1){
+               p[h]=0
+             }else{
+               if (length(wna)>9){
+                 p[h]<-pred(learner,X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
+                               class=FALSE,ntree=C*50)
+               }else
+                 p[h]=mean(Y[,h],na.rm=TRUE)
+             }
+           }
+         },
          lindirect={
            
            p<-numeric(H)
@@ -1246,7 +1261,35 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            ## combination of different predictions
            p<-apply(pdirect6,2,mean,na.rm=T)
          },
-         
+         mlmimo={
+           pdirect3<-NULL
+           TS.acf<-TS[,1]
+           
+           if (smooth & H >=2)
+             for (h  in round(H/2):(H)){ ## start before the end of the series with an horizon H
+               p2<-numeric(H)+NA
+               q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
+               
+               KK<-pred(learner, X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
+                           TS=TS.acf,D,Reg=1)
+               p2[1:h]<-KK[(H-h+1):H]
+               pdirect3<-rbind(pdirect3,p2)
+             }
+           
+           
+           for (h  in round(H/2):(H)){
+             p2<-numeric(H)+NA
+             q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
+             
+             KK<-pred(learner,X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
+                         TS=TS.acf,D,Reg=1)
+             p2[1:h]<-KK
+             pdirect3<-rbind(pdirect3,p2)
+           }
+           ## combination of different predictions
+           p<-apply(pdirect3,2,mean,na.rm=T)
+           
+         },
          iter={
            piter<-numeric(H)
            for (h  in 1:H){
@@ -1433,6 +1476,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=MR$Yhat
     for (i in 1:m){
       MRi=multiridge(TS[,i],n,H,mod=mod,...)
+     
       if (MRi$MSE<MR$MSE[i])
         Yhat[,i]=MRi$Yhat
     }
@@ -1440,6 +1484,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   }
   if (multi=="multirr")
     Yhat=multirr(TS,n,H,mod=mod,...)
+  if (multi=="multilasso")
+    Yhat=multiml(TS,n,H,mod=mod,learner="py.lasso",...)
   if (multi=="multicca")
     Yhat=multicca(TS,n,H,mod=mod,...)
   if (multi=="multipls")

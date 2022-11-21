@@ -6,10 +6,12 @@ library(reticulate)
 #py_install("lightgbm")
 # repl_python()
 ##reticulate::source_python('~/Dropbox/bontempi_office/Rlang/python/module.py')
-N=1000
-Nts=1000
-n=50 
-class=TRUE
+set.seed(0)
+N=100
+Nts=200
+n=5
+m=5
+class=FALSE
 fct<-function(X,sdw=0.1,class=FALSE){
   N=NROW(X)
   n=NCOL(X)
@@ -20,13 +22,20 @@ fct<-function(X,sdw=0.1,class=FALSE){
 }
 X=array(rnorm(N*n),c(N,n))
 Xts=array(rnorm(Nts*n),c(Nts,n))
-Y=fct(X,class=class)
-Yts=fct(Xts,class=class)
 
-
-plearn="rf_class"
+Y=NULL
+for (j in 1:m)
+  Y=cbind(Y,fct(X,class=class))
+Yts=NULL
+for (j in 1:m)
+  Yts=cbind(Yts,fct(Xts,class=class))
+pyX<<-X;   pyXts<<-Xts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-Nts;  pym<<-m;
+plearn<<-"lasso_regr"
 py_run_file("libpy.py")
-print(length(which(Yts!=py$yhat))/Nts)
+if (!class){
+  print(mean((py$yhat-Yts)^2)/var(c(Yts)))
+} else
+  print(length(which(Yts!=py$yhat))/Nts)
 
 if (FALSE){
   plearn="lin"

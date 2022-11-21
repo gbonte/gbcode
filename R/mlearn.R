@@ -64,6 +64,9 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
   if (algo=="py.rf")
     P<-py.rf.pred(X,Y,X.ts,class=classi,...)
   
+  if (algo=="py.lasso")
+    P<-py.lasso.pred(X,Y,X.ts,class=classi,...)
+  
   if (algo=="py.piperf")
     P<-py.piperf.pred(X,Y,X.ts,class=classi,...)
   
@@ -91,6 +94,9 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
     P<-glm.pred(X,Y,X.ts,class=classi,...)
   if (algo=="gam")
     P<-gam.pred(X,Y,X.ts,class=classi,...)
+  
+  if (algo=="py.gb")
+    P<-py.gb.pred(X,Y,X.ts,class=classi,...)
   
   if (algo=="lazy")
     P<-lazy.pred(X,Y,X.ts,class=classi,...)
@@ -169,16 +175,90 @@ py.rf.pred<- function(X,Y,X.ts,class=FALSE,...){
     X<-array(X,c(N,1))
     X.ts<-array(X.ts,c(N.ts,1))
   }
+  
+  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
   if (!class){
     plearn<<-"rf_regr"
-    
     reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
     return(py$yhat)
   }
   
-  
+  if (class){
+    plearn<<-"rf_class"
+    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    return(list(pred=py$yhat,prob=py$phat))
+  }
   
 }
+
+
+py.lasso.pred<- function(X,Y,X.ts,class=FALSE,...){
+  n<-NCOL(X)
+  N<-NROW(X)
+  m<-NCOL(Y)
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-array(X.ts,c(1,n))
+  }  else {
+    if (n==1)
+      N.ts<-length(X.ts)
+    else
+      N.ts<-nrow(X.ts)
+  }
+  
+  if (n==1){
+    X<-array(X,c(N,1))
+    X.ts<-array(X.ts,c(N.ts,1))
+  }
+  
+  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
+  if (!class){
+    plearn<<-"lasso_regr"
+    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    return(py$yhat)
+  }
+  
+  if (class){
+    stop("lasso not available for classification")
+  }
+  
+}
+
+
+py.gb.pred<- function(X,Y,X.ts,class=FALSE,...){
+  n<-NCOL(X)
+  N<-NROW(X)
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-array(X.ts,c(1,n))
+  }  else {
+    if (n==1)
+      N.ts<-length(X.ts)
+    else
+      N.ts<-nrow(X.ts)
+  }
+  
+  if (n==1){
+    X<<-array(X,c(N,1))
+    X.ts<<-array(X.ts,c(N.ts,1))
+  }
+  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
+  
+  
+  if (!class){
+    plearn<<-"gb_regr"
+    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    return(py$yhat)
+  }
+  
+  if (class){
+    plearn<<-"gb_class"
+    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    return(list(pred=py$yhat,prob=py$phat))
+  }
+  
+}
+
 
 py.piperf.pred<- function(X,Y,X.ts,class=FALSE,...){
   n<-NCOL(X)
@@ -194,9 +274,12 @@ py.piperf.pred<- function(X,Y,X.ts,class=FALSE,...){
   }
   
   if (n==1){
-    X<-array(X,c(N,1))
+    X<<-array(X,c(N,1))
     X.ts<-array(X.ts,c(N.ts,1))
   }
+  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
+  
+  
   if (!class){
     plearn<<-"piperf_regr"
     
@@ -204,6 +287,11 @@ py.piperf.pred<- function(X,Y,X.ts,class=FALSE,...){
     return(py$yhat)
   }
   
+  if (class){
+    plearn<<-"piperf_class"
+    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    return(list(pred=py$yhat,prob=py$phat))
+  }
   
   
 }
@@ -227,6 +315,8 @@ py.lin.pred<- function(X,Y,X.ts,class=FALSE,...){
     X<-array(X,c(N,1))
     X.ts<-array(X.ts,c(N.ts,1))
   }
+  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
+  
   if (!class){
     plearn<<-"lin_regr"
    
