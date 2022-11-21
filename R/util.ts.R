@@ -1,5 +1,5 @@
 
-#### SMAPE ####
+#### SMAPE #### 
 #' Symmetric mean absolute percentage error
 #' @author Gianluca Bontempi  \email{gbonte@@ulb.ac.be}
 #' @references \url{https://en.wikipedia.org/wiki/Symmetric_mean_absolute_percentage_error}
