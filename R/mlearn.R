@@ -61,6 +61,12 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
   if (algo=="rf")
     P<-rf.pred(X,Y,X.ts,class=classi,...)
   
+  if (algo=="py.rf")
+    P<-py.rf.pred(X,Y,X.ts,class=classi,...)
+  
+  if (algo=="py.piperf")
+    P<-py.piperf.pred(X,Y,X.ts,class=classi,...)
+  
   if (algo=="svm")
     P<-svm.pred(X,Y,X.ts,class=classi,...)
   
@@ -125,18 +131,112 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
   if (algo=="multinom")
     P<-multinom.pred(X,Y,X.ts,class=classi)
   
+ 
   if (algo=="lin")
     P<-lin.pred(X,Y,X.ts,class=classi,...)
+  
+  
+  if (algo=="py.lin")
+    P<-py.lin.pred(X,Y,X.ts,class=classi,...)
   
   if (algo=="boost")
     P<-boosting.pred(X,Y,X.ts,class=classi,...)
   if (algo=="arc")
     P<-arcing.pred(X,Y,X.ts,class=classi,...)
+  
   if (is.null(P))
     stop("Error in mlearn: learner not available")
   
   return (P)
   
+  
+}
+
+py.rf.pred<- function(X,Y,X.ts,class=FALSE,...){
+  n<-NCOL(X)
+  N<-NROW(X)
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-array(X.ts,c(1,n))
+  }  else {
+    if (n==1)
+      N.ts<-length(X.ts)
+    else
+      N.ts<-nrow(X.ts)
+  }
+  
+  if (n==1){
+    X<-array(X,c(N,1))
+    X.ts<-array(X.ts,c(N.ts,1))
+  }
+  if (!class){
+    plearn<<-"rf_regr"
+    
+    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    return(py$yhat)
+  }
+  
+  
+  
+}
+
+py.piperf.pred<- function(X,Y,X.ts,class=FALSE,...){
+  n<-NCOL(X)
+  N<-NROW(X)
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-array(X.ts,c(1,n))
+  }  else {
+    if (n==1)
+      N.ts<-length(X.ts)
+    else
+      N.ts<-nrow(X.ts)
+  }
+  
+  if (n==1){
+    X<-array(X,c(N,1))
+    X.ts<-array(X.ts,c(N.ts,1))
+  }
+  if (!class){
+    plearn<<-"piperf_regr"
+    
+    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    return(py$yhat)
+  }
+  
+  
+  
+}
+
+
+
+py.lin.pred<- function(X,Y,X.ts,class=FALSE,...){
+  n<-NCOL(X)
+  N<-NROW(X)
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-array(X.ts,c(1,n))
+  }  else {
+    if (n==1)
+      N.ts<-length(X.ts)
+    else
+      N.ts<-nrow(X.ts)
+  }
+  
+  if (n==1){
+    X<-array(X,c(N,1))
+    X.ts<-array(X.ts,c(N.ts,1))
+  }
+  if (!class){
+    plearn<<-"lin_regr"
+   
+    reticulate::py_run_file(system.file("python", "libpy.py",
+                                          package = "gbcode"))
+   
+  }
+  
+ 
+  return(py$yhat)
   
 }
 
