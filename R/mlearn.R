@@ -336,6 +336,9 @@ rf.pred<- function(X,Y,X.ts,class=FALSE,...){
   save.seed <- get(".Random.seed", .GlobalEnv)
   n<-NCOL(X)
   N<-NROW(X)
+  m<-NCOL(Y)
+  if (m>1)
+    stop("rf.pred only for univariate outputs")
   if (is.vector(X.ts) & n>1){
     N.ts<-1
     X.ts<-array(X.ts,c(1,n))
@@ -570,6 +573,10 @@ lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,lambda=1e3,return.
 lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
                      conPar=c(3,5),linPar=NULL,cmbPar=5,
                      lambda=1e3,scaleX=TRUE){
+  m<-NCOL(Y)
+  if (m>1)
+    stop("lazy.pred only for univariate outputs")
+  
   if (is.vector(X)){
     n<-1
     N<-length(X)
@@ -820,6 +827,10 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-7,class) {
   
   n<-NCOL(X)
   N<-NROW(X)
+  m<-NCOL(Y)
+  if (m>1)
+    stop("rf.pred only for univariate outputs")
+  
   if (is.vector(X.ts) & n>1){
     N.ts<-1
     X.ts<-array(X.ts,c(1,n))

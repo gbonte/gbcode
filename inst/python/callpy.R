@@ -7,10 +7,10 @@ library(reticulate)
 # repl_python()
 ##reticulate::source_python('~/Dropbox/bontempi_office/Rlang/python/module.py')
 set.seed(0)
-N=100
+N=1000
 Nts=200
-n=5
-m=5
+n=50
+m=10
 class=FALSE
 fct<-function(X,sdw=0.1,class=FALSE){
   N=NROW(X)
@@ -30,12 +30,33 @@ Yts=NULL
 for (j in 1:m)
   Yts=cbind(Yts,fct(Xts,class=class))
 pyX<<-X;   pyXts<<-Xts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-Nts;  pym<<-m;
-plearn<<-"lasso_regr"
-py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+plearn<<-"rf_regr"
+py_run_file("libpy.py") #system.file("python", "libpy.py", package = "gbcode"))
+Yhat=array(py$yhat,c(Nts,m))
+
 if (!class){
-  print(mean((py$yhat-Yts)^2)/var(c(Yts)))
+  print(mean((Yhat-Yts)^2)/var(c(Yts)))
 } else
-  print(length(which(Yts!=py$yhat))/Nts)
+  print(length(which(Yts!=Yhat))/Nts)
+
+plearn<<-"lasso_regr"
+py_run_file("libpy.py") #system.file("python", "libpy.py", package = "gbcode"))
+Yhat=array(py$yhat,c(Nts,m))
+
+if (!class){
+  print(mean((Yhat-Yts)^2)/var(c(Yts)))
+} else
+  print(length(which(Yts!=Yhat))/Nts)
+
+Yhat=NULL
+for (i in 1:m)
+  Yhat=cbind(Yhat,pred("rf",X,Y[,i],Xts,class=FALSE))
+
+if (!class){
+  print(mean((Yhat-Yts)^2)/var(c(Yts)))
+} else
+  print(length(which(Yts!=Yhat))/Nts)
+
 
 if (FALSE){
   plearn="lin"

@@ -26,6 +26,7 @@ warnings.filterwarnings("ignore")
 
 
 #yhat=np.zeros(int(r.Nts))+np.mean(r.pyY)
+print(r.plearn)
 
 if r.pym==1:
   r.pyY=np.ravel(r.pyY)
@@ -95,16 +96,34 @@ if r.plearn=="rf_regr":
   min_samples_leaf = [1, 2, 4]
 
   # Create the random grid
-  random_grid = {'max_depth': max_depth,
-               'min_samples_split': min_samples_split,
-               'min_samples_leaf': min_samples_leaf}
+  random_grid = {'max_depth': max_depth}
+  #             'min_samples_split': min_samples_split,
+  #               'min_samples_leaf': min_samples_leaf}
   rf_r = RandomForestRegressor()
-  rf_regressor = RandomizedSearchCV(estimator = rf_r, param_distributions = random_grid,
-  n_iter = 50, cv = 3, verbose=0, random_state=42)
+  #rf_regressor = RandomizedSearchCV(estimator = rf_r, param_distributions = random_grid,
+  #n_iter = 5, cv = 3, verbose=0, random_state=42)
+  rf_regressor =rf_r
   rf_regressor.fit(r.pyX, r.pyY)
   yhat = rf_regressor.predict(r.pyXts)
  
+if r.plearn=="knn_regr":
+  from sklearn.neighbors import KNeighborsRegressor
+  from sklearn.feature_selection import SequentialFeatureSelector
+  from sklearn.model_selection import RandomizedSearchCV
 
+  # Create the random grid
+  random_grid = {'n_neighbors': [int(x) for x in np.linspace(1, 20, num = 10)],
+                'weights':['uniform', 'distance']}
+  knn_r = KNeighborsRegressor(n_neighbors=3)
+  sfs = SequentialFeatureSelector(knn_r, n_features_to_select='auto')
+  knn_regressor = RandomizedSearchCV(estimator = knn_r, param_distributions = random_grid,
+  n_iter = 50, cv = 3, verbose=0, random_state=42)
+  sfs.fit(r.pyX,r.pyY)
+  X_train_sfs = sfs.transform(r.pyX)
+  X_test_sfs = sfs.transform(r.pyXts)
+  knn_regressor.fit(X_train_sfs, r.pyY)
+  yhat = knn_regressor.predict(X_test_sfs)
+  
 if r.plearn=="gb_regr":
   from sklearn.ensemble import GradientBoostingRegressor
   gb_regressor = GradientBoostingRegressor()
@@ -134,7 +153,16 @@ if r.plearn=="piperf_regr":
   clf.fit(r.pyX, r.pyY)
   yhat = clf.predict(r.pyXts)
   
-
+if r.plearn=="pipeknn_regr":  
+  from sklearn.pipeline import Pipeline
+  from sklearn.feature_selection import SelectFromModel
+  from sklearn.neighbors import KNeighborsRegressor
+  clf = Pipeline([
+    ('feature_selection', SelectFromModel(RandomForestRegressor())),
+    ('regression', KNeighborsRegressor())
+  ])
+  clf.fit(r.pyX, r.pyY)
+  yhat = clf.predict(r.pyXts)
   
 if r.plearn=="pipelin_regr":  
   clf = Pipeline([
