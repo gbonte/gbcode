@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore")
 
 
 #yhat=np.zeros(int(r.Nts))+np.mean(r.pyY)
-print(r.plearn)
+
 
 if r.pym==1:
   r.pyY=np.ravel(r.pyY)
