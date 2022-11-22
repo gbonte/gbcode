@@ -1488,6 +1488,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=multiml(TS,n,H,mod=mod,learner="py.lasso",...)
   if (multi=="multirf")
     Yhat=multiml(TS,n,H,mod=mod,learner="py.rf",...)
+  if (multi=="multikeras")
+    Yhat=multiml(TS,n,H,mod=mod,learner="py.keras",...)
   if (multi=="multicca")
     Yhat=multicca(TS,n,H,mod=mod,...)
   if (multi=="multipls")

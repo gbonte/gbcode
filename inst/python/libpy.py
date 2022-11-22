@@ -67,6 +67,65 @@ if r.plearn=="piperf_class":
   
    
 ## REGRESSION  
+
+if r.plearn=="keras_regr0":
+  from tensorflow import keras 
+  from tensorflow.keras import layers
+  def build_model():
+    model = keras.Sequential([              
+        layers.Dense(4, activation="relu"),
+        layers.Dropout(0.95),
+        layers.Dense(2, activation="relu"),
+        layers.Dense(r.pym)
+    ])
+    model.compile(optimizer="rmsprop", loss="mse", metrics=["mae"])
+    return model
+  model = build_model()                                
+  model.fit(r.pyX, r.pyY,                 
+          epochs=500, batch_size=10, verbose=0, validation_split=0.2)
+  
+  yhat=model.predict(r.pyXts)
+  
+if r.plearn=="keras_regr":
+  from tensorflow import keras 
+  from tensorflow.keras import layers
+  import keras_tuner as kt
+  import tensorflow as tf
+  def model_builder(hp):
+    model = keras.Sequential()
+    # Tune the number of units in the first Dense layer
+    # Choose an optimal value between 32-512
+    hp_units = hp.Int('units', min_value=2, max_value=20, step=1)
+    model.add(keras.layers.Dense(units=hp_units, activation='relu'))
+    hp_units2 = hp.Int('units', min_value=2, max_value=10, step=2)
+    model.add(keras.layers.Dense(units=hp_units2, activation='relu'))
+    model.add(keras.layers.Dense(r.pym))
+
+    model.compile(optimizer="rmsprop",
+                loss="mse",
+                metrics=['accuracy'])
+
+    return model
+
+  tuner = kt.Hyperband(model_builder,
+                     objective='val_accuracy',
+                     max_epochs=10,
+                     factor=3)
+                     
+  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+  tuner.search(r.pyX, r.pyY,
+    epochs=50, validation_split=0.2, callbacks=[stop_early],verbose=0)
+
+  # Get the optimal hyperparameters
+  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
+  hypermodel = tuner.hypermodel.build(best_hps)
+  hypermodel.fit(r.pyX, r.pyY,epochs=500, batch_size=10, validation_split=0.2, 
+    verbose=0)
+                                
+  yhat=hypermodel.predict(r.pyXts)
+  
+  
+  
 if r.plearn=="lasso_regr":  
   from sklearn.linear_model import LassoCV, MultiTaskLassoCV
   if r.pym==1:

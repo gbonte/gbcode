@@ -1,5 +1,6 @@
 rm(list=ls())
 library(reticulate)
+library(gbcode)
 #py_install("pandas")
 #py_install("matplotlib")
 #py_install("scikit-learn")
@@ -10,7 +11,7 @@ set.seed(0)
 N=1000
 Nts=200
 n=50
-m=10
+m=2
 class=FALSE
 fct<-function(X,sdw=0.1,class=FALSE){
   N=NROW(X)
@@ -30,8 +31,9 @@ Yts=NULL
 for (j in 1:m)
   Yts=cbind(Yts,fct(Xts,class=class))
 pyX<<-X;   pyXts<<-Xts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-Nts;  pym<<-m;
-plearn<<-"rf_regr"
+plearn<<-"keras_regr"
 py_run_file("libpy.py") #system.file("python", "libpy.py", package = "gbcode"))
+
 Yhat=array(py$yhat,c(Nts,m))
 
 if (!class){
@@ -41,6 +43,7 @@ if (!class){
 
 plearn<<-"lasso_regr"
 py_run_file("libpy.py") #system.file("python", "libpy.py", package = "gbcode"))
+
 Yhat=array(py$yhat,c(Nts,m))
 
 if (!class){

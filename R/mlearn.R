@@ -64,6 +64,9 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
   if (algo=="py.rf")
     P<-py.rf.pred(X,Y,X.ts,class=classi,...)
   
+  if (algo=="py.keras")
+    P<-py.keras.pred(X,Y,X.ts,class=classi,...)
+  
   if (algo=="py.lasso")
     P<-py.lasso.pred(X,Y,X.ts,class=classi,...)
   
@@ -192,6 +195,40 @@ py.rf.pred<- function(X,Y,X.ts,class=FALSE,...){
   
 }
 
+py.keras.pred<- function(X,Y,X.ts,class=FALSE,...){
+  n<-NCOL(X)
+  N<-NROW(X)
+  m<-NCOL(Y)
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-array(X.ts,c(1,n))
+  }  else {
+    if (n==1)
+      N.ts<-length(X.ts)
+    else
+      N.ts<-nrow(X.ts)
+  }
+  
+  if (n==1){
+    X<-array(X,c(N,1))
+    X.ts<-array(X.ts,c(N.ts,1))
+  }
+  
+  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
+  if (!class){
+    plearn<<-"keras_regr"
+    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    return(py$yhat)
+  }
+  
+  if (class){
+    stop("py_keras: not yet implemented)")
+    #plearn<<-"rf_class"
+    #reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+    #return(list(pred=py$yhat,prob=py$phat))
+  }
+  
+}
 
 py.lasso.pred<- function(X,Y,X.ts,class=FALSE,...){
   n<-NCOL(X)
