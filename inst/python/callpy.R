@@ -7,16 +7,16 @@ library(gbcode)
 #py_install("lightgbm")
 # repl_python()
 ##reticulate::source_python('~/Dropbox/bontempi_office/Rlang/python/module.py')
-set.seed(0)
-N=1000
+#set.seed(0)
+N=90
 Nts=200
-n=50
+n=10
 m=2
 class=FALSE
-fct<-function(X,sdw=0.1,class=FALSE){
+fct<-function(X,j,sdw=0.1,class=FALSE){
   N=NROW(X)
   n=NCOL(X)
-  Y=X[,1]^2*X[,2]+log(abs(X[,n]))+apply(abs(X),1,sum)+rnorm(N,sd=sdw)
+  Y=X[,1]^2*X[,2]*X[,n-1]+log(abs(X[,min(j,n)]))+apply(abs(X),1,sum)+rnorm(N,sd=sdw)
   if (class)
     Y=sign(Y-mean(Y))
   return(Y)
@@ -26,10 +26,10 @@ Xts=array(rnorm(Nts*n),c(Nts,n))
 
 Y=NULL
 for (j in 1:m)
-  Y=cbind(Y,fct(X,class=class))
+  Y=cbind(Y,fct(X,j,class=class))
 Yts=NULL
 for (j in 1:m)
-  Yts=cbind(Yts,fct(Xts,class=class))
+  Yts=cbind(Yts,fct(Xts,j,class=class))
 pyX<<-X;   pyXts<<-Xts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-Nts;  pym<<-m;
 plearn<<-"keras_regr"
 py_run_file("libpy.py") #system.file("python", "libpy.py", package = "gbcode"))

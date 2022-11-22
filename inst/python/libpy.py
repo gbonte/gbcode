@@ -87,6 +87,9 @@ if r.plearn=="keras_regr0":
   yhat=model.predict(r.pyXts)
   
 if r.plearn=="keras_regr":
+  # Based on Keras Tuner
+  ## https://keras.io/keras_tuner/
+  ##  https://www.tensorflow.org/tutorials/keras/keras_tuner
   from tensorflow import keras 
   from tensorflow.keras import layers
   import keras_tuner as kt
@@ -95,10 +98,12 @@ if r.plearn=="keras_regr":
     model = keras.Sequential()
     # Tune the number of units in the first Dense layer
     # Choose an optimal value between 32-512
-    hp_units = hp.Int('units', min_value=2, max_value=20, step=1)
+    hp_units = hp.Int('units', min_value=1, max_value=20, step=1)
     model.add(keras.layers.Dense(units=hp_units, activation='relu'))
-    hp_units2 = hp.Int('units', min_value=2, max_value=10, step=2)
+    hp_units2 = hp.Int('units2', min_value=2, max_value=10, step=2)
     model.add(keras.layers.Dense(units=hp_units2, activation='relu'))
+    hp_droprate = hp.Choice('droprate', values=[0.1, 0.5, 0.7, 0.9])
+    model.add(keras.layers.Dropout(hp_droprate))
     model.add(keras.layers.Dense(r.pym))
 
     model.compile(optimizer="rmsprop",
@@ -118,11 +123,16 @@ if r.plearn=="keras_regr":
 
   # Get the optimal hyperparameters
   best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
-  hypermodel = tuner.hypermodel.build(best_hps)
-  hypermodel.fit(r.pyX, r.pyY,epochs=500, batch_size=10, validation_split=0.2, 
-    verbose=0)
-                                
-  yhat=hypermodel.predict(r.pyXts)
+  model = tuner.hypermodel.build(best_hps)
+  history =model.fit(r.pyX, r.pyY,epochs=500, batch_size=10, 
+    validation_split=0.25, verbose=0)
+ 
+  #val_acc_per_epoch = history.history['val_accuracy']
+  #best_epoch = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1                              
+  #hypermodel = tuner.hypermodel.build(best_hps)
+  # Retrain the model
+  #hypermodel.fit(r.pyX, r.pyY, epochs=best_epoch, validation_split=0.2,verbose=0)
+  yhat=model.predict(r.pyXts)
   
   
   
