@@ -8,10 +8,10 @@ library(gbcode)
 # repl_python()
 ##reticulate::source_python('~/Dropbox/bontempi_office/Rlang/python/module.py')
 #set.seed(0)
-N=90
+N=900
 Nts=200
 n=10
-m=2
+m=5
 class=FALSE
 fct<-function(X,j,sdw=0.1,class=FALSE){
   N=NROW(X)
@@ -31,7 +31,7 @@ Yts=NULL
 for (j in 1:m)
   Yts=cbind(Yts,fct(Xts,j,class=class))
 pyX<<-X;   pyXts<<-Xts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-Nts;  pym<<-m;
-plearn<<-"keras_regr"
+plearn<<-"rf"
 py_run_file("libpy.py") #system.file("python", "libpy.py", package = "gbcode"))
 
 Yhat=array(py$yhat,c(Nts,m))
@@ -41,7 +41,7 @@ if (!class){
 } else
   print(length(which(Yts!=Yhat))/Nts)
 
-plearn<<-"lasso_regr"
+plearn<<-"enet_regr"
 py_run_file("libpy.py") #system.file("python", "libpy.py", package = "gbcode"))
 
 Yhat=array(py$yhat,c(Nts,m))

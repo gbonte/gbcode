@@ -27,10 +27,12 @@ warnings.filterwarnings("ignore")
 
 #yhat=np.zeros(int(r.Nts))+np.mean(r.pyY)
 
-
+yhat=[]
 if r.pym==1:
   r.pyY=np.ravel(r.pyY)
 ## CLASSIFICATION 
+
+
 
 if r.plearn=="sgd_class": 
   from sklearn.linear_model import SGDClassifier
@@ -68,6 +70,7 @@ if r.plearn=="piperf_class":
    
 ## REGRESSION  
 
+  
 if r.plearn=="keras_regr0":
   from tensorflow import keras 
   from tensorflow.keras import layers
@@ -135,6 +138,18 @@ if r.plearn=="keras_regr":
   yhat=model.predict(r.pyXts)
   
   
+if r.plearn=="pls_regr":
+  from sklearn.cross_decomposition import PLSRegression
+  reg = PLSRegression(n_components=2)
+  reg.fit(r.pyX, r.pyY)
+  yhat = reg.predict(r.pyXts)
+  
+if r.plearn=="ridge_regr":
+  from sklearn.linear_model import RidgeCV
+  reg = RidgeCV(alphas=[1e-3, 1e-2, 1e-1, 1])
+  reg.fit(r.pyX, r.pyY)
+  yhat = reg.predict(r.pyXts)
+  
   
 if r.plearn=="lasso_regr":  
   from sklearn.linear_model import LassoCV, MultiTaskLassoCV
@@ -144,6 +159,16 @@ if r.plearn=="lasso_regr":
     reg = MultiTaskLassoCV(cv=5, random_state=0,max_iter=100,
     verbose=0).fit(r.pyX, r.pyY)
   yhat = reg.predict(r.pyXts)
+  
+if r.plearn=="enet_regr":  
+  from sklearn.linear_model import ElasticNet, MultiTaskElasticNet
+  if r.pym==1:
+    reg = ElasticNet(random_state=0).fit(r.pyX, r.pyY)
+  else:
+    reg =MultiTaskElasticNet(alpha=0.1).fit(r.pyX, r.pyY)
+  yhat = reg.predict(r.pyXts)
+  
+  
   
 if r.plearn=="lin_regr":
 # Create linear regression object
@@ -184,6 +209,7 @@ if r.plearn=="knn_regr":
   random_grid = {'n_neighbors': [int(x) for x in np.linspace(1, 20, num = 10)],
                 'weights':['uniform', 'distance']}
   knn_r = KNeighborsRegressor(n_neighbors=3)
+    
   sfs = SequentialFeatureSelector(knn_r, n_features_to_select='auto')
   knn_regressor = RandomizedSearchCV(estimator = knn_r, param_distributions = random_grid,
   n_iter = 50, cv = 3, verbose=0, random_state=42)
@@ -195,8 +221,13 @@ if r.plearn=="knn_regr":
   
 if r.plearn=="gb_regr":
   from sklearn.ensemble import GradientBoostingRegressor
-  gb_regressor = GradientBoostingRegressor()
-  r.pyY.shape=(int(r.pyN),1)
+  if r.pym>1:
+    from sklearn.multioutput import MultiOutputRegressor
+    gb_regressor = MultiOutputRegressor(GradientBoostingRegressor(n_estimators=5))
+  else:
+    
+    gb_regressor = GradientBoostingRegressor(n_estimators=5)
+  r.pyY.shape=(int(r.pyN),int(r.pym))
   gb_regressor.fit(r.pyX, r.pyY)
   r.pyXts.shape=(int(r.pyNts),int(r.pyn))
   yhat = gb_regressor.predict(r.pyXts)
@@ -204,7 +235,14 @@ if r.plearn=="gb_regr":
   
 if r.plearn=="ab_regr":
   from sklearn.ensemble import AdaBoostRegressor
-  ab_regressor = AdaBoostRegressor(DecisionTreeRegressor(max_depth=4), n_estimators=400, random_state=7)
+  from sklearn.tree import DecisionTreeRegressor
+  if r.pym>1:
+    from sklearn.multioutput import MultiOutputRegressor
+    ab_regressor = MultiOutputRegressor(AdaBoostRegressor(DecisionTreeRegressor(max_depth=4), 
+      n_estimators=400, random_state=7))
+  else:
+    ab_regressor = AdaBoostRegressor(DecisionTreeRegressor(max_depth=4), n_estimators=400, random_state=7)
+
   ab_regressor.fit(r.pyX, r.pyY)
   yhat = ab_regressor.predict(r.pyXts)
   
@@ -439,4 +477,7 @@ if r.plearn=="rnn_ts":
   
 
   yhat=model.predict(r.pyXts, batch_size = 1)
- 
+
+if yhat==[]:
+  import sys
+  sys.exit("empty output in the call "+ r.plearn)
