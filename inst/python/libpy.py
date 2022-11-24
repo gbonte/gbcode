@@ -251,3 +251,192 @@ if r.plearn=="pipeab_regr":
   clf.fit(r.pyX, r.pyY)
   yhat = clf.predict(r.pyXts)
   
+## TIMESERIES
+
+if r.plearn=="lstm_ts0":
+  from tensorflow import keras 
+  from tensorflow.keras import layers
+  from keras.layers import LSTM
+  r.pyY=r.pyY.reshape(int(r.pyN),int(r.pyH)*int(r.pym))
+  model = keras.Sequential()
+  nunits=10
+  model.add(keras.layers.LSTM(units            = nunits, 
+               input_shape      = (int(r.pyn),int(r.pym)), 
+               batch_size         =1,
+               return_sequences = True, 
+               stateful         = True))
+  model.add(keras.layers.LSTM(units            = nunits, 
+               batch_size         =1,
+               return_sequences = False, 
+               stateful         = True))
+  model.add(keras.layers.Dense(int(r.pym)*int(r.pyH)))
+ 
+  model.compile(optimizer="rmsprop",
+                loss="mse",
+                metrics=['accuracy'])
+
+  for i in np.arange(100):
+      model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=1)
+      model.reset_states()
+
+  #model.fit(r.pyX, r.pyY,epochs=100)
+  print(r.pyXts.shape)
+  yhat=model.predict(r.pyXts, batch_size = 1)
+  print(yhat)
+
+    
+if r.plearn=="lstm_ts":
+  from tensorflow import keras 
+  from tensorflow.keras import layers
+  from keras.layers import LSTM
+  import keras_tuner as kt
+  import tensorflow as tf
+  def model_builder(hp):
+    model = keras.Sequential()
+    nunits = hp.Int('units', min_value=32, max_value=512, step=32)
+  
+    model.add(keras.layers.LSTM(units            = nunits, 
+               input_shape      = (int(r.pyn),1), 
+               batch_size         =1,
+               return_sequences = True, 
+               stateful         = False))
+    model.add(keras.layers.LSTM(units            = nunits, 
+               batch_size         =1,
+               return_sequences = True, 
+               stateful         = False))
+    model.add(keras.layers.Dense(int(r.pym)))
+ 
+    model.compile(optimizer="rmsprop",
+                loss="mse",
+                metrics=['accuracy'])
+    # Tune the number of units in the first Dense layer
+    # Choose an optimal value between 32-512
+    #hp_droprate = hp.Choice('droprate', values=[0.1, 0.5, 0.7, 0.9])
+    #model.add(keras.layers.Dropout(hp_droprate))
+    #model.add(keras.layers.Dense(r.pym))
+
+   
+    return model
+  
+  tuner = kt.Hyperband(model_builder,
+                     objective='val_accuracy',
+                     max_epochs=10,
+                     factor=3)
+  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+  tuner.search(r.pyX, r.pyY,
+    epochs=50, validation_split=0.2, callbacks=[stop_early],verbose=0)
+
+  # Get the optimal hyperparameters
+  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
+  model = tuner.hypermodel.build(best_hps)
+  
+  #for i in np.arange(10):
+  #    model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=0)
+  #    model.reset_states()
+  
+  model.fit(r.pyX, r.pyY,epochs=1000,verbose=0)
+  #
+  yhat=model.predict(r.pyXts, batch_size = 1)
+
+if r.plearn=="lstm_ts2":
+  from tensorflow import keras 
+  from tensorflow.keras import layers
+  from keras.layers import LSTM
+  from tensorflow.keras.models import Sequential
+  from tensorflow.keras.layers import Dropout
+  from tensorflow.keras.layers import Dense, Reshape
+  from keras_tuner.tuners import RandomSearch
+  import keras_tuner as kt
+  import tensorflow as tf
+  bsize=1
+  def model_builder(hp):
+    model = Sequential()
+    model.add(LSTM(hp.Int('input_unit',min_value=2,max_value=512,step=32),
+    return_sequences=True, batch_size=bsize,stateful         = True,
+    input_shape=(int(r.pyn),int(r.pym))))
+    for i in range(hp.Int('n_layers', 1, 2)):
+        model.add(LSTM(hp.Int(f'lstm_{i}_units',min_value=2,max_value=512,step=32),return_sequences=True))
+    model.add(LSTM(hp.Int('layer_2_neurons',min_value=2,max_value=512,step=32),return_sequences=True,
+    stateful = True))
+    model.add(Dropout(hp.Float('Dropout_rate',min_value=0,max_value=0.5,step=0.1)))
+    model.add(Dense((int(r.pyH)*int(r.pym))))# activation=hp.Choice('dense_activation',values=['relu', 'sigmoid'],default='relu')))
+    #model.add(Reshape((int(r.pyH),int(r.pym))))
+    model.compile(loss='mean_squared_error', optimizer='adam',metrics = ['mse'])
+    return model
+  
+ 
+  
+  r.pyY=r.pyY.reshape(int(r.pyN),int(r.pyH)*int(r.pym))
+  tuner = kt.Hyperband(model_builder,
+                     objective='val_accuracy',
+                     max_epochs=100,
+                     factor=3)
+  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+  tuner.search(r.pyX, r.pyY,
+    epochs=500, validation_split=0.2, callbacks=[stop_early],verbose=1)
+ 
+  # Get the optimal hyperparameters
+  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
+  print(best_hps)
+  model = tuner.hypermodel.build(best_hps)
+  
+  #for i in np.arange(100):
+  #    model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=1)
+  #    model.reset_states()
+
+  model.fit(r.pyX, r.pyY,epochs=100,validation_split=0.2, verbose=1,batch_size =bsize,shuffle=False,)
+  #print(r.pyXts.shape)
+  yhat=model.predict(r.pyXts, batch_size = 1)
+
+
+
+if r.plearn=="rnn_ts":
+  from tensorflow import keras 
+  from tensorflow.keras import layers
+  from keras.layers import SimpleRNN
+  import keras_tuner as kt
+  import tensorflow as tf
+  def model_builder(hp):
+    model = keras.Sequential()
+    nunits = hp.Int('units', min_value=1, max_value=200, step=1)
+  
+    model.add(keras.layers.SimpleRNN(units            = nunits, 
+               input_shape      = (int(r.pyn),1), 
+               batch_size         =1,
+               return_sequences = True, 
+               stateful         = True))
+    nunits2 = hp.Int('units', min_value=1, max_value=200, step=5)
+    model.add(keras.layers.SimpleRNN(units            = nunits, 
+               batch_size         =1,
+               return_sequences = True, 
+               stateful         = True))
+    hp_droprate = hp.Choice('droprate', values=[0.1, 0.5, 0.7, 0.9])
+    model.add(keras.layers.Dropout(hp_droprate))
+    model.add(keras.layers.Dense(int(r.pym)))
+ 
+    model.compile(optimizer="rmsprop",
+                loss="mse",
+                metrics=['accuracy'])
+    # Tune the number of units in the first Dense layer
+    # Choose an optimal value between 32-512
+    #
+    #model.add(keras.layers.Dense(r.pym))
+
+   
+    return model
+  
+  tuner = kt.Hyperband(model_builder,
+                     objective='val_accuracy',
+                     max_epochs=10,
+                     factor=3)
+  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+  tuner.search(r.pyX, r.pyY,
+    epochs=50, validation_split=0.2, callbacks=[stop_early],verbose=1)
+
+  # Get the optimal hyperparameters
+  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
+  model = tuner.hypermodel.build(best_hps)
+  
+
+  yhat=model.predict(r.pyXts, batch_size = 1)
+ 

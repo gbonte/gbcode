@@ -1086,7 +1086,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,H,minLambda=0.1,
-               maxLambda=1000,nLambdas=100){
+               maxLambda=1000,nLambdas=100,maha=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
@@ -1125,8 +1125,17 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     uMSE.loo<-NULL
     for (i in 1:(NCOL(YY)/H))
       uMSE.loo<-c(uMSE.loo,mean(e.loo[,((i-1)*H+1):(i*H)]^2))
-    MSE.loo<-mean(e.loo^2,na.rm=TRUE )
-    
+    if (!maha)
+      MSE.loo<-mean(e.loo^2,na.rm=TRUE )
+    else {
+      MSE.loo=NULL
+      S=solve(cov(YY))
+      for (i in 1:NROW(e.loo)){
+        d=array(e.loo,c(1,NCOL(YY)))
+        MSE.loo<-c(MSE.loo,as.numeric(d%*%S%*%t(d)))
+      }
+      MSE.loo<-mean(MSE.loo)
+    }  
     ## correlation between predicted sequence and real sequence
     #require(shapes)
     #MSE.loo<-MSE.loo+distcov(cov(YY),cov(Y.loo),"ProcrustesShape")
@@ -1155,7 +1164,7 @@ mlin<-function(XX,YY,H,minLambda=0.1,
 
 ## multi-output ridge regression with lambda selection by PRESS
 multiridge<-function(TS,n,H,
-                     verbose=FALSE,...){
+                     verbose=FALSE,maha=FALSE,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -1179,7 +1188,7 @@ multiridge<-function(TS,n,H,
     q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
   
-  ML<-mlin(XX,YY,H=H)
+  ML<-mlin(XX,YY,H=H,maha=maha)
   beta.hat=ML$beta.hat 
   
   
