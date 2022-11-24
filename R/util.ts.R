@@ -1129,7 +1129,7 @@ mlin<-function(XX,YY,H,minLambda=0.1,
       MSE.loo<-mean(e.loo^2,na.rm=TRUE )
     else {
       MSE.loo=NULL
-      require(corp.cor)
+      require(corpcor)
       invisible (capture.output(S<-invcov.shrink(YY,verbose=FALSE)))
       for (i in 1:NROW(e.loo)){
         d=array(e.loo[i,],c(1,NCOL(YY)))
