@@ -1131,7 +1131,7 @@ mlin<-function(XX,YY,H,minLambda=0.1,
       MSE.loo=NULL
       S=solve(cov(YY))
       for (i in 1:NROW(e.loo)){
-        d=array(e.loo,c(1,NCOL(YY)))
+        d=array(e.loo[i,],c(1,NCOL(YY)))
         MSE.loo<-c(MSE.loo,as.numeric(d%*%S%*%t(d)))
       }
       MSE.loo<-mean(MSE.loo)
