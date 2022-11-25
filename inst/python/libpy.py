@@ -1,31 +1,13 @@
-#!/usr/bin/env python
-# coding: utf-8
+## python implementation of learning models used by mlearn
 
-# In[1]:
+
 
 
 import numpy as np
 import warnings 
 warnings.filterwarnings("ignore")
   
-#import pandas as pd
-#import matplotlib.pyplot as plt
-#from sklearn import preprocessing
-#import sklearn.metrics as sm
-#from sklearn import datasets
-#from sklearn.metrics import mean_squared_error, explained_variance_score
-#from sklearn.utils import shuffle
-#from sklearn import datasets
-#from sklearn import model_selection
 
-#
-#from sklearn.svm import LinearSVC
-#from sklearn.ensemble import RandomForestClassifier
-#from sklearn.feature_selection import VarianceThreshold
-#from sklearn.decomposition import PCA
-
-
-#yhat=np.zeros(int(r.Nts))+np.mean(r.pyY)
 
 yhat=[]
 if r.pym==1:
@@ -177,7 +159,7 @@ if r.plearn=="lin_regr":
   linear_regressor.fit(r.pyX, r.pyY)
   yhat = linear_regressor.predict(r.pyXts)
 
-if r.plearn=="rf_regr":
+if r.plearn=="rf_regr0":
   from sklearn.ensemble import RandomForestRegressor
   #from sklearn.model_selection import GridSearchCV
   from sklearn.model_selection import RandomizedSearchCV
@@ -194,8 +176,20 @@ if r.plearn=="rf_regr":
   #             'min_samples_split': min_samples_split,
   #               'min_samples_leaf': min_samples_leaf}
   rf_r = RandomForestRegressor()
-  #rf_regressor = RandomizedSearchCV(estimator = rf_r, param_distributions = random_grid,
-  #n_iter = 5, cv = 3, verbose=0, random_state=42)
+  rf_regressor = RandomizedSearchCV(estimator = rf_r, param_distributions = random_grid,
+    n_iter = 5, cv = 3, verbose=0, random_state=42)
+  rf_regressor =rf_r
+  rf_regressor.fit(r.pyX, r.pyY)
+  yhat = rf_regressor.predict(r.pyXts)
+
+if r.plearn=="rf_regr":
+  from sklearn.ensemble import RandomForestRegressor
+  #from sklearn.model_selection import GridSearchCV
+  from sklearn.model_selection import RandomizedSearchCV
+  rf_r = RandomForestRegressor()
+  if r.pym>1:
+    from sklearn.multioutput import RegressorChain
+    rf_r = RegressorChain(base_estimator=rf_r, order='random',cv=3)
   rf_regressor =rf_r
   rf_regressor.fit(r.pyX, r.pyY)
   yhat = rf_regressor.predict(r.pyXts)
@@ -222,16 +216,20 @@ if r.plearn=="knn_regr":
 if r.plearn=="gb_regr":
   from sklearn.ensemble import GradientBoostingRegressor
   if r.pym>1:
-    from sklearn.multioutput import MultiOutputRegressor
-    gb_regressor = MultiOutputRegressor(GradientBoostingRegressor(n_estimators=5))
+    #from sklearn.multioutput import MultiOutputRegressor
+    #gb_regressor = MultiOutputRegressor(GradientBoostingRegressor(n_estimators=5))
+    from sklearn.multioutput import RegressorChain
+    gb_regressor = RegressorChain(base_estimator=GradientBoostingRegressor(n_estimators=5), order='random',cv=3)
   else:
-    
     gb_regressor = GradientBoostingRegressor(n_estimators=5)
-  r.pyY.shape=(int(r.pyN),int(r.pym))
-  gb_regressor.fit(r.pyX, r.pyY)
-  r.pyXts.shape=(int(r.pyNts),int(r.pyn))
-  yhat = gb_regressor.predict(r.pyXts)
   
+  
+  
+  
+  gb_regressor.fit(r.pyX, r.pyY)
+  
+  yhat = gb_regressor.predict(r.pyXts)
+ 
   
 if r.plearn=="ab_regr":
   from sklearn.ensemble import AdaBoostRegressor
@@ -288,7 +286,8 @@ if r.plearn=="pipeab_regr":
   ])
   clf.fit(r.pyX, r.pyY)
   yhat = clf.predict(r.pyXts)
-  
+
+yhat.shape=(int(r.pyNts),int(r.pym))
 ## TIMESERIES
 
 if r.plearn=="lstm_ts0":

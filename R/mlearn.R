@@ -175,6 +175,7 @@ py.pred<- function(X,Y,X.ts,pyalgo="rf_regr",class=FALSE,...){
   }
   
   pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
+ 
   if (!class){
     plearn<<-pyalgo
     reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
