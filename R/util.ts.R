@@ -1018,6 +1018,19 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
   return(Yhat)
 }
 
+svdcca<-function(X,Y){
+  if (NROW(X)!= NROW(T) | NCOL(Y)<=1)
+    stop("error in svdcca")
+  SigmaX=t(X)%*%X
+  modSX=-0.5*logm((t(X)%*%X))
+  
+  SigmaXY=t(X)%*%Y
+  SigmaY=t(Y)%*%Y
+  modSY=-0.5*logm((t(Y)%*%Y))
+  SS<-svd(expm(modSX)%*%SigmaXY%*%expm(modSY))
+  list(U=(SS$v),V=SS$u,rho2=SS$d)
+}
+
 multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
                    maxLambda=1000,...){
   
@@ -1053,8 +1066,9 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   colnames(Xts)<-colnames(XX)
   nfs <- tryCatch(
     {
-      cxy<-cancor(XX, YY)
-      max(2,length(which(abs(cxy$cor)>0.5)))
+      #cxy<-cancor(XX, YY)
+      SVDCCA<-svdcca(XX, YY)
+      max(2,length(which(SVDCCA$rho2>0.5)))
     },
     error = function(e){
       Inf
@@ -1063,15 +1077,15 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
  
   if (nfs< 2*round(nn/3)){
     #U=cxy$xcoef 
-    V=cxy$ycoef
-    Vr=V[,1:min(nfs,NCOL(V)-1)]
+    U=SVDCCA$U
+    Ur=U[,1:min(nfs,NCOL(U)-1)]
     ##XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
     ##Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
-    YYc<-YY%*%Vr
+    YYc<-YY%*%Ur
     ML<-mlin(XX,YYc)
     beta.hat=ML$beta.hat 
     Yhatc=array(c(1,Xts)%*%beta.hat,c(H,NCOL(YYc)))
-    Yhat=Yhatc%*%t(Vr)
+    Yhat=Yhatc%*%t(Ur)
   } else { ## in case of too many coefficients equal to 1 it boils dow to ridge regr
     ML<-mlin(XX,YY,H=H)
     beta.hat=ML$beta.hat 
@@ -1100,7 +1114,7 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
   for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
     H1<- tryCatch(
       {
-        solve(XXX+lambdah*diag(p))
+        ginv(XXX+lambdah*diag(p))
       },
       error = function(e){
         ginv(XXX+100*lambdah*diag(p))
@@ -1155,7 +1169,7 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
   }
   H1<- tryCatch(
     {
-      solve(XXX+lambda*diag(p))
+      ginv(XXX+lambda*diag(p))
     },
     error = function(e){
       ginv(XXX+100*lambda*diag(p))
