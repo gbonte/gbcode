@@ -1064,7 +1064,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   if (nfs< 2*round(nn/3)){
     #U=cxy$xcoef 
     V=cxy$ycoef
-    Vr=V[,1:min(nfs,NCOL(U)-1)]
+    Vr=V[,1:min(nfs,NCOL(V)-1)]
     ##XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
     ##Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
     YYc<-YY%*%Vr
