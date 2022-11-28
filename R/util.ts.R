@@ -1086,7 +1086,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,H,minLambda=0.1,
-               maxLambda=1000,nLambdas=100,maha=FALSE){
+               maxLambda=5000,nLambdas=200,maha=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   p<-nn+1
@@ -1128,14 +1128,14 @@ mlin<-function(XX,YY,H,minLambda=0.1,
     if (!maha)
       MSE.loo<-mean(e.loo^2,na.rm=TRUE )
     else {
-      MSE.loo=NULL
+      #MSE.loo=NULL
       require(corpcor)
-      invisible (capture.output(S<-invcov.shrink(YY,verbose=FALSE)))
-      for (i in 1:NROW(e.loo)){
-        d=array(e.loo[i,],c(1,NCOL(YY)))
-        MSE.loo<-c(MSE.loo,as.numeric(d%*%S%*%t(d)))
-      }
-      MSE.loo<-mean(MSE.loo)
+      invisible (capture.output(S<-invcov.shrink(e,verbose=FALSE)))
+      #for (i in 1:NROW(e.loo)){
+      #  d=array(e.loo[i,],c(1,NCOL(YY)))
+      #  MSE.loo<-c(MSE.loo,as.numeric(d%*%S%*%t(d)))
+      #}
+      MSE.loo<-mean(e.loo%*%S%*%t(e.loo))
     }  
     ## correlation between predicted sequence and real sequence
     #require(shapes)
