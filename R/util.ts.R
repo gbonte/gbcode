@@ -1019,7 +1019,7 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
 }
 
 svdcca<-function(X,Y){
-  if (NROW(X)!= NROW(T) | NCOL(Y)<=1)
+  if (NROW(X)!= NROW(Y) | NCOL(Y)<=1)
     stop("error in svdcca")
   SigmaX=t(X)%*%X
   modSX=-0.5*logm((t(X)%*%X))
@@ -1064,33 +1064,27 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   colnames(XX)<-1:NCOL(XX)
   rownames(XX)<-1:NROW(XX)
   colnames(Xts)<-colnames(XX)
-  nfs <- tryCatch(
-    {
-      #cxy<-cancor(XX, YY)
-      SVDCCA<-svdcca(XX, YY)
-      max(2,length(which(SVDCCA$rho2>0.5)))
-    },
-    error = function(e){
-      Inf
-    }
-  ) 
  
-  if (nfs< 2*round(nn/3)){
-    #U=cxy$xcoef 
+  SVDCCA<-svdcca(XX, YY)
+  minMSE=Inf
+  for (nfs in round(seq(2,round(nn/2),by=2))){
     U=SVDCCA$U
     Ur=U[,1:min(nfs,NCOL(U)-1)]
-    ##XXc<-XX[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
-    ##Xtsc<-Xts[,rownames(U)]%*%U[,1:min(nfs,NCOL(U)-1)]
     YYc<-YY%*%Ur
     ML<-mlin(XX,YYc)
-    beta.hat=ML$beta.hat 
-    Yhatc=array(c(1,Xts)%*%beta.hat,c(H,NCOL(YYc)))
-    Yhat=Yhatc%*%t(Ur)
-  } else { ## in case of too many coefficients equal to 1 it boils dow to ridge regr
-    ML<-mlin(XX,YY,H=H)
-    beta.hat=ML$beta.hat 
-    Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
+    if (ML$minMSE<minMSE){
+      minMSE<-ML$minMSE
+      beta.hat=ML$beta.hat 
+      Yhatc=array(c(1,Xts)%*%beta.hat,c(H,NCOL(YYc)))
+      Yhat=Yhatc%*%t(Ur)
+    }
   }
+  
+# { ## in case of too many coefficients equal to 1 it boils dow to ridge regr
+#    ML<-mlin(XX,YY,H=H)
+#    beta.hat=ML$beta.hat 
+#    Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
+#  }
   
   Yhat=array(Yhat,c(H,m))
   for (i in 1:NCOL(Yhat))
