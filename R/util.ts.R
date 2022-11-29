@@ -1022,14 +1022,21 @@ svdcca<-function(X,Y){
   require(expm)
   if (NROW(X)!= NROW(Y) | NCOL(Y)<=1)
     stop("error in svdcca")
-  SigmaX=t(X)%*%X
-  modSX=-0.5*logm((t(X)%*%X))
+  X<-scale(X)
+  SigmaX=cov(X)
+  SigmaY=cov(Y)
+  modSX=-0.5*logm(SigmaX)
+  modSY=-0.5*logm(SigmaY)
   
-  SigmaXY=t(X)%*%Y
-  SigmaY=t(Y)%*%Y
-  modSY=-0.5*logm((t(Y)%*%Y))
-  SS<-svd(expm(modSX)%*%SigmaXY%*%expm(modSY))
-  list(U=(SS$v),V=SS$u,rho2=SS$d)
+  SigmaXY=cov(X,Y)
+  SigmaYX=cov(Y,X)
+  
+  
+  SS<-svd(expm(modSY)%*%SigmaYX%*%expm(modSX))
+  a1=X%*%expm(modSX)%*%SS$v[,1]
+  b1=Y%*%expm(modSY)%*%SS$u[,1]
+  
+  list(U=(SS$u),V=SS$v,rho2=SS$d)
 }
 
 multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
@@ -1057,37 +1064,34 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   Xts=array(q,c(1,length(q)))
   
   N<-NROW(XX) # number training data
-  ##XX=XX[round(N/2):N,]
-  ##YY=YY[round(N/2):N,]
-  N<-NROW(XX) 
-  
-  nn<-NCOL(XX) # number input variables
+   nn<-NCOL(XX) # number input variables
   colnames(XX)<-1:NCOL(XX)
   rownames(XX)<-1:NROW(XX)
   colnames(Xts)<-colnames(XX)
  
-  SVDCCA<-svdcca(XX, YY)
+  sYY<-scale(YY)
+  SVDCCA<-svdcca(XX, sYY)
+  maxnfs=length(which(SVDCCA$rho2>0.1))
   minMSE=Inf
-  for (nfs in round(seq(2,round(nn/2),by=2))){
-    U=SVDCCA$U
-    Ur=U[,1:min(nfs,NCOL(U)-1)]
-    YYc<-YY%*%Ur
+  for (nfs in 2:maxnfs){
+    Ur=SVDCCA$U[,1:nfs]
+    YYc<-sYY%*%Ur
+    
     ML<-mlin(XX,YYc)
     if (ML$minMSE<minMSE){
       minMSE<-ML$minMSE
       beta.hat=ML$beta.hat 
-      Yhatc=array(c(1,Xts)%*%beta.hat,c(H,NCOL(YYc)))
-      Yhat=Yhatc%*%t(Ur)
+      Yhatc=array(c(1,Xts)%*%beta.hat,c(1,NCOL(YYc)))
+      sYhat=Yhatc%*%t(Ur)
+      
     }
   }
   
-# { ## in case of too many coefficients equal to 1 it boils dow to ridge regr
-#    ML<-mlin(XX,YY,H=H)
-#    beta.hat=ML$beta.hat 
-#    Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
-#  }
+  for (i in 1:NCOL(sYhat))
+    sYhat[,i]=sYhat[,i]*attr(sYY,'scaled:scale')[i]+attr(sYY,'scaled:center')[i]
+  Yhat=array(sYhat,c(H,m))
+
   
-  Yhat=array(Yhat,c(H,m))
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   
