@@ -1027,14 +1027,10 @@ svdcca<-function(X,Y){
   SigmaY=cov(Y)
   modSX=-0.5*logm(SigmaX)
   modSY=-0.5*logm(SigmaY)
-  
-  SigmaXY=cov(X,Y)
   SigmaYX=cov(Y,X)
-  
-  
   SS<-svd(expm(modSY)%*%SigmaYX%*%expm(modSX))
-  a1=X%*%expm(modSX)%*%SS$v[,1]
-  b1=Y%*%expm(modSY)%*%SS$u[,1]
+  #a1=X%*%expm(modSX)%*%SS$v[,1]
+  #b1=Y%*%expm(modSY)%*%SS$u[,1]
   
   list(U=(SS$u),V=SS$v,rho2=SS$d)
 }
@@ -1064,33 +1060,56 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   Xts=array(q,c(1,length(q)))
   
   N<-NROW(XX) # number training data
-   nn<-NCOL(XX) # number input variables
-  colnames(XX)<-1:NCOL(XX)
-  rownames(XX)<-1:NROW(XX)
-  colnames(Xts)<-colnames(XX)
- 
+  nn<-NCOL(XX) # number input variables
+  
+  
   sYY<-scale(YY)
-  SVDCCA<-svdcca(XX, sYY)
-  maxnfs=length(which(SVDCCA$rho2>0.1))
+  sXX<-scale(rbind(XX,Xts))
+  sXts<-sXX[NROW(sXX),]
+  sXX<-sXX[1:(NROW(sXX)-1),]
+  SVDCCA<-svdcca(sXX, sYY)
+  maxnfs=max(2,min(c(NCOL(sXX),NCOL(sYY),length(which(SVDCCA$rho2>0.1)))))
   minMSE=Inf
-  for (nfs in 2:maxnfs){
-    Ur=SVDCCA$U[,1:nfs]
-    YYc<-sYY%*%Ur
-    
-    ML<-mlin(XX,YYc)
-    if (ML$minMSE<minMSE){
-      minMSE<-ML$minMSE
-      beta.hat=ML$beta.hat 
-      Yhatc=array(c(1,Xts)%*%beta.hat,c(1,NCOL(YYc)))
-      sYhat=Yhatc%*%t(Ur)
+  for (rankU in seq(2,maxnfs,by=2))
+    for (rankV in seq(2,maxnfs,by=2)){
+      Ur=SVDCCA$U[,1:rankU]
+      YYc<-sYY%*%Ur
+      Vr=SVDCCA$V[,1:rankV]
+      XXc<-sXX%*%Vr
+      sXtsc<-sXts%*%Vr
+      XX1<-cbind(array(1,c(N,1)),as.matrix(XXc))
+      p<-NCOL(XX1)
+      XXX<-t(XX1)%*%(XX1)
       
+      for (lambdah in seq(0.1,100,length.out=10)){
+        H1<-ginv(XXX+lambdah*diag(p))
+        beta.hat<-H1%*%t(XX1)%*%YYc
+        HH=XX1%*%H1%*%t(XX1)
+        
+        Y.hat<-HH%*%YYc%*%t(Ur)
+        e<-sYY-Y.hat
+        e.loo<-e
+        
+        for (j in 1:NCOL(e)){
+          e.loo[,j]<-e[,j]/pmax(1-diag(HH),0.01)
+          w.na<-which(is.na(e.loo[,j]))
+          if (length(w.na)>0)
+            e.loo[w.na,j]=1
+        }
+        
+        MSE.loo <-mean(e.loo^2,na.rm=TRUE )
+        if (MSE.loo<minMSE){
+          minMSE<-MSE.loo
+          sYhat=array(c(1,sXtsc)%*%beta.hat,c(1,NCOL(YYc)))%*%t(Ur)
+          
+        }
+      }
     }
-  }
   
   for (i in 1:NCOL(sYhat))
     sYhat[,i]=sYhat[,i]*attr(sYY,'scaled:scale')[i]+attr(sYY,'scaled:center')[i]
   Yhat=array(sYhat,c(H,m))
-
+  
   
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
@@ -1221,7 +1240,7 @@ multiridge<-function(TS,n,H,
 
 ## multi-output learner
 multiml<-function(TS,n,H,learner,
-                     verbose=FALSE,...){
+                  verbose=FALSE,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
