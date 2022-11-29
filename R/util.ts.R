@@ -1070,8 +1070,8 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   SVDCCA<-svdcca(sXX, sYY)
   maxnfs=max(2,min(c(NCOL(sXX),NCOL(sYY),length(which(SVDCCA$rho2>0.1)))))
   minMSE=Inf
-  for (rankU in seq(2,maxnfs,by=2))
-    for (rankV in seq(2,maxnfs,by=2)){
+  for (rankU in round(seq(2,maxnfs,length.out=3)))
+    for (rankV in round(seq(2,maxnfs,length.out=3))){
       Ur=SVDCCA$U[,1:rankU]
       YYc<-sYY%*%Ur
       Vr=SVDCCA$V[,1:rankV]
