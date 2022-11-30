@@ -1030,10 +1030,14 @@ svdcca<-function(X,Y){
   SigmaYX=cov(Y,X)
   SS<- tryCatch(
     {
-      svd(expm(modSY)%*%SigmaYX%*%expm(modSX))
+      eSY=expm(modSY)
+      eSX=expm(modSX)
+      svd(eSY%*%SigmaYX%*%eSX)
     },
     error = function(e){
-      svd(expm(modSY)%*%SigmaYX%*%expm(modSX),nu=1,nv=1)
+      eSY=expm(modSY,method="Ward77")
+      eSX=expm(modSX,method="Ward77")
+      svd(eSY%*%SigmaYX%*%eSX,nu=2,nv=2)
     }
   )
   #a1=X%*%expm(modSX)%*%SS$v[,1]
