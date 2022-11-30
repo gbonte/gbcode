@@ -1022,9 +1022,9 @@ svdcca<-function(X,Y){
   require(expm)
   if (NROW(X)!= NROW(Y) | NCOL(Y)<=1)
     stop("error in svdcca")
-  X<-scale(X)
-  SigmaX=cov(X)
-  SigmaY=cov(Y)
+  
+  SigmaX=array(cov.shrink(X),c(NCOL(X),NCOL(X)))
+  SigmaY=array(cov.shrink(Y),c(NCOL(Y),NCOL(Y)))
   modSX=-0.5*logm(SigmaX)
   modSY=-0.5*logm(SigmaY)
   SigmaYX=cov(Y,X)
