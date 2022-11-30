@@ -1020,6 +1020,7 @@ multirr<-function(TS,n,H,w=NULL,nfs=3,...){
 
 svdcca<-function(X,Y){
   require(expm)
+  require(corpcor)
   if (NROW(X)!= NROW(Y) | NCOL(Y)<=1)
     stop("error in svdcca")
   
