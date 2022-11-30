@@ -1035,8 +1035,8 @@ svdcca<-function(X,Y){
       svd(eSY%*%SigmaYX%*%eSX)
     },
     error = function(e){
-      eSY=expm(modSY,method="Ward77")
-      eSX=expm(modSX,method="Ward77")
+      eSY=expm(modSY,method="Ward77",tol=0.1)
+      eSX=expm(modSX,method="Ward77",tol=0.1)
       svd(eSY%*%SigmaYX%*%eSX,nu=2,nv=2)
     }
   )
