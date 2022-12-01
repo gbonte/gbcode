@@ -1136,12 +1136,14 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
                maxLambda=5000,nLambdas=200,maha=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
+  m<-NCOL(YY)
   p<-nn+1
   XX<-cbind(array(1,c(N,1)),as.matrix(XX))
   XXX<-t(XX)%*%(XX)
   
   min.MSE.loo<-Inf
-  
+  bestlambdaY<-numeric(m)
+  min.MSE.looY<-numeric(m)+Inf
   for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
     H1<- tryCatch(
       {
@@ -1173,16 +1175,12 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
     if (!is.null(H))
       for (i in 1:(NCOL(YY)/H))
         uMSE.loo<-c(uMSE.loo,mean(e.loo[,((i-1)*H+1):(i*H)]^2))
-    if (!maha)
+    if (!maha){
       MSE.loo<-mean(e.loo^2,na.rm=TRUE )
-    else {
-      #MSE.loo=NULL
+      MSE.looY<-apply(e.loo^2,2,mean)
+    }else {
       require(corpcor)
       invisible (capture.output(S<-invcov.shrink(YY,verbose=FALSE)))
-      #for (i in 1:NROW(e.loo)){
-      #  d=array(e.loo[i,],c(1,NCOL(YY)))
-      #  MSE.loo<-c(MSE.loo,as.numeric(d%*%S%*%t(d)))
-      #}
       MSE.loo<-mean(e.loo%*%S%*%t(e.loo))
     }  
     ## correlation between predicted sequence and real sequence
@@ -1196,6 +1194,13 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
       min.MSE.loo<-MSE.loo
       min.uMSE.loo<-uMSE.loo
     }
+    for (j in 1:m)
+      if (MSE.looY[j]<min.MSE.looY[j]){
+        bestlambdaY[j]<-lambdah
+        min.MSE.looY[j]<-MSE.looY[j]
+        
+      }
+    
     
   }
   H1<- tryCatch(
@@ -1207,8 +1212,14 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
     }
   )
   beta.hat<-H1%*%t(XX)%*%YY
+  beta.hatY<-NULL
+  for (j in 1:m){
+    beta.hatY<-cbind(beta.hatY,ginv(XXX+bestlambdaY[j]*diag(p))%*%t(XX)%*%YY[,j])
+    
+  }
+  
   return(list(beta.hat=beta.hat,minMSE=min.MSE.loo,
-              minuMSE=min.uMSE.loo,lambda=lambda))
+              minuMSE=min.uMSE.loo,lambda=lambda,beta.hatY=beta.hatY))
 }
 
 ## multi-output ridge regression with lambda selection by PRESS
@@ -1243,9 +1254,12 @@ multiridge<-function(TS,n,H,
   
   if (verbose)
     cat("lambda=",ML$lambda, "minMSE=",ML$minMSE,"\n")
-  Yhat=array(c(1,Xts)%*%beta.hat,c(H,m))
-  
-  
+  Yhat=c(1,Xts)%*%beta.hat
+  Yhat2=numeric(NCOL(YY))
+  for (j in 1:NCOL(YY))
+    Yhat2[j]<-c(1,Xts)%*%ML$beta.hatY[,j]
+  Yhat=apply(rbind(Yhat,Yhat2),2,mean)
+  Yhat=array(Yhat,c(H,m))
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   return(list(Yhat=Yhat,MSE=ML$minuMSE))
