@@ -1175,9 +1175,9 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
     if (!is.null(H))
       for (i in 1:(NCOL(YY)/H))
         uMSE.loo<-c(uMSE.loo,mean(e.loo[,((i-1)*H+1):(i*H)]^2))
+    MSE.looY<-apply(e.loo^2,2,mean)
     if (!maha){
       MSE.loo<-mean(e.loo^2,na.rm=TRUE )
-      MSE.looY<-apply(e.loo^2,2,mean)
     }else {
       require(corpcor)
       invisible (capture.output(S<-invcov.shrink(YY,verbose=FALSE)))
