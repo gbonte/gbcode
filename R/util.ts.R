@@ -1172,9 +1172,12 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
       
     }
     uMSE.loo<-NULL
+    uSDSE.loo<-NULL
     if (!is.null(H))
-      for (i in 1:(NCOL(YY)/H))
+      for (i in 1:(NCOL(YY)/H)){
         uMSE.loo<-c(uMSE.loo,mean(e.loo[,((i-1)*H+1):(i*H)]^2))
+        uSDSE.loo<-c(uSDSE.loo,sd(e.loo[,((i-1)*H+1):(i*H)]^2))
+      }
     MSE.looY<-apply(e.loo^2,2,mean)
     if (!maha){
       MSE.loo<-mean(e.loo^2,na.rm=TRUE )
@@ -1193,6 +1196,7 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
       min.uMSE.loo<-uMSE.loo
+      min.uSDSE.loo<-uSDSE.loo
     }
     for (j in 1:m)
       if (MSE.looY[j]<min.MSE.looY[j]){
@@ -1219,7 +1223,7 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
   }
   
   return(list(beta.hat=beta.hat,minMSE=min.MSE.loo,
-              minuMSE=min.uMSE.loo,lambda=lambda,beta.hatY=beta.hatY))
+              minuMSE=min.uMSE.loo-min.uSDSE.loo,lambda=lambda,beta.hatY=beta.hatY))
 }
 
 ## multi-output ridge regression with lambda selection by PRESS
@@ -1264,6 +1268,81 @@ multiridge<-function(TS,n,H,
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   return(list(Yhat=Yhat,MSE=ML$minuMSE))
 }
+
+
+ensridge<-function(TS,n,H,
+                   verbose=FALSE,minLambda=0.1,
+                   maxLambda=1000,nLambdas=50,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
+  
+  
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-NULL
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+ 
+  XX<-cbind(array(1,c(NROW(XX),1)),as.matrix(XX))
+  XXX<-t(XX)%*%(XX)
+  W<-NULL
+  Yhat<-NULL
+  for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
+    H1<- ginv(XXX+lambdah*diag(NCOL(XX)))
+    beta.hat<-H1%*%t(XX)%*%YY
+    HH=XX%*%H1%*%t(XX)
+    
+    Y.hat<-HH%*%YY
+    e<-YY-Y.hat
+    e.loo<-e
+    Y.loo=YY
+
+    for (b in 1:round(1.2*NCOL(e.loo))){
+      colsample<-sample(1:NCOL(e.loo),5)
+      if (b==1)
+        colsample<-1:NCOL(e.loo)
+      if (b>1 & b< (NCOL(e.loo)+1))
+        colsample<-c(b-1,b)
+      w<-numeric(NCOL(e))+NA
+      yhat<-numeric(NCOL(e))+NA
+      
+      E=e[,colsample]
+      for (j in 1:NCOL(E)){
+        E[,j]<-E[,j]/pmax(1-diag(HH),0.01)
+        w.na<-which(is.na(E[,j]))
+        if (length(w.na)>0)
+          E[w.na,j]=1
+      }
+      MSE.loo<-mean(E^2)
+      w[colsample]=1/MSE.loo
+      W<-rbind(W,w)
+      yhat[colsample]<-(c(1,Xts)%*%beta.hat[,colsample])*w[colsample]
+      Yhat<-rbind(Yhat,yhat)
+    }
+  }
+  
+  
+  
+  Yhat=apply(Yhat,2,sum,na.rm=TRUE)/apply(W,2,sum,na.rm=TRUE)
+  Yhat=array(Yhat,c(H,m))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(list(Yhat=Yhat))
+}
+
 
 ## multi-output learner
 multiml<-function(TS,n,H,learner,
