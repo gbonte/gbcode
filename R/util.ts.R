@@ -1269,6 +1269,110 @@ multiridge<-function(TS,n,H,
   return(list(Yhat=Yhat,MSE=ML$minuMSE))
 }
 
+## multi-output ridge regression with lambda selection by PRESS
+multiteridge<-function(TS,n,H,
+                       verbose=FALSE,minLambda=0.1,
+                       maxLambda=1000,nLambdas=50,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
+  
+  
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+1,1:m)
+  
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-NULL
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+  N<-NROW(XX) # number training data
+  nn<-NCOL(XX) # number input variables
+  m<-NCOL(YY)
+  p<-nn+1
+  XX<-cbind(array(1,c(N,1)),as.matrix(XX))
+  XXX<-t(XX)%*%(XX)
+  
+  min.MSE.loo<-Inf
+  bestlambdaY<-numeric(m)
+  min.MSE.looY<-numeric(m)+Inf
+  for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
+    H1<-
+      ginv(XXX+lambdah*diag(p))
+    
+    beta.hat<-H1%*%t(XX)%*%YY
+    HH=XX%*%H1%*%t(XX)
+    
+    Y.hat<-HH%*%YY
+    e<-YY-Y.hat
+    e.loo<-e
+    Y.loo=YY
+    
+    for (j in 1:NCOL(e)){
+      e.loo[,j]<-e[,j]/pmax(1-diag(HH),0.01)
+      w.na<-which(is.na(e.loo[,j]))
+      if (length(w.na)>0)
+        e.loo[w.na,j]=1
+      Y.loo[,j]=Y.loo[,j]-e.loo[,j]
+      
+    }
+    MSE.loo<-NULL
+    for (i in 1:(NROW(e.loo)-H)){
+      ERRITER<-array(0,c(10,NCOL(sTS)))
+      for (h in 1:H){
+        N=NROW(ERR)
+        delta<-0
+        for (jj in 1:m)
+          delta<-c(delta,ERR[seq(N-D,N-n+1-D,by=-1),jj])
+        delta=array(delta,c(1,length(delta)))
+        
+        MSE.loo<-c(MSE.loo,(e.loo[i+h,]+delta%*%beta.hat)^2)
+        ERRITER<-rbind(ERRITER,e.loo[i+h,]+delta%*%beta.hat)
+      }
+    }
+    MSE.loo<-mean(MSE.loo)
+    if (MSE.loo<min.MSE.loo){
+      lambda<-lambdah
+      min.MSE.loo<-MSE.loo
+      
+    }
+  }
+  H1<- ginv(XXX+lambda*diag(p))
+  
+  beta.hat<-H1%*%t(XX)%*%YY
+  
+  
+  Yhat=NULL
+  sTS2=sTS
+  for (h in 1:H){
+    
+    N=NROW(sTS2)
+    D=0
+    q<-NULL
+    for (j in 1:m)
+      q<-c(q,sTS2[seq(N-D,N-n+1-D,by=-1),j])
+    Xts=array(q,c(1,length(q)))
+    
+    Yh1=c(1,Xts)%*%beta.hat
+    Yhat=rbind(Yhat,Yh1)
+    sTS2<-rbind(sTS2,Yh1)
+  }
+  
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(list(Yhat=Yhat))
+}
+
 
 ensridge<-function(TS,n,H,
                    verbose=FALSE,minLambda=0.1,
@@ -1295,7 +1399,7 @@ ensridge<-function(TS,n,H,
   for (j in 1:m)
     q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
- 
+  
   XX<-cbind(array(1,c(NROW(XX),1)),as.matrix(XX))
   XXX<-t(XX)%*%(XX)
   W<-NULL
@@ -1309,7 +1413,7 @@ ensridge<-function(TS,n,H,
     e<-YY-Y.hat
     e.loo<-e
     Y.loo=YY
-
+    
     for (b in 1:round(1.2*NCOL(e.loo))){
       colsample<-sample(1:NCOL(e.loo),5)
       if (b==1)

@@ -1470,6 +1470,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   
   if (multi=="multiridge")
     Yhat=multiridge(TS,n,H,mod=mod,...)$Yhat
+  if (multi=="multiteridge")
+    Yhat=multiteridge(TS,n,H,mod=mod,...)$Yhat
   if (multi=="ensridge")
     Yhat=ensridge(TS,n,H,mod=mod,...)$Yhat
   if (multi=="multiridge2")
