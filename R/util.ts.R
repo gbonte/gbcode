@@ -1330,10 +1330,10 @@ multiteridge<-function(TS,n,H,
     for (i in 1:(NROW(e.loo)-H)){
       ERRITER<-array(0,c(10,NCOL(sTS)))
       for (h in 1:H){
-        N=NROW(ERR)
+        N=NROW(ERRITER)
         delta<-0
         for (jj in 1:m)
-          delta<-c(delta,ERR[seq(N-D,N-n+1-D,by=-1),jj])
+          delta<-c(delta,ERRITER[seq(N-D,N-n+1-D,by=-1),jj])
         delta=array(delta,c(1,length(delta)))
         
         MSE.loo<-c(MSE.loo,(e.loo[i+h,]+delta%*%beta.hat)^2)
