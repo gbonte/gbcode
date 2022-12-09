@@ -1413,7 +1413,14 @@ ensridge<-function(TS,n,H,
     e<-YY-Y.hat
     e.loo<-e
     Y.loo=YY
-    
+    for (j in 1:NCOL(e)){
+      e.loo[,j]<-e[,j]/pmax(1-diag(HH),0.01)
+      w.na<-which(is.na(e.loo[,j]))
+      if (length(w.na)>0)
+        e.loo[w.na,j]=1
+      Y.loo[,j]=Y.loo[,j]-e.loo[,j]
+      
+    }
     for (b in 1:round(1.2*NCOL(e.loo))){
       colsample<-sample(1:NCOL(e.loo),5)
       if (b==1)
@@ -1423,19 +1430,47 @@ ensridge<-function(TS,n,H,
       w<-numeric(NCOL(e))+NA
       yhat<-numeric(NCOL(e))+NA
       
-      E=e[,colsample]
-      for (j in 1:NCOL(E)){
-        E[,j]<-E[,j]/pmax(1-diag(HH),0.01)
-        w.na<-which(is.na(E[,j]))
-        if (length(w.na)>0)
-          E[w.na,j]=1
-      }
-      MSE.loo<-mean(E^2)
+      MSE.loo<-mean(e.loo[,colsample]^2)
       w[colsample]=1/MSE.loo
       W<-rbind(W,w)
       yhat[colsample]<-(c(1,Xts)%*%beta.hat[,colsample])*w[colsample]
       Yhat<-rbind(Yhat,yhat)
     }
+    
+    beta.hatITER<-H1%*%t(XX)%*%YY[,seq(1,NCOL(YY),by=H)]
+    e.looITER<-e.loo[,seq(1,NCOL(YY),by=H)]
+    MSE.looITER<-NULL
+    for (i in 1:(NROW(e.looITER)-H)){
+      ERRITER<-array(0,c(10,NCOL(sTS)))
+      for (h in 1:H){
+        N=NROW(ERRITER)
+        delta<-0
+        for (jj in 1:m)
+          delta<-c(delta,ERRITER[seq(N-D,N-n+1-D,by=-1),jj])
+        delta=array(delta,c(1,length(delta)))
+        
+        MSE.looITER<-c(MSE.looITER,(e.looITER[i+h,]+delta%*%beta.hatITER)^2)
+        ERRITER<-rbind(ERRITER,e.looITER[i+h,]+delta%*%beta.hatITER)
+      }
+    }
+    YhatITER=NULL
+    sTS2=sTS
+    for (h in 1:H){
+      N=NROW(sTS2)
+      D=0
+      q<-NULL
+      for (j in 1:m)
+        q<-c(q,sTS2[seq(N-D,N-n+1-D,by=-1),j])
+      Xts=array(q,c(1,length(q)))
+      
+      Yh1=c(1,Xts)%*%beta.hatITER
+      YhatITER=c(YhatITER,Yh1)
+      sTS2<-rbind(sTS2,Yh1)
+    }
+    w=1/mean(MSE.looITER)+numeric(length(YhatITER))
+    W<-rbind(W,w)
+    yhat<-YhatITER*w
+    Yhat<-rbind(Yhat,yhat)
   }
   
   
