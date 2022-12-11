@@ -1327,7 +1327,7 @@ multiteridge<-function(TS,n,H,
       
     }
     MSE.loo<-NULL
-    for (i in 1:(NROW(e.loo)-H)){
+    for (i in seq(max(1,NROW(e.looITER)-4*H),(NROW(e.looITER)-H),by=2)){
       ERRITER<-array(0,c(10,NCOL(sTS)))
       for (h in 1:H){
         N=NROW(ERRITER)
@@ -1423,7 +1423,7 @@ ensridge<-function(TS,n,H,
     }
     Yhatall<-c(1,Xts)%*%beta.hat
     seqB= 2:round(1.2*NCOL(e.loo))
-    for (b in c(1,sample(seqB,10))){
+    for (b in c(1,sample(seqB,20))){
       colsample<-sample(1:NCOL(e.loo),round(NCOL(e.loo)/10))
       if (b==1) ## MIMO 
         colsample<-1:NCOL(e.loo)
@@ -1442,7 +1442,7 @@ ensridge<-function(TS,n,H,
     beta.hatITER<-beta.hat[,seq(1,NCOL(YY),by=H)]
     e.looITER<-e.loo[,seq(1,NCOL(YY),by=H)]
     MSE.looITER<-NULL
-    for (i in max(1,NROW(e.looITER)-3*H):(NROW(e.looITER)-H)){
+    for (i in seq(max(1,NROW(e.looITER)-4*H),(NROW(e.looITER)-H),by=2)){
       ERRITER<-array(0,c(10,NCOL(sTS)))
       for (h in 1:H){
         N=NROW(ERRITER)
@@ -1475,7 +1475,7 @@ ensridge<-function(TS,n,H,
     yhat<-YhatITER*w
     Yhat<-rbind(Yhat,yhat)
     
-    cat("-*")
+    
   }## for lambda
   
   
