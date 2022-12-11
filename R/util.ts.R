@@ -1327,7 +1327,7 @@ multiteridge<-function(TS,n,H,
       
     }
     MSE.loo<-NULL
-    for (i in seq(max(1,NROW(e.looITER)-4*H),(NROW(e.looITER)-H),by=2)){
+    for (i in seq(max(1,NROW(e.loo)-4*H),(NROW(e.loo)-H),by=2)){
       ERRITER<-array(0,c(10,NCOL(sTS)))
       for (h in 1:H){
         N=NROW(ERRITER)
