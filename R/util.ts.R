@@ -1474,7 +1474,8 @@ ensridge<-function(TS,n,H,
     yhat<-YhatITER*w
     Yhat<-rbind(Yhat,yhat)
     
-  }
+    cat("-*")
+  }## for lambda
   
   
   
