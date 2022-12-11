@@ -1423,7 +1423,7 @@ ensridge<-function(TS,n,H,
     }
     Yhatall<-c(1,Xts)%*%beta.hat
     seqB= 2:round(1.2*NCOL(e.loo))
-    for (b in c(1,sample(seqB),10)){
+    for (b in c(1,sample(seqB,10))){
       colsample<-sample(1:NCOL(e.loo),round(NCOL(e.loo)/10))
       if (b==1) ## MIMO 
         colsample<-1:NCOL(e.loo)
