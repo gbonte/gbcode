@@ -1442,7 +1442,7 @@ ensridge<-function(TS,n,H,
     beta.hatITER<-beta.hat[,seq(1,NCOL(YY),by=H)]
     e.looITER<-e.loo[,seq(1,NCOL(YY),by=H)]
     MSE.looITER<-NULL
-    for (i in 1:(NROW(e.looITER)-H)){
+    for (i in max(1,NROW(e.looITER)-3*H):(NROW(e.looITER)-H)){
       ERRITER<-array(0,c(10,NCOL(sTS)))
       for (h in 1:H){
         N=NROW(ERRITER)
