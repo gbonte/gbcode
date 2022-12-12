@@ -1423,12 +1423,12 @@ ensridge<-function(TS,n,H,
     }
     Yhatall<-c(1,Xts)%*%beta.hat
     seqB= 2:round(1.2*NCOL(e.loo))
-    for (b in c(1,sample(seqB,20))){
+    for (b in c(1,seqB)){
       colsample<-sample(1:NCOL(e.loo),round(NCOL(e.loo)/10))
       if (b==1) ## MIMO 
         colsample<-1:NCOL(e.loo)
       if (b>1 & b< (NCOL(e.loo)+1)) ## DIRECT
-        colsample<-c(b-1,b)
+        colsample<-c(b-1,b-1)
       w<-numeric(NCOL(e))+NA
       yhat<-numeric(NCOL(e))+NA
       
@@ -1441,8 +1441,11 @@ ensridge<-function(TS,n,H,
     ## ITERATED
     beta.hatITER<-beta.hat[,seq(1,NCOL(YY),by=H)]
     e.looITER<-e.loo[,seq(1,NCOL(YY),by=H)]
-    MSE.looITER<-NULL
-    for (i in seq(max(1,NROW(e.looITER)-4*H),(NROW(e.looITER)-H),by=2)){
+    MSE.looITER<-list()
+    
+    MSE.looITER[[H+1]]<-0
+    
+    for (i in seq(max(1,NROW(e.looITER)-6*H),(NROW(e.looITER)-H),by=2)){
       ERRITER<-array(0,c(10,NCOL(sTS)))
       for (h in 1:H){
         N=NROW(ERRITER)
@@ -1451,12 +1454,13 @@ ensridge<-function(TS,n,H,
           delta<-c(delta,ERRITER[seq(N-D,N-n+1-D,by=-1),jj])
         delta=array(delta,c(1,length(delta)))
         
-        MSE.looITER<-c(MSE.looITER,(e.looITER[i+h,]+delta%*%beta.hatITER)^2)
+        MSE.looITER[[h]]<-c(MSE.looITER[[h]],(e.looITER[i+h,]+delta%*%beta.hatITER)^2)
         ERRITER<-rbind(ERRITER,e.looITER[i+h,]+delta%*%beta.hatITER)
-      }
+      } ## for h
     }
     YhatITER=numeric(NCOL(Yhat))
     sTS2=sTS
+    w=numeric(NCOL(Yhat))
     for (h in 1:H){
       N=NROW(sTS2)
       D=0
@@ -1466,14 +1470,14 @@ ensridge<-function(TS,n,H,
       XtsITER=array(qITER,c(1,length(qITER)))
       
       Yh1=c(1,XtsITER)%*%beta.hatITER
+      w[seq(h,NCOL(YY),by=H)]<-1/mean(MSE.looITER[[h]])
+      YhatITER[seq(h,NCOL(YY),by=H)]=Yh1*1/mean(MSE.looITER[[h]])
       
-      YhatITER[seq(h,NCOL(YY),by=H)]=Yh1
       sTS2<-rbind(sTS2,Yh1)
     }
-    w=1/mean(MSE.looITER)+numeric(length(YhatITER))
+   
     W<-rbind(W,w)
-    yhat<-YhatITER*w
-    Yhat<-rbind(Yhat,yhat)
+    Yhat<-rbind(Yhat,YhatITER)
     
     
   }## for lambda
