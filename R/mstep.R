@@ -1469,19 +1469,23 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=multifs(TS,n,H,mod=mod,debug=debug,...)
   
   if (multi=="multiridge")
-    Yhat=multiridge(TS,n,H,mod=mod,...)$Yhat
+    Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,...)$Yhat
+  if (multi=="directridge")
+    Yhat=multiridge(TS,n,H,mod=mod,MIMO=FALSE,direct=TRUE,...)$Yhat
+  if (multi=="multidiridge")
+    Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=TRUE,...)$Yhat
   if (multi=="multiteridge")
     Yhat=multiteridge(TS,n,H,mod=mod,...)$Yhat
   if (multi=="ensridge")
     Yhat=ensridge(TS,n,H,mod=mod,...)$Yhat
   if (multi=="multiridge2")
-    Yhat=multiridge(TS,n,H,mod=mod,maha=TRUE,...)$Yhat
+    Yhat=multiridge(TS,n,H,mod=mod,maha=TRUE,MIMO=TRUE,...)$Yhat
   
   if (multi=="unimultiridge"){
-    MR=multiridge(TS,n,H,mod=mod,...)
+    MR=multiridge(TS,n,H,mod=mod,MIMO=TRUE,...)
     Yhat=MR$Yhat
     for (i in 1:m){
-      MRi=multiridge(TS[,i],n,H,mod=mod,...)
+      MRi=multiridge(TS[,i],n,H,mod=mod,MIMO=TRUE,...)
      
       if (MRi$MSE<MR$MSE[i])
         Yhat[,i]=MRi$Yhat

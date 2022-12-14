@@ -1228,7 +1228,9 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
 
 ## multi-output ridge regression with lambda selection by PRESS
 multiridge<-function(TS,n,H,
-                     verbose=FALSE,maha=FALSE,...){
+                     verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,...){
+  if (! (MIMO|direct))
+    stop("Erro in multiridge: at least MIMO  or direct should be true")
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -1258,11 +1260,27 @@ multiridge<-function(TS,n,H,
   
   if (verbose)
     cat("lambda=",ML$lambda, "minMSE=",ML$minMSE,"\n")
-  Yhat=c(1,Xts)%*%beta.hat
-  Yhat2=numeric(NCOL(YY))
-  for (j in 1:NCOL(YY))
-    Yhat2[j]<-c(1,Xts)%*%ML$beta.hatY[,j]
-  Yhat=apply(rbind(Yhat,Yhat2),2,mean)
+  
+  
+  if (MIMO){
+    ## MIMO prediction
+    YhatM=c(1,Xts)%*%beta.hat
+  }
+  if (direct){
+    ## direct prediction
+    YhatD=numeric(NCOL(YY))
+    for (j in 1:NCOL(YY))
+      YhatD[j]<-c(1,Xts)%*%ML$beta.hatY[,j]
+    
+  }
+  if (MIMO & ! direct)
+    Yhat=YhatM
+  if (!MIMO & direct)
+    Yhat=YhatD
+  
+  if (MIMO & direct)
+    Yhat=apply(rbind(YhatM,YhatD),2,mean)
+  
   Yhat=array(Yhat,c(H,m))
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
@@ -1475,7 +1493,7 @@ ensridge<-function(TS,n,H,
       
       sTS2<-rbind(sTS2,Yh1)
     }
-   
+    
     W<-rbind(W,w)
     Yhat<-rbind(Yhat,YhatITER)
     
