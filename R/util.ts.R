@@ -1387,7 +1387,7 @@ multiridge<-function(TS,n,H,
 
 
 ## multi-output ridge regression with lambda selection by PRESS
-multiteridge<-function(TS,n,H,
+multiteridge<-function(TS,n,H,Hobj=1,
                        verbose=FALSE,minLambda=0.1,
                        maxLambda=1000,nLambdas=50,...){
   args<-list(...)
@@ -1446,15 +1446,15 @@ multiteridge<-function(TS,n,H,
     MSE.loo<-NULL
     for (i in seq(max(1,NROW(e.loo)-4*H),(NROW(e.loo)-H),by=2)){
       ERRITER<-array(0,c(10,NCOL(sTS)))
-      for (h in 1:H){
+      for (h in 1:Hobj){
         N=NROW(ERRITER)
         delta<-0
         for (jj in 1:m)
           delta<-c(delta,ERRITER[seq(N-D,N-n+1-D,by=-1),jj])
         delta=array(delta,c(1,length(delta)))
         
-        MSE.loo<-c(MSE.loo,(e.loo[i+h,]+delta%*%beta.hat)^2)
-        ERRITER<-rbind(ERRITER,e.loo[i+h,]+delta%*%beta.hat)
+        MSE.loo<-c(MSE.loo,(e.loo[i+h-1,]+delta%*%beta.hat)^2)
+        ERRITER<-rbind(ERRITER,e.loo[i+h-1,]+delta%*%beta.hat)
       }
     }
     MSE.loo<-mean(MSE.loo)
