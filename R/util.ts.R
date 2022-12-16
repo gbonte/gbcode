@@ -1226,6 +1226,104 @@ mlin<-function(XX,YY,H=NULL,minLambda=0.1,
               minuMSE=min.uMSE.loo-min.uSDSE.loo,lambda=lambda,beta.hatY=beta.hatY))
 }
 
+
+whiteMaha<-function(X){
+  N=NROW(X)
+  n=NCOL(X)
+  meanX=array(apply(X,2,mean),c(1,n))
+  SigmaX=cov(X)
+  S=svd(SigmaX)
+  W=S$u%*%diag(1/sqrt(S$d))%*%t(S$v)
+  ## whitening matrix W= \Sigma^{-1/2}
+  ## satisfying W^T *W =\Sigma^{-1}
+  ##
+  IW=S$u%*%diag(sqrt(S$d))%*%t(S$v)
+  
+  #W=diag(1/sqrt(S$d))%*%t(S$v)
+  #IW=S$v%*%diag(sqrt(S$d))
+  
+  oneN=array(1,c(N,1))
+  Y=(X-oneN%*%meanX)%*%W
+  list(sX=Y,mX=meanX,Isigma=IW)
+}
+
+colourMaha<-function(Y,meanX,IsigmaX){
+  ## colouring transformation
+  N=NROW(Y)
+  n=NCOL(Y)
+  meanX=array(meanX,c(1,n))
+  oneN=array(1,c(N,1))
+  
+  return(Y%*%IsigmaX+oneN%*%meanX)
+}
+
+## multi-output ridge regression with lambda selection by PRESS
+whitenridge<-function(TS,n,H,
+                     verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,...){
+  if (! (MIMO|direct))
+    stop("Erro in multiridge: at least MIMO  or direct should be true")
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
+  
+  
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  WH=whiteMaha(YY)
+  YY=WH$sX
+  
+  q<-NULL
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+  ML<-mlin(XX,YY,H=H,maha=maha)
+  beta.hat=ML$beta.hat 
+  
+  
+  if (verbose)
+    cat("lambda=",ML$lambda, "minMSE=",ML$minMSE,"\n")
+  
+  
+  if (MIMO){
+    ## MIMO prediction
+    YhatM=c(1,Xts)%*%beta.hat
+  }
+  if (direct){
+    ## direct prediction
+    YhatD=numeric(NCOL(YY))
+    for (j in 1:NCOL(YY))
+      YhatD[j]<-c(1,Xts)%*%ML$beta.hatY[,j]
+    
+  }
+  if (MIMO & ! direct)
+    Yhat=YhatM
+  if (!MIMO & direct)
+    Yhat=YhatD
+  
+  if (MIMO & direct)
+    Yhat=apply(rbind(YhatM,YhatD),2,mean)
+  
+  Yhat=colourMaha(array(Yhat,c(1,length(Yhat))),WH$mX,WH$Isigma)
+  
+  Yhat=array(Yhat,c(H,m))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(list(Yhat=Yhat,MSE=ML$minuMSE))
+}
+
+
 ## multi-output ridge regression with lambda selection by PRESS
 multiridge<-function(TS,n,H,
                      verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,...){
@@ -1286,6 +1384,7 @@ multiridge<-function(TS,n,H,
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   return(list(Yhat=Yhat,MSE=ML$minuMSE))
 }
+
 
 ## multi-output ridge regression with lambda selection by PRESS
 multiteridge<-function(TS,n,H,

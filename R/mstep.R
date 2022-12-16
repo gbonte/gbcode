@@ -1470,6 +1470,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   
   if (multi=="multiridge")
     Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,...)$Yhat
+  if (multi=="whitenridge")
+    Yhat=whitenridge(TS,n,H,mod=mod,MIMO=FALSE,direct=TRUE,...)$Yhat
   if (multi=="directridge")
     Yhat=multiridge(TS,n,H,mod=mod,MIMO=FALSE,direct=TRUE,...)$Yhat
   if (multi=="multidiridge")
