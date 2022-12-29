@@ -680,7 +680,7 @@ if r.plearn=="rnn_gpt_hyper":
   import numpy as np
   import pandas as pd
   import keras_tuner as kt
-  from keras.layers import Dense, LSTM, Dropout
+  from keras.layers import Dense, SimpleRNN, Dropout
   from keras.models import Sequential
   from sklearn.preprocessing import StandardScaler
   import tensorflow as tf
