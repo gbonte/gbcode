@@ -1431,12 +1431,16 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     for (j in 1:m){
       Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod,...)
     }
-  if (multi=="rnn")
+  if (multi=="pyrnngpt")
     Yhat=pyrnnpredgpt(TS,H,n,...)
-  if (multi=="lstm")
+  if (multi=="pylstmgpt")
     Yhat=pylstmpredgpt(TS,H,n,...)
-  if (multi=="pylstm") 
-    Yhat=pylstmpredgpt(TS,H,n,...)
+  if (multi=="pylstm")
+    Yhat=pylstmpred(TS,H,n,...)
+  if (multi=="lstm") 
+    Yhat=lstmpred(TS,H,n,...)
+  if (multi=="lstm2") 
+    Yhat=lstmpred2(TS,H,n,...)
   if (multi=="dfm"){
     Yhat=dfml(TS,n,H,p0=pc0,dfmod=dfmlmodels[1],...)
   }

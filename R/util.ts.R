@@ -496,9 +496,11 @@ kfml<-function(TS,n,H,p0=3,dfmod="lindirect",adaptive=FALSE,...){
 
 rnnpred2<-function(TS,n,H){
   require(keras)
-  m=NCOL(TS) ## number of series
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
   
-  M=MakeEmbeddedrev(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  M=MakeEmbeddedrev(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   
   I=which(!is.na(apply(M$out,1,sum)))
   M$inp=M$inp[I,]
@@ -557,7 +559,10 @@ rnnpred2<-function(TS,n,H){
   
   
   Yhat  <- lmodel%>% predict(trainXts,verbose=0)
-  return(array(Yhat,c(H,m)))
+  Yhat  <- (array(Yhat,c(H,m)))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(Yhat)
   
   
 }
@@ -569,16 +574,17 @@ rnnpred<-function(TS,H,nunits=10,epochs=10,...){
       assign(x = names(args)[i], value = args[[i]])
     }
   
-  m=NCOL(TS)
-  N=NROW(TS)
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
   if (m==1){
-    x_train_arr <- array(TS[1:(N-H)], c(N-H,1,1))
-    y_train_arr <- array(TS[(H+1):(N)], c(N-H,1))
-    x_test_arr <- array(TS[(H+1):(N)], c(N-H,1,1))
+    x_train_arr <- array(sTS[1:(N-H)], c(N-H,1,1))
+    y_train_arr <- array(sTS[(H+1):(N)], c(N-H,1))
+    x_test_arr <- array(sTS[(H+1):(N)], c(N-H,1,1))
   } else {
-    x_train_arr <- array(TS[1:(N-H),], c(N-H,m,1))
-    y_train_arr <- array(TS[(H+1):(N),],c(N-H,m)) #lag_train_tbl$value
-    x_test_arr <- array(TS[(H+1):(N),], c(N-H,m,1))
+    x_train_arr <- array(sTS[1:(N-H),], c(N-H,m,1))
+    y_train_arr <- array(sTS[(H+1):(N),],c(N-H,m)) #lag_train_tbl$value
+    x_test_arr <- array(sTS[(H+1):(N),], c(N-H,m,1))
   }
   
   batch_size=1
@@ -627,8 +633,12 @@ rnnpred<-function(TS,H,nunits=10,epochs=10,...){
   
   N2=NROW(pred_out)
   
+  Yhat=pred_out[(N2-H+1):N2,]
   
-  return(pred_out[(N2-H+1):N2,])
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(Yhat)
+ 
   
   
 }
@@ -823,18 +833,19 @@ lstmpred<-function(TS,H,nunits=10,epochs=10,...){
       assign(x = names(args)[i], value = args[[i]])
     }
   
-  m=NCOL(TS)
+
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
   
-  
-  N=NROW(TS)
   if (m==1){
-    x_train_arr <- array(TS[1:(N-H)], c(N-H,1,1))
-    y_train_arr <- array(TS[(H+1):(N)], c(N-H,1))
-    x_test_arr <- array(TS[(H+1):(N)], c(N-H,1,1))
+    x_train_arr <- array(sTS[1:(N-H)], c(N-H,1,1))
+    y_train_arr <- array(sTS[(H+1):(N)], c(N-H,1))
+    x_test_arr <- array(sTS[(H+1):(N)], c(N-H,1,1))
   } else {
-    x_train_arr <- array(TS[1:(N-H),], c(N-H,m,1))
-    y_train_arr <- array(TS[(H+1):(N),],c(N-H,m)) #lag_train_tbl$value
-    x_test_arr <- array(TS[(H+1):(N),], c(N-H,m,1))
+    x_train_arr <- array(sTS[1:(N-H),], c(N-H,m,1))
+    y_train_arr <- array(sTS[(H+1):(N),],c(N-H,m)) #lag_train_tbl$value
+    x_test_arr <- array(sTS[(H+1):(N),], c(N-H,m,1))
   }
   
   batch_size=1
@@ -882,9 +893,11 @@ lstmpred<-function(TS,H,nunits=10,epochs=10,...){
     predict(x_test_arr, batch_size = batch_size)
   
   N2=NROW(pred_out)
+  Yhat=pred_out[(N2-H+1):N2,]
   
-  
-  return(pred_out[(N2-H+1):N2,])
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(Yhat)
   
   
 }
@@ -892,9 +905,12 @@ lstmpred<-function(TS,H,nunits=10,epochs=10,...){
 
 lstmpred2<-function(TS,n,H,nunits=10){
   require(keras)
-  m=NCOL(TS)
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
+ 
   
-  M=MakeEmbeddedrev(TS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
+  M=MakeEmbeddedrev(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   
   I=which(!is.na(apply(M$out,1,sum)))
   M$inp=M$inp[I,]
@@ -933,7 +949,10 @@ lstmpred2<-function(TS,n,H,nunits=10){
   Yhat<-array(NA,c(H,m))
   
   Yhat  <- lmodel%>% predict(trainXts,verbose=0)
-  return(array(Yhat,c(H,m)))
+  Yhat  <- (array(Yhat,c(H,m)))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(Yhat)
   
   
 }
