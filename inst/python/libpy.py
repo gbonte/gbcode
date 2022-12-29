@@ -312,8 +312,8 @@ if r.plearn=="lstm_ts0":
                 loss="mse",
                 metrics=['accuracy'])
 
-  for i in np.arange(r.pynepochs):
-      model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=1)
+  for i in np.arange(int(r.pynepochs)):
+      model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=0)
       model.reset_states()
 
   #model.fit(r.pyX, r.pyY,epochs=100)
@@ -371,7 +371,7 @@ if r.plearn=="lstm_ts":
   #    model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=0)
   #    model.reset_states()
   
-  model.fit(r.pyX, r.pyY,epochs=r.pynepochs,verbose=0)
+  model.fit(r.pyX, r.pyY,epochs=int(r.pynepochs),verbose=0)
   #
   yhat=model.predict(r.pyXts, batch_size = 1)
 
@@ -403,7 +403,7 @@ if r.plearn=="lstm_ts2":
     model.compile(loss='mean_squared_error', optimizer='adam',metrics = ['mse'])
     return model
   
-  print(r.pyY)
+  
   
   r.pyY=r.pyY.reshape(int(r.pyN),int(r.pyH)*int(r.pym))
   tuner = kt.Hyperband(model_builder,
@@ -423,7 +423,8 @@ if r.plearn=="lstm_ts2":
   #    model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=1)
   #    model.reset_states()
 
-  model.fit(r.pyX, r.pyY,epochs=r.pynepochs,validation_split=0.2, verbose=1,batch_size =bsize,shuffle=False,)
+  model.fit(r.pyX, r.pyY,epochs=int(r.pynepochs),validation_split=0.2, verbose=0,
+    batch_size =bsize,shuffle=False,)
   #print(r.pyXts.shape)
   yhat=model.predict(r.pyXts, batch_size = 1)
 
@@ -470,7 +471,7 @@ if r.plearn=="rnn_ts":
                      factor=3)
   stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
   tuner.search(r.pyX, r.pyY,
-    epochs=r.pynepochs, validation_split=0.2, callbacks=[stop_early],verbose=1)
+    epochs=int(r.pynepochs), validation_split=0.2, callbacks=[stop_early],verbose=1)
 
   # Get the optimal hyperparameters
   best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]

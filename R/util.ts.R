@@ -494,7 +494,7 @@ kfml<-function(TS,n,H,p0=3,dfmod="lindirect",adaptive=FALSE,...){
   
 }
 
-rnnpred2<-function(TS,n,H){
+rnnpred2<-function(TS,H,n){
   require(keras)
   sTS=scale(TS)
   m=NCOL(sTS)
@@ -567,7 +567,7 @@ rnnpred2<-function(TS,n,H){
   
 }
 
-rnnpred<-function(TS,H,nunits=10,epochs=10,...){
+rnnpred<-function(TS,H,n,nunits=10,epochs=10,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -827,7 +827,7 @@ pyrnnpredgpt<-function(TS,H,n,nepochs=200,...){
 
 
 
-lstmpred<-function(TS,H,nunits=10,epochs=10,...){
+lstmpred<-function(TS,H,n,nunits=10,epochs=10,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -904,7 +904,7 @@ lstmpred<-function(TS,H,nunits=10,epochs=10,...){
 }
 
 
-lstmpred2<-function(TS,n,H,nunits=10){
+lstmpred2<-function(TS,H,n, nunits=10){
   require(keras)
   sTS=scale(TS)
   m=NCOL(sTS)
