@@ -1432,9 +1432,9 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
       Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod,...)
     }
   if (multi=="rnn")
-    Yhat=rnnpred(TS,H,...)
+    Yhat=pyrnnpredgpt(TS,H,...)
   if (multi=="lstm")
-    Yhat=pylstmpredgpt(TS,H,...)
+    Yhat=pylstmpredgpt(TS,H,n,...)
   if (multi=="pylstm")
     Yhat=pylstmpredgpt(TS,H,n,...)
   if (multi=="dfm"){

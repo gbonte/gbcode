@@ -800,6 +800,19 @@ pylstmpredgpt<-function(TS,H,n,nepochs=200,...){
   Yhat
 }
 
+pyrnnpredgpt<-function(TS,H,n,nepochs=200,...){
+  
+  m<-NCOL(TS)
+  pyTS<<-TS;       
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;
+  
+  plearn<<-"rnn_gpt"
+  
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  
+  Yhat
+}
 
 
 
