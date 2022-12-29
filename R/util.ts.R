@@ -797,7 +797,7 @@ pylstmpred<-function(TS,H,n,nepochs=10,...){
 }
 
 
-pylstmpredgpt<-function(TS,H,n,nepochs=200,nunits=20,hyper=FALSE,...){
+pylstmpredgpt<-function(TS,H,n,nepochs=200,nunits=20,hyper=TRUE,...){
   
   m<-NCOL(TS)
   pyTS<<-TS;       
@@ -814,13 +814,16 @@ pylstmpredgpt<-function(TS,H,n,nepochs=200,nunits=20,hyper=FALSE,...){
   Yhat
 }
 
-pyrnnpredgpt<-function(TS,H,n,nepochs=200,nunits=20,...){
+pyrnnpredgpt<-function(TS,H,n,nepochs=200,nunits=20,hyper=TRUE,...){
   
   m<-NCOL(TS)
   pyTS<<-TS;       
   pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
   
-  plearn<<-"rnn_gpt"
+  if (hyper)
+    plearn<<-"rnn_gpt_hyper"
+  else
+    plearn<<-"rnn_gpt"
   
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
   Yhat=array(py$yhat,c(H,m))
