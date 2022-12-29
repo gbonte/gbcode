@@ -797,13 +797,16 @@ pylstmpred<-function(TS,H,n,nepochs=10,...){
 }
 
 
-pylstmpredgpt<-function(TS,H,n,nepochs=200,nunits=20,...){
+pylstmpredgpt<-function(TS,H,n,nepochs=200,nunits=20,hyper=FALSE,...){
   
   m<-NCOL(TS)
   pyTS<<-TS;       
   pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
   
-  plearn<<-"lstm_gpt"
+  if (hyper)
+    plearn<<-"lstm_gpt_hyper"
+  else
+    plearn<<-"lstm_gpt"
   
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
   Yhat=array(py$yhat,c(H,m))
