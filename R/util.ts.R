@@ -772,6 +772,7 @@ gluonpred<-function(TS,H=10,n=4,nepochs=5){
 pylstmpred<-function(TS,H,n,nepochs=10,...){
   sTS<-scale(TS)
   N=NROW(TS)
+  m=NCOL(sTS)
   M<-MakeEmbedded(array(sTS[1:N,],c(N,m)),n=numeric(m)+n,numeric(m),hor=numeric(m)+H,w=1:m)
   
   X<-array(M$inp,c(NROW(M$inp),n,m))
