@@ -590,7 +590,7 @@ rnnpred<-function(TS,H,nunits=10,epochs=10,...){
                      return_sequences = TRUE, 
                      batch_size=batch_size,
                      stateful         = TRUE) %>% 
-    #layer_dropout(rate = 0.1) %>%
+    layer_dropout(rate = 0.1) %>%
     layer_simple_rnn(units            = round(nunits/2), 
                      return_sequences = FALSE, 
                      stateful         = TRUE) %>% 
@@ -758,6 +758,50 @@ gluonpred<-function(TS,H=10,n=4,nepochs=5){
                  dplyr::select(".pred"))
   return(Yhat)
 }
+
+pylstmpred<-function(TS,H,n,nepochs=10,...){
+  sTS<-scale(TS)
+  N=NROW(TS)
+  M<-MakeEmbedded(array(sTS[1:N,],c(N,m)),n=numeric(m)+n,numeric(m),hor=numeric(m)+H,w=1:m)
+  
+  X<-array(M$inp,c(NROW(M$inp),n,m))
+  Y=M$out #array(M$out,c(NROW(M$out),H,m))
+
+  Xts <- NULL
+  for (j in 1:m)
+    Xts<-c(Xts,sTS[seq(N,N-n+1,by=-1),j])
+  Xts<-array(Xts,c(1,n,m))
+  
+  
+  Nts=NROW(Xts)
+  pyX<<-X;   pyXts<<-Xts;   pyY<<-Y;   pyN<<-NROW(X);      
+  pyNts<<-Nts;  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;
+  
+  plearn<<-"lstm_ts2"
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  Yhat
+}
+
+
+pylstmpredgpt<-function(TS,H,n,nepochs=200,...){
+  
+  m<-NCOL(TS)
+  pyTS<<-TS;       
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;
+  
+  plearn<<-"lstm_gpt"
+  
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  
+  Yhat
+}
+
+
+
 
 lstmpred<-function(TS,H,nunits=10,epochs=10,...){
   args<-list(...)
@@ -1259,7 +1303,7 @@ colourMaha<-function(Y,meanX,IsigmaX){
 
 ## multi-output ridge regression with lambda selection by PRESS
 whitenridge<-function(TS,n,H,
-                     verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,...){
+                      verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,...){
   if (! (MIMO|direct))
     stop("Erro in multiridge: at least MIMO  or direct should be true")
   args<-list(...)

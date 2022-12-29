@@ -1434,7 +1434,9 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (multi=="rnn")
     Yhat=rnnpred(TS,H,...)
   if (multi=="lstm")
-    Yhat=lstmpred(TS,H,...)
+    Yhat=pylstmpredgpt(TS,H,...)
+  if (multi=="pylstm")
+    Yhat=pylstmpredgpt(TS,H,n,...)
   if (multi=="dfm"){
     Yhat=dfml(TS,n,H,p0=pc0,dfmod=dfmlmodels[1],...)
   }
