@@ -797,11 +797,11 @@ pylstmpred<-function(TS,H,n,nepochs=10,...){
 }
 
 
-pylstmpredgpt<-function(TS,H,n,nepochs=200,...){
+pylstmpredgpt<-function(TS,H,n,nepochs=200,nunits=20,...){
   
   m<-NCOL(TS)
   pyTS<<-TS;       
-  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
   
   plearn<<-"lstm_gpt"
   
@@ -811,11 +811,11 @@ pylstmpredgpt<-function(TS,H,n,nepochs=200,...){
   Yhat
 }
 
-pyrnnpredgpt<-function(TS,H,n,nepochs=200,...){
+pyrnnpredgpt<-function(TS,H,n,nepochs=200,nunits=20,...){
   
   m<-NCOL(TS)
   pyTS<<-TS;       
-  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
   
   plearn<<-"rnn_gpt"
   

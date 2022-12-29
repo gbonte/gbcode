@@ -373,7 +373,7 @@ if r.plearn=="lstm_ts":
   
   model.fit(r.pyX, r.pyY,epochs=int(r.pynepochs),verbose=0)
   #
-  yhat=model.predict(r.pyXts, batch_size = 1)
+  yhat=model.predict(r.pyXts, batch_size = 1,verbose=0)
 
 
 
@@ -426,7 +426,7 @@ if r.plearn=="lstm_ts2":
   model.fit(r.pyX, r.pyY,epochs=int(r.pynepochs),validation_split=0.2, verbose=0,
     batch_size =bsize,shuffle=False,)
   #print(r.pyXts.shape)
-  yhat=model.predict(r.pyXts, batch_size = 1)
+  yhat=model.predict(r.pyXts, batch_size = 1,verbose=0)
 
 
 
@@ -478,7 +478,7 @@ if r.plearn=="rnn_ts":
   model = tuner.hypermodel.build(best_hps)
   
 
-  yhat=model.predict(r.pyXts, batch_size = 1)
+  yhat=model.predict(r.pyXts, batch_size = 1,verbose=0)
 
 if r.plearn=="lstm_gpt":
   import numpy as np
@@ -519,7 +519,7 @@ if r.plearn=="lstm_gpt":
   train_Y = np.reshape(train_Y, (train_Y.shape[0], train_Y.shape[1]* train_Y.shape[2]))
   # Create a LSTM model
   model = Sequential()
-  model.add(LSTM(units=50, input_shape=(look_back, m)))
+  model.add(LSTM(units=int(r.pynunits), input_shape=(look_back, m)))
   model.add(Dense(look_ahead*m))
   model.compile(loss='mean_squared_error', optimizer='adam')
 
@@ -531,7 +531,7 @@ if r.plearn=="lstm_gpt":
   
   q=create_query(scaled_data, look_back=look_back)
   q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
-  fore = model.predict(q)
+  fore = model.predict(q,verbose=0)
   
   fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
   fore=scaler.inverse_transform(fore[0,:,:])
@@ -577,7 +577,7 @@ if r.plearn=="rnn_gpt":
   train_Y = np.reshape(train_Y, (train_Y.shape[0], train_Y.shape[1]* train_Y.shape[2]))
   # Create a LSTM model
   model = Sequential()
-  model.add(SimpleRNN(units=50, input_shape=(look_back, m)))
+  model.add(SimpleRNN(units=int(r.pynunits), input_shape=(look_back, m)))
   model.add(Dense(look_ahead*m))
   model.compile(loss='mean_squared_error', optimizer='adam')
 
