@@ -798,7 +798,7 @@ pylstmpredgpt<-function(TS,H,n,nepochs=200,...){
   Yhat=array(py$yhat,c(H,m))
   
   Yhat
-}. 
+}
 
 pyrnnpredgpt<-function(TS,H,n,nepochs=200,...){
   
