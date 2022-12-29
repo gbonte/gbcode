@@ -522,7 +522,7 @@ if r.plearn=="lstm_gpt":
   model.add(Dense(look_ahead*m))
   model.compile(loss='mean_squared_error', optimizer='adam')
 
-  # Train the model on the training data
+  # Train the model on the training data.  
 
   model.fit(train_X, train_Y, epochs=int(r.pynepochs), batch_size=50, verbose=0)
 
