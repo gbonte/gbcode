@@ -523,6 +523,7 @@ if r.plearn=="lstm_gpt":
   model.compile(loss='mean_squared_error', optimizer='adam')
 
   # Train the model on the training data
+
   model.fit(train_X, train_Y, epochs=int(r.pynepochs), batch_size=50, verbose=0)
 
   ## forecasting
@@ -534,6 +535,7 @@ if r.plearn=="lstm_gpt":
   fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
   fore=scaler.inverse_transform(fore[0,:,:])
   yhat=fore
+
 
 if r.plearn=="rnn_gpt":
   import numpy as np
@@ -549,7 +551,7 @@ if r.plearn=="rnn_gpt":
         a = data[i:(i + look_back), :]
         data_X.append(a)
         data_Y.append(data[i + look_back:i + look_back + look_ahead, :])
-    return np.array(data_X), np.array(data_Y)
+    return np.array(data_X), np.array(data_Y)  
 
 
   def create_query(data, look_back=1):    
@@ -590,6 +592,9 @@ if r.plearn=="rnn_gpt":
   fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
   fore=scaler.inverse_transform(fore[0,:,:])
   yhat=fore
+=======
+  
+>>>>>>> 9e6e01e89abd2a5f43bb5b48326fe02f29ec3e95
 if yhat==[]:
   import sys
   sys.exit("empty output in the call "+ r.plearn)
