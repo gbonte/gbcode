@@ -592,9 +592,8 @@ if r.plearn=="rnn_gpt":
   fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
   fore=scaler.inverse_transform(fore[0,:,:])
   yhat=fore
-=======
-  
->>>>>>> 9e6e01e89abd2a5f43bb5b48326fe02f29ec3e95
+
+
 if yhat==[]:
   import sys
   sys.exit("empty output in the call "+ r.plearn)
