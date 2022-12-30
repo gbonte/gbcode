@@ -138,7 +138,7 @@ if r.plearn=="lasso_regr":
   if r.pym==1:
     reg = LassoCV(cv=10, random_state=0).fit(r.pyX, r.pyY)
   else:
-    reg = MultiTaskLassoCV(cv=3, random_state=0,max_iter=10,
+    reg = MultiTaskLassoCV(cv=2, random_state=0,max_iter=10,
     verbose=0).fit(r.pyX, r.pyY)
   yhat = reg.predict(r.pyXts)
   
