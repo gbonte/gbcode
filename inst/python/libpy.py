@@ -138,7 +138,7 @@ if r.plearn=="lasso_regr":
   if r.pym==1:
     reg = LassoCV(cv=10, random_state=0).fit(r.pyX, r.pyY)
   else:
-    reg = MultiTaskLassoCV(cv=3, random_state=0,max_iter=50,
+    reg = MultiTaskLassoCV(cv=3, random_state=0,max_iter=10,
     verbose=0).fit(r.pyX, r.pyY)
   yhat = reg.predict(r.pyXts)
   
@@ -479,6 +479,63 @@ if r.plearn=="rnn_ts":
   
 
   yhat=model.predict(r.pyXts, batch_size = 1,verbose=0)
+
+if r.plearn=="lstm_gpt2":
+  import numpy as np
+  import pandas as pd
+  from keras.layers import Dense, LSTM, Dropout
+  from keras.models import Sequential
+  from sklearn.preprocessing import StandardScaler
+
+  def create_dataset(data, look_back=1, look_ahead=1):
+    data_X, data_Y = [], []
+    for i in range(len(data) - look_back - look_ahead + 1):
+        a = data[i:(i + look_back),:].T
+        data_X.append(a)
+        data_Y.append(data[i + look_back:i + look_back + look_ahead, :].T)
+    return np.array(data_X), np.array(data_Y)
+
+  def create_query(data, look_back=1):    
+    query=[]   
+    query.append(data[(len(data)-look_back):len(data), :].T)
+    return  query
+
+  # Scale the time series data
+  scaler = StandardScaler()
+  scaled_data = scaler.fit_transform(r.pyTS)
+  scaled_data =r.pyTS
+  m=int(r.pym)
+  look_back = int(r.pyn)
+  look_ahead = int(r.pyH)
+  
+  # Create training and testing datasets
+  
+  train_X, train_Y = create_dataset(scaled_data, look_back=look_back, look_ahead=look_ahead)
+
+  train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], train_X.shape[2]))
+  test_X = np.reshape(test_X, (test_X.shape[0], test_X.shape[1], test_X.shape[2]))
+  train_Y = np.reshape(train_Y, (train_Y.shape[0], train_Y.shape[1], train_Y.shape[2]))
+  test_Y = np.reshape(test_Y, (test_Y.shape[0], test_Y.shape[1], test_Y.shape[2]))
+  model = Sequential()
+  model.add(LSTM(units=int(r.pynunits), input_shape=(m,look_back), return_sequences=True))
+  #model.add(Dense(look_ahead*m))
+  model.add(TimeDistributed(Dense(look_ahead)))
+  model.compile(loss='mean_squared_error', optimizer='adam')
+
+  # Train the model on the training data.  
+
+  model.fit(train_X, train_Y, epochs=int(r.pynepochs), batch_size=1, verbose=2)
+
+  ## forecasting
+  
+  q=create_query(scaled_data, look_back=look_back)
+  q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
+  print(q)
+  fore = model.predict(q,verbose=0)[0,:,:]
+  
+  ##fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
+  ##yhat=scaler.inverse_transform(fore.T)
+  yhat=fore.T
 
 if r.plearn=="lstm_gpt":
   import numpy as np

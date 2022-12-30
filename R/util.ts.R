@@ -1216,7 +1216,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,H=NULL,minLambda=0.1,
-               maxLambda=1000,nLambdas=50,maha=FALSE){
+               maxLambda=1000,nLambdas=25,maha=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   m<-NCOL(YY)
@@ -1472,7 +1472,7 @@ multiridge<-function(TS,n,H,
 ## multi-output ridge regression with lambda selection by PRESS
 multiteridge<-function(TS,n,H,Hobj=1,
                        verbose=FALSE,minLambda=0.1,
-                       maxLambda=1000,nLambdas=50,...){
+                       maxLambda=1000,nLambdas=25,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -1576,7 +1576,7 @@ multiteridge<-function(TS,n,H,Hobj=1,
 
 ensridge<-function(TS,n,H,
                    verbose=FALSE,minLambda=0.1,
-                   maxLambda=1000,nLambdas=50,...){
+                   maxLambda=1000,nLambdas=25,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
