@@ -1216,7 +1216,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 
 
 mlin<-function(XX,YY,H=NULL,minLambda=0.1,
-               maxLambda=5000,nLambdas=200,maha=FALSE){
+               maxLambda=1000,nLambdas=50,maha=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   m<-NCOL(YY)
