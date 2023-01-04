@@ -12,8 +12,10 @@ warnings.filterwarnings("ignore")
 yhat=[]
 if r.pym==1:
   r.pyY=np.ravel(r.pyY)
+  
+#############################
 ## CLASSIFICATION 
-
+#############################
 
 
 if r.plearn=="sgd_class": 
@@ -23,12 +25,66 @@ if r.plearn=="sgd_class":
   yhat = sgd_clf.predict(r.pyXts)
 
  
+
+  
+if r.plearn=="nb_class":
+  from sklearn.naive_bayes import GaussianNB
+  gnb = GaussianNB()
+  gnb.fit(r.pyX, r.pyY)
+  yhat = gnb.predict(r.pyXts) 
+  phat = gnb.predict_proba(r.pyXts)   
+  
+if r.plearn=="knn_class":
+  from sklearn.neighbors import KNeighborsClassifier
+  from sklearn.model_selection import RandomizedSearchCV
+
+  # Create the random grid
+  random_grid = {'n_neighbors': [int(x) for x in np.linspace(1, 20, num = 10)],
+                'weights':['uniform', 'distance']}
+  neigh_r = KNeighborsClassifier(n_neighbors=3)
+  neigh = RandomizedSearchCV(estimator = neigh_r, param_distributions = random_grid,
+  n_iter = 50, cv = 3, verbose=0, random_state=42)
+  neigh.fit(r.pyX, r.pyY)
+  yhat = neigh.predict(r.pyXts) 
+  phat = neigh.predict_proba(r.pyXts) 
+  
 if r.plearn=="rf_class":
   from sklearn.ensemble import RandomForestClassifier
-  clf = RandomForestClassifier()
+  clf = RandomForestClassifier(max_depth=2, random_state=0)
   clf.fit(r.pyX, r.pyY)
   yhat = clf.predict(r.pyXts) 
   phat = clf.predict_proba(r.pyXts) 
+  
+if r.plearn=="ab_class":
+  from sklearn.ensemble import AdaBoostClassifier
+  clf = AdaBoostClassifier(n_estimators=100, random_state=0)
+  clf.fit(r.pyX, r.pyY)
+  yhat = clf.predict(r.pyXts) 
+  phat = clf.predict_proba(r.pyXts) 
+  
+if r.plearn=="svm_class":
+  from sklearn.svm import SVC
+  clf = SVC(gamma='auto',probability=True)
+  clf.fit(r.pyX, r.pyY)
+  yhat = clf.predict(r.pyXts) 
+  phat = clf.predict_proba(r.pyXts) 
+  
+if r.plearn=="lsvm_class":
+  from sklearn.svm import SVC
+  clf = SVC(kernel="linear", C=0.025,probability=True)
+  clf.fit(r.pyX, r.pyY)
+  yhat = clf.predict(r.pyXts) 
+  phat = clf.predict_proba(r.pyXts)
+  
+if r.plearn=="gp_class":
+  from sklearn.gaussian_process import GaussianProcessClassifier
+  from sklearn.gaussian_process.kernels import RBF
+  kernel = 1.0 * RBF(1.0)
+  gpc = GaussianProcessClassifier(kernel=kernel,
+       random_state=0)
+  gpc.fit(X, y)
+  yhat = gpc.predict(r.pyXts) 
+  phat = gpc.predict_proba(r.pyXts)
   
 if r.plearn=="gb_class":
   from sklearn.ensemble import GradientBoostingClassifier
@@ -196,7 +252,6 @@ if r.plearn=="rf_regr":
  
 if r.plearn=="knn_regr":
   from sklearn.neighbors import KNeighborsRegressor
-  from sklearn.feature_selection import SequentialFeatureSelector
   from sklearn.model_selection import RandomizedSearchCV
 
   # Create the random grid
@@ -204,14 +259,10 @@ if r.plearn=="knn_regr":
                 'weights':['uniform', 'distance']}
   knn_r = KNeighborsRegressor(n_neighbors=3)
     
-  sfs = SequentialFeatureSelector(knn_r, n_features_to_select='auto')
   knn_regressor = RandomizedSearchCV(estimator = knn_r, param_distributions = random_grid,
   n_iter = 50, cv = 3, verbose=0, random_state=42)
-  sfs.fit(r.pyX,r.pyY)
-  X_train_sfs = sfs.transform(r.pyX)
-  X_test_sfs = sfs.transform(r.pyXts)
-  knn_regressor.fit(X_train_sfs, r.pyY)
-  yhat = knn_regressor.predict(X_test_sfs)
+  knn_regressor.fit(r.pyX, r.pyY)
+  yhat = knn_regressor.predict(r.pyXts)
   
 if r.plearn=="gb_regr":
   from sklearn.ensemble import GradientBoostingRegressor
@@ -288,6 +339,9 @@ if r.plearn=="pipeab_regr":
   yhat = clf.predict(r.pyXts)
 
   yhat.shape=(int(r.pyNts),int(r.pym))
+  
+  
+############################  
 ## TIMESERIES
 
 if r.plearn=="lstm_ts0":

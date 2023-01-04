@@ -517,6 +517,10 @@ unscale<-function(sX){
   
 }
 
+unscale2<-function(sXhat,sX){
+  return(t(apply(sXhat, 1, function(r)r*attr(sX,'scaled:scale') + attr(sX, 'scaled:center'))))
+  
+}
 
 normv<-function(x,p=2){
   sum(x^p)^(1/p)

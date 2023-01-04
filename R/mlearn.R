@@ -57,18 +57,45 @@
 #' print(MISCL/N)
 #'
 pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,to.scale=FALSE,...){
-  if (to.scale){
-    X<-scale(X)
-    X.ts<-scale(X.ts,center=attr(X,"scaled:center"),
-                scale=attr(X,"scaled:scale"))
-    Y<-scale(Y)
-  }
   if (any(is.nan(X)))
     stop("NA terms in X")
   if (any(is.nan(Y)))
     stop("NA terms in Y")
   if (any(is.nan(X.ts)))
     stop("NA terms in X.ts")
+  
+  if (!classi & is.vector(Y))
+    Y<-cbind(Y)
+  if (classi & is.null(dim(Y)))
+    dim(Y)<-c(length(Y),1)
+  
+  if (is.vector(X))
+    X<-cbind(X)
+  n<-NCOL(X)
+  N<-NROW(X)
+  m<-NCOL(Y)
+  
+  if (is.vector(X.ts) & n>1){
+    N.ts<-1
+    X.ts<-rbind(X.ts)
+  }  
+  
+  if (n==1)
+    X.ts<-cbind(X.ts)
+  
+  
+  
+  if (any(apply(Y,2,sd)==0))
+    stop("pred: constant outputs in Y")
+  
+  if (to.scale){
+    X<-scale(X)
+    X.ts<-scale(X.ts,center=attr(X,"scaled:center"),
+                scale=attr(X,"scaled:scale"))
+    Y<-scale(Y)
+    X[is.na(X)]=0
+  }
+  
   
   if (algo=="rf")
     P<-rf.pred(X,Y,X.ts,class=classi,...)
@@ -83,8 +110,6 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,to.scale=FALSE,...){
   if (algo=="svm")
     P<-svm.pred(X,Y,X.ts,class=classi,...)
   
-  if (algo=="ksvm")
-    P<-ksvm.pred(X,Y,X.ts,class=classi,...)
   
   if (algo=="lda")
     P<-lda.pred(X,Y,X.ts,class=classi)
@@ -105,8 +130,6 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,to.scale=FALSE,...){
   if (algo=="gam")
     P<-gam.pred(X,Y,X.ts,class=classi,...)
   
-  if (algo=="py.gb")
-    P<-py.gb.pred(X,Y,X.ts,class=classi,...)
   
   if (algo=="lazy")
     P<-lazy.pred(X,Y,X.ts,class=classi,...)
@@ -127,10 +150,8 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,to.scale=FALSE,...){
   
   if (algo=="stacked")
     P<-stacked.pred(X,Y,X.ts,class=classi,...)
-  
-  if (algo=="FNN")
-    P<-FNN.pred(X,Y,X.ts,class=classi,...)
-  if (algo=="nnet")
+ 
+    if (algo=="nnet")
     P<-nn.pred(X,Y,X.ts,class=classi,k=algoptions.i)
   
   if (algo=="rocchio")
@@ -152,9 +173,6 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,to.scale=FALSE,...){
     P<-lin.pred(X,Y,X.ts,class=classi,...)
   
   
-  if (algo=="py.lin")
-    P<-py.lin.pred(X,Y,X.ts,class=classi,...)
-  
   if (algo=="boost")
     P<-boosting.pred(X,Y,X.ts,class=classi,...)
   if (algo=="arc")
@@ -165,8 +183,7 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,to.scale=FALSE,...){
   
   
   if (to.scale){
-    for (j in 1:NCOL(Y))
-      P[,j]<-attr(Y,"scaled:center")[,j]+P[,j]*attr(Y,"scaled:scale")[,j]
+    P<-unscale2(P,Y)
   }
   
   return (P)
@@ -207,212 +224,6 @@ py.pred<- function(X,Y,X.ts,pyalgo="rf_regr",class=FALSE,...){
   
 }
 
-py.rf.pred<- function(X,Y,X.ts,class=FALSE,...){
-  n<-NCOL(X)
-  N<-NROW(X)
-  m<-NCOL(Y)
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
-  
-  if (n==1){
-    X<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
-  }
-  
-  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
-  if (!class){
-    plearn<<-"rf_regr"
-    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    return(py$yhat)
-  }
-  
-  if (class){
-    plearn<<-"rf_class"
-    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    return(list(pred=py$yhat,prob=py$phat))
-  }
-  
-}
-
-py.keras.pred<- function(X,Y,X.ts,class=FALSE,...){
-  n<-NCOL(X)
-  N<-NROW(X)
-  m<-NCOL(Y)
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
-  
-  if (n==1){
-    X<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
-  }
-  
-  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
-  if (!class){
-    plearn<<-"keras_regr"
-    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    return(py$yhat)
-  }
-  
-  if (class){
-    stop("py_keras: not yet implemented)")
-    #plearn<<-"rf_class"
-    #reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    #return(list(pred=py$yhat,prob=py$phat))
-  }
-  
-}
-
-py.lasso.pred<- function(X,Y,X.ts,class=FALSE,...){
-  n<-NCOL(X)
-  N<-NROW(X)
-  m<-NCOL(Y)
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
-  
-  if (n==1){
-    X<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
-  }
-  
-  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
-  if (!class){
-    plearn<<-"lasso_regr"
-    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    return(py$yhat)
-  }
-  
-  if (class){
-    stop("lasso not available for classification")
-  }
-  
-}
-
-
-py.gb.pred<- function(X,Y,X.ts,class=FALSE,...){
-  n<-NCOL(X)
-  N<-NROW(X)
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
-  
-  if (n==1){
-    X<<-array(X,c(N,1))
-    X.ts<<-array(X.ts,c(N.ts,1))
-  }
-  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
-  
-  
-  if (!class){
-    plearn<<-"gb_regr"
-    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    return(py$yhat)
-  }
-  
-  if (class){
-    plearn<<-"gb_class"
-    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    return(list(pred=py$yhat,prob=py$phat))
-  }
-  
-}
-
-
-py.piperf.pred<- function(X,Y,X.ts,class=FALSE,...){
-  n<-NCOL(X)
-  N<-NROW(X)
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
-  
-  if (n==1){
-    X<<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
-  }
-  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
-  
-  
-  if (!class){
-    plearn<<-"piperf_regr"
-    
-    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    return(py$yhat)
-  }
-  
-  if (class){
-    plearn<<-"piperf_class"
-    reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-    return(list(pred=py$yhat,prob=py$phat))
-  }
-  
-  
-}
-
-
-
-py.lin.pred<- function(X,Y,X.ts,class=FALSE,...){
-  n<-NCOL(X)
-  N<-NROW(X)
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
-  
-  if (n==1){
-    X<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
-  }
-  pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
-  
-  if (!class){
-    plearn<<-"lin_regr"
-    
-    reticulate::py_run_file(system.file("python", "libpy.py",
-                                        package = "gbcode"))
-    
-  }
-  
-  
-  return(py$yhat)
-  
-}
 
 
 rf.pred<- function(X,Y,X.ts,class=FALSE,...){
@@ -420,22 +231,10 @@ rf.pred<- function(X,Y,X.ts,class=FALSE,...){
   n<-NCOL(X)
   N<-NROW(X)
   m<-NCOL(Y)
+  N.ts<-NROW(X.ts)
   if (m>1)
     stop("rf.pred only for univariate outputs")
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
   
-  if (n==1){
-    X<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
-  }
   set.seed(N*n)
   d<-data.frame(Y,X)
   names(d)[1]<-"Y"
@@ -459,20 +258,11 @@ svm.pred<- function(X,Y,X.ts,proba=TRUE,class=TRUE,...){
   
   n<-NCOL(X)
   N<-NROW(X)
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
+  N.ts<-NROW(X.ts)
+  m<-NCOL(Y)
+  if (m>1)
+    stop("rf.pred only for univariate outputs")
   
-  if (n==1){
-    X<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
-  }
   if (class){
     weights<-NULL
     if (is.factor(Y)){
@@ -535,76 +325,6 @@ svm.pred<- function(X,Y,X.ts,proba=TRUE,class=TRUE,...){
 }
 
 
-ksvm.pred<- function(X,Y,X.ts,proba=TRUE,class=TRUE,degree=1,...){
-  
-  n<-NCOL(X)
-  N<-NROW(X)
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
-  
-  if (n==1){
-    X<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
-  }
-  if (class){
-    weights<-NULL
-    if (is.factor(Y)){
-      L<-levels(Y)
-      weights<-numeric(length(L))
-      for (i in 1:length(L))
-        weights[i]<-1-length(which(Y==L[i]))/length(Y)
-      names(weights)<-L
-      
-      
-    }
-    u<-unique(Y)
-    
-    if (length(u)==1){
-      P<-array(0,c(NROW(X.ts),length(L)))
-      colnames(P)<-L
-      P[,u]<-1
-      out.hat<-factor(rep(as.character(u),length(X.ts)),levels=L)
-      return(list(pred=out.hat,prob=P))
-    }
-    
-    d<-data.frame(Y,X)
-    names(d)[1]<-"Y"
-    PP<-NULL
-    
-    
-    
-    mod.svm<-ksvm(Y~.,data=d,prob.model=proba,kpar=list(degree=degree),tol=0.05,...)
-    
-    d.ts<-data.frame(X.ts)
-    
-    
-    
-    names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
-    
-    
-    
-    p<-predict(mod.svm,d.ts,type="probabilities")
-    
-    return(list(pred=L[apply(p,1,which.max)],prob=p))
-  } else {  ## if class
-    d<-data.frame(Y,X)
-    names(d)[1]<-"Y"
-    d.ts<-data.frame(X.ts)
-    names(d.ts)[1:(n)]<-names(d)[2:(n+1)]
-    mod.svm<-ksvm(Y~.,data=d,
-                  kernel=kernel,...)
-    
-    return(predict(mod.svm,d.ts))
-  }
-}
-
 lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,lambda=1e3,return.more=F){
   n<-NCOL(X)
   N<-NROW(X)
@@ -656,22 +376,13 @@ lazy.pred.bin<- function(X,Y,X.ts,conPar=3,linPar=5,cmbPar=10,lambda=1e3,return.
 lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
                      conPar=c(3,5),linPar=NULL,cmbPar=5,
                      lambda=1e3,scaleX=TRUE){
+  n<-NCOL(X)
+  N<-NROW(X)
   m<-NCOL(Y)
+  N.ts<-NROW(X.ts)
   if (m>1)
     stop("lazy.pred only for univariate outputs")
-  
-  if (is.vector(X)){
-    n<-1
-    N<-length(X)
-  }else{
-    n<-NCOL(X)
-    N<-NROW(X)
-  }
-  
-  if (is.vector(X.ts) & n>1)
-    X.ts<-array(X.ts,c(1,n))
-  if (is.vector(X.ts) & n==1)
-    X.ts<-array(X.ts,c(length(X.ts),1))
+ 
   
   
   if (scaleX){
@@ -783,36 +494,6 @@ nn.pred<- function(X,Y,X.ts,classi=FALSE,k=5){
 }
 
 
-FNN.pred<- function(X,Y,X.ts,Di=NULL,class=FALSE,k=3,algorithm="brute",condense=FALSE){
-  
-  if (!class)
-    stop("Error in FNN.pred")
-  N<-NROW(X)
-  N.ts<-NROW(X.ts)
-  L<-levels(Y)
-  ind<-1:N
-  if (condense){
-    keep<-condense(X,Y,trace=FALSE)
-    keep2<-reduce.nn(X[keep,],keep,Y)
-    ind<-keep2
-  }
-  
-  
-  predK<-FNN::knn(X[ind,], X.ts, Y[ind], k = k, prob = TRUE,algorithm=algorithm)
-  
-  
-  
-  probK<-attr(predK,"prob")
-  P<-array(0,c(N.ts,length(L)))
-  colnames(P)<-L
-  for (i in 1:N.ts){
-    P[i,]<-(1-probK[i])/length(L)
-    P[i,predK[i]]<-probK[i]
-    
-  }
-  
-  return(list(pred=predK,prob=P))
-}
 
 KNN.pred<- function(X,Y,X.ts,Di=NULL,class=FALSE,dist="euclidean",k=3){
   
@@ -921,8 +602,8 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-7,class) {
   }
   
   if (n==1){
-    X<-array(X,c(N,1))
-    X.ts<-array(X.ts,c(N.ts,1))
+    X<-cbind(X)
+    X.ts<-cbind(X.ts)
   }
   if (class){
     L<-levels(Y)
@@ -1031,7 +712,10 @@ logistic.pred<- function(X,Y,X.ts,class=classi) {
 
 ## Naive-bayes
 nb.pred<- function(X,Y,X.ts,class=TRUE) {
-  
+  n<-NCOL(X)
+  N<-NROW(X)
+  m<-NCOL(Y)
+  N.ts<-NROW(X.ts)
   if (class){
     l<-levels(Y)
     n<-NCOL(X)
@@ -1093,15 +777,7 @@ tree.pred<- function(X,Y,X.ts,class=TRUE,...) {
   d<-data.frame(Y,X)
   names(d)[1]<-"Y"
   names(d)[2:(n+1)]<-paste("x",1:n,sep="")
-  if (is.vector(X.ts) & n>1){
-    N.ts<-1
-    X.ts<-array(X.ts,c(1,n))
-  }  else {
-    if (n==1)
-      N.ts<-length(X.ts)
-    else
-      N.ts<-nrow(X.ts)
-  }
+  
   
   
   
