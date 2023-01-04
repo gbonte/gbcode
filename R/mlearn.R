@@ -56,7 +56,19 @@
 #' MISCL=sum(e)
 #' print(MISCL/N)
 #'
-pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
+pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,to.scale=FALSE,...){
+  if (to.scale){
+    X<-scale(X)
+    X.ts<-scale(X.ts,center=attr(X,"scaled:center"),
+                scale=attr(X,"scaled:scale"))
+    Y<-scale(Y)
+  }
+  if (any(is.nan(X)))
+    stop("NA terms in X")
+  if (any(is.nan(Y)))
+    stop("NA terms in Y")
+  if (any(is.nan(X.ts)))
+    stop("NA terms in X.ts")
   
   if (algo=="rf")
     P<-rf.pred(X,Y,X.ts,class=classi,...)
@@ -135,7 +147,7 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
   if (algo=="multinom")
     P<-multinom.pred(X,Y,X.ts,class=classi)
   
- 
+  
   if (algo=="lin")
     P<-lin.pred(X,Y,X.ts,class=classi,...)
   
@@ -151,8 +163,13 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,...){
   if (is.null(P))
     stop("Error in mlearn: learner not available")
   
-  return (P)
   
+  if (to.scale){
+    for (j in 1:NCOL(Y))
+      P[,j]<-attr(Y,"scaled:center")[,j]+P[,j]*attr(Y,"scaled:scale")[,j]
+  }
+  
+  return (P)
   
 }
 py.pred<- function(X,Y,X.ts,pyalgo="rf_regr",class=FALSE,...){
@@ -175,7 +192,7 @@ py.pred<- function(X,Y,X.ts,pyalgo="rf_regr",class=FALSE,...){
   }
   
   pyX<<-X;   pyXts<<-X.ts;   pyY<<-Y;   pyN<<-N;   pyn<<-n;   pyNts<<-N.ts; pym<<-m;
- 
+  
   if (!class){
     plearn<<-pyalgo
     reticulate::py_run_file(system.file("python", "libpy.py", package = "gbcode"))
@@ -386,13 +403,13 @@ py.lin.pred<- function(X,Y,X.ts,class=FALSE,...){
   
   if (!class){
     plearn<<-"lin_regr"
-   
+    
     reticulate::py_run_file(system.file("python", "libpy.py",
-                                          package = "gbcode"))
-   
+                                        package = "gbcode"))
+    
   }
   
- 
+  
   return(py$yhat)
   
 }
@@ -889,13 +906,9 @@ KNN.pred<- function(X,Y,X.ts,Di=NULL,class=FALSE,dist="euclidean",k=3){
 
 
 lin.pred<- function(X,Y,X.ts,lambda=1e-7,class) {
-  
-  
   n<-NCOL(X)
   N<-NROW(X)
   m<-NCOL(Y)
-  if (m>1)
-    stop("rf.pred only for univariate outputs")
   
   if (is.vector(X.ts) & n>1){
     N.ts<-1
@@ -925,8 +938,11 @@ lin.pred<- function(X,Y,X.ts,lambda=1e-7,class) {
       algoptions=0
       return(multiclass(X,Y,X.ts,algo=algo,algoptions=algoptions,strategy="oo"))
     }
-  }
+  } ## if class
   
+  if (m>1){
+    return(mregrlin(X,Y,X.ts,nLambdas=25))
+  }
   
   d<-data.frame(Y,X)
   names(d)[1]<-"Y"

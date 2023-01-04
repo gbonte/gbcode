@@ -150,5 +150,45 @@ PRESS <- function(mod) {
 }
 
 
+mregrlin<-function(X,Y,Xts,minLambda=0.1,
+                   maxLambda=1000,nLambdas=25){
+  N<-NROW(X) # number training data
+  Nts<-NROW(Xts) # number training data
+  n<-NCOL(X) # number input variables
+  m<-NCOL(Y)
+  p<-n+1
+  XX<-cbind(array(1,c(N,1)),as.matrix(X))
+  XXts<-cbind(array(1,c(Nts,1)),as.matrix(Xts))
+  XXX<-t(XX)%*%(XX)
+  min.MSE.loo<-Inf
+  
+  for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
+    H1<- ginv(XXX+lambdah*diag(p))
+    beta.hat<-H1%*%t(XX)%*%Y
+    HH=XX%*%H1%*%t(XX)
+    Y.hat<-HH%*%Y
+    e<-Y-Y.hat
+    e.loo<-e
+    
+    for (j in 1:NCOL(e)){
+      e.loo[,j]<-e[,j]/pmax(1-diag(HH),0.01)
+      w.na<-which(is.na(e.loo[,j]))
+      if (length(w.na)>0)
+        e.loo[w.na,j]=1
+    }
+    MSE.loo<-mean(e.loo^2,na.rm=TRUE )
+    if (MSE.loo<min.MSE.loo){
+      lambda<-lambdah
+      min.MSE.loo<-MSE.loo
+    }
+    
+  }
+  H1<-ginv(XXX+lambda*diag(p))
+  
+  beta.hat<-H1%*%t(XX)%*%Y
+  YhatM=XXts%*%beta.hat
+  
+  return(YhatM)
+}
 
 

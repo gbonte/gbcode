@@ -323,7 +323,7 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
           }
           if (mod=="multifs"){
             
-            Xhat=multifs(Z[1:(Ntr+s),1:p],m,H,mod="lin")%*%V[1:p,]
+            Xhat=multiml(Z[1:(Ntr+s),1:p],m,H,learner="lin")%*%V[1:p,]
             Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
           }
           
@@ -394,7 +394,7 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
       
       return(Zhat%*%array(V[1:p0,],c(1,m)))
     }
-    Zhat=multifs(Ztr[,1:p0],m,H,mod="lin")
+    Zhat=multiml(Ztr[,1:p0],m,H,learner="lin")
     return(Zhat%*%V[1:p0,])
   }
   
