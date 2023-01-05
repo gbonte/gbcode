@@ -190,12 +190,8 @@ if r.plearn=="pls_regr":
   
 if r.plearn=="ridge_regr":
   from sklearn.linear_model import RidgeCV
-  #if r.pym==1:
+  
   reg = RidgeCV(alphas=np.linspace(0.1, 100, num = 50))
-  #else:
-  #  from sklearn.multioutput import RegressorChain
-  #  reg = RegressorChain(base_estimator = RidgeCV(alphas=np.linspace(0.1, 100, num = 50)), 
-  #    order='random',cv=3)
   reg.fit(r.pyX, r.pyY)
   yhat = reg.predict(r.pyXts)
   
@@ -263,7 +259,7 @@ if r.plearn=="rf_regr":
   rf_r = RandomForestRegressor()
   if r.pym>1:
     from sklearn.multioutput import RegressorChain
-    rf_r = RegressorChain(base_estimator=rf_r, order='random',cv=3)
+    rf_r = RegressorChain(base_estimator=rf_r, order='random')
   rf_regressor =rf_r
   rf_regressor.fit(r.pyX, r.pyY)
   yhat = rf_regressor.predict(r.pyXts)
@@ -273,7 +269,7 @@ if r.plearn=="knn_regr":
   from sklearn.model_selection import RandomizedSearchCV
 
   # Create the random grid
-  random_grid = {'n_neighbors': [int(x) for x in np.linspace(1, 20, num = 10)],
+  random_grid = {'n_neighbors': [int(x) for x in np.linspace(3, 20, num = 10)],
                 'weights':['uniform', 'distance']}
   knn_r = KNeighborsRegressor()
     
@@ -289,11 +285,11 @@ if r.plearn=="gb_regr":
     #from sklearn.multioutput import MultiOutputRegressor
     #gb_regressor = MultiOutputRegressor(GradientBoostingRegressor(n_estimators=5))
     from sklearn.multioutput import RegressorChain
-    gb_regressor = RegressorChain(base_estimator=GradientBoostingRegressor(), order='random',cv=3)
-    random_grid = {'base_estimator__n_estimators': [int(x) for x in np.linspace(1, 10, num = 5)]}
+    gb_regressor = RegressorChain(base_estimator=GradientBoostingRegressor(), order='random')
+    random_grid = {'base_estimator__n_estimators': [int(x) for x in np.linspace(1, 20, num = 5)]}
   else:
     gb_regressor = GradientBoostingRegressor()
-    random_grid = {'n_estimators': [int(x) for x in np.linspace(1, 10, num = 5)]}
+    random_grid = {'n_estimators': [int(x) for x in np.linspace(1, 20, num = 5)]}
   gb_regressor = RandomizedSearchCV(estimator = gb_regressor, param_distributions = random_grid,
   n_iter = 20, cv = 2, verbose=0, random_state=42)
   
@@ -331,7 +327,7 @@ if r.plearn=="piperf_regr":
   if r.pym>1:
     clf = Pipeline([
     ('feature_selection', SelectFromModel(RandomForestRegressor())),
-    ('regression', RegressorChain(base_estimator=RandomForestRegressor(), order='random',cv=3))
+    ('regression', RegressorChain(base_estimator=RandomForestRegressor(), order='random'))
     ])
   else:
     clf = Pipeline([
