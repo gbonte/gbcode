@@ -1941,7 +1941,10 @@ detectSeason<-function(TS,maxs=20,Ls=100,pmin=0.1,forced=FALSE, debug=FALSE){
   if (debug)
     browser()
   I=1:Ls
-  trnd2=pred("lin",1:length(trnd),trnd,1:Ls,classi=FALSE,lambda=1e-3)
+  if (sd(trnd)<0.01)
+    trnd2=numeric(Ls)
+  else
+    trnd2=pred("lin",1:length(trnd),trnd,1:Ls,classi=FALSE,lambda=1e-3)
   if (mVS>0 | forced) { 
     
     bests=which.max(VS)  ## lowest conditional variance 
