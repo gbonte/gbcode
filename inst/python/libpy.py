@@ -20,10 +20,10 @@ if r.pym==1:
 
 if r.plearn=="sgd_class": 
   from sklearn.linear_model import SGDClassifier
-  sgd_clf = SGDClassifier(random_state=42)
+  sgd_clf = SGDClassifier(loss='log',random_state=42)
   sgd_clf.fit(r.pyX, r.pyY)
   yhat = sgd_clf.predict(r.pyXts)
-
+  phat = sgd_clf.predict_proba(r.pyXts) 
  
 
   
@@ -82,7 +82,7 @@ if r.plearn=="gp_class":
   kernel = 1.0 * RBF(1.0)
   gpc = GaussianProcessClassifier(kernel=kernel,
        random_state=0)
-  gpc.fit(X, y)
+  gpc.fit(r.pyX, r.pyY)
   yhat = gpc.predict(r.pyXts) 
   phat = gpc.predict_proba(r.pyXts)
   
@@ -178,13 +178,24 @@ if r.plearn=="keras_regr":
   
 if r.plearn=="pls_regr":
   from sklearn.cross_decomposition import PLSRegression
+  from sklearn.model_selection import RandomizedSearchCV
+  random_grid = {'n_components': [int(x) for x in np.linspace(1, 20, num = 10)]}
   reg = PLSRegression(n_components=2)
-  reg.fit(r.pyX, r.pyY)
-  yhat = reg.predict(r.pyXts)
+    
+  pls_regressor = RandomizedSearchCV(estimator = reg, param_distributions = random_grid,
+  n_iter = 50, cv = 3, verbose=0, random_state=42)
+  
+  pls_regressor.fit(r.pyX, r.pyY)
+  yhat = pls_regressor.predict(r.pyXts)
   
 if r.plearn=="ridge_regr":
   from sklearn.linear_model import RidgeCV
-  reg = RidgeCV(alphas=[1e-3, 1e-2, 1e-1, 1])
+  #if r.pym==1:
+  reg = RidgeCV(alphas=np.linspace(0.1, 100, num = 50))
+  #else:
+  #  from sklearn.multioutput import RegressorChain
+  #  reg = RegressorChain(base_estimator = RidgeCV(alphas=np.linspace(0.1, 100, num = 50)), 
+  #    order='random',cv=3)
   reg.fit(r.pyX, r.pyY)
   yhat = reg.predict(r.pyXts)
   
@@ -200,10 +211,17 @@ if r.plearn=="lasso_regr":
   
 if r.plearn=="enet_regr":  
   from sklearn.linear_model import ElasticNet, MultiTaskElasticNet
+  from sklearn.model_selection import RandomizedSearchCV
+  
   if r.pym==1:
     reg = ElasticNet(random_state=0).fit(r.pyX, r.pyY)
   else:
-    reg =MultiTaskElasticNet(alpha=0.1).fit(r.pyX, r.pyY)
+    random_grid = {'alpha': [int(x) for x in np.linspace(0.1, 2, num = 10)]}
+    reg =MultiTaskElasticNet()
+    reg = RandomizedSearchCV(estimator = reg, param_distributions = random_grid,
+    n_iter = 50, cv = 3, verbose=0, random_state=42)
+    reg.fit(r.pyX, r.pyY)
+    
   yhat = reg.predict(r.pyXts)
   
   
@@ -257,7 +275,7 @@ if r.plearn=="knn_regr":
   # Create the random grid
   random_grid = {'n_neighbors': [int(x) for x in np.linspace(1, 20, num = 10)],
                 'weights':['uniform', 'distance']}
-  knn_r = KNeighborsRegressor(n_neighbors=3)
+  knn_r = KNeighborsRegressor()
     
   knn_regressor = RandomizedSearchCV(estimator = knn_r, param_distributions = random_grid,
   n_iter = 50, cv = 3, verbose=0, random_state=42)
@@ -266,16 +284,18 @@ if r.plearn=="knn_regr":
   
 if r.plearn=="gb_regr":
   from sklearn.ensemble import GradientBoostingRegressor
+  from sklearn.model_selection import RandomizedSearchCV
   if r.pym>1:
     #from sklearn.multioutput import MultiOutputRegressor
     #gb_regressor = MultiOutputRegressor(GradientBoostingRegressor(n_estimators=5))
     from sklearn.multioutput import RegressorChain
-    gb_regressor = RegressorChain(base_estimator=GradientBoostingRegressor(n_estimators=5), order='random',cv=3)
+    gb_regressor = RegressorChain(base_estimator=GradientBoostingRegressor(), order='random',cv=3)
+    random_grid = {'base_estimator__n_estimators': [int(x) for x in np.linspace(1, 10, num = 5)]}
   else:
-    gb_regressor = GradientBoostingRegressor(n_estimators=5)
-  
-  
-  
+    gb_regressor = GradientBoostingRegressor()
+    random_grid = {'n_estimators': [int(x) for x in np.linspace(1, 10, num = 5)]}
+  gb_regressor = RandomizedSearchCV(estimator = gb_regressor, param_distributions = random_grid,
+  n_iter = 20, cv = 2, verbose=0, random_state=42)
   
   gb_regressor.fit(r.pyX, r.pyY)
   
@@ -289,9 +309,14 @@ if r.plearn=="ab_regr":
     from sklearn.multioutput import MultiOutputRegressor
     ab_regressor = MultiOutputRegressor(AdaBoostRegressor(DecisionTreeRegressor(max_depth=4), 
       n_estimators=400, random_state=7))
+    random_grid = {'estimator__base_estimator__max_depth': [int(x) for x in np.linspace(1, 10, num = 5)]}
   else:
     ab_regressor = AdaBoostRegressor(DecisionTreeRegressor(max_depth=4), n_estimators=400, random_state=7)
-
+    random_grid = {'base_estimator__max_depth': [int(x) for x in np.linspace(1, 10, num = 5)]}
+  
+  ab_regressor = RandomizedSearchCV(estimator = ab_regressor, param_distributions = random_grid,
+  n_iter = 20, cv = 2, verbose=0, random_state=42)
+ 
   ab_regressor.fit(r.pyX, r.pyY)
   yhat = ab_regressor.predict(r.pyXts)
   
@@ -302,10 +327,17 @@ if r.plearn=="piperf_regr":
   from sklearn.pipeline import Pipeline
   from sklearn.feature_selection import SelectFromModel
   from sklearn.ensemble import RandomForestRegressor
-  clf = Pipeline([
+  from sklearn.multioutput import RegressorChain
+  if r.pym>1:
+    clf = Pipeline([
+    ('feature_selection', SelectFromModel(RandomForestRegressor())),
+    ('regression', RegressorChain(base_estimator=RandomForestRegressor(), order='random',cv=3))
+    ])
+  else:
+    clf = Pipeline([
     ('feature_selection', SelectFromModel(RandomForestRegressor())),
     ('regression', RandomForestRegressor())
-  ])
+    ])
   clf.fit(r.pyX, r.pyY)
   yhat = clf.predict(r.pyXts)
   
@@ -313,12 +345,18 @@ if r.plearn=="pipeknn_regr":
   from sklearn.pipeline import Pipeline
   from sklearn.feature_selection import SelectFromModel
   from sklearn.neighbors import KNeighborsRegressor
-  clf = Pipeline([
+  from sklearn.ensemble import RandomForestRegressor
+  from sklearn.model_selection import RandomizedSearchCV
+  knn_r = Pipeline([
     ('feature_selection', SelectFromModel(RandomForestRegressor())),
     ('regression', KNeighborsRegressor())
   ])
-  clf.fit(r.pyX, r.pyY)
-  yhat = clf.predict(r.pyXts)
+  random_grid = {'feature_selection__max_features': [int(x) for x in np.linspace(1, 10, num = 5)],
+  'regression__n_neighbors': [int(x) for x in np.linspace(1, 20, num = 5)]}
+  knn_regressor = RandomizedSearchCV(estimator = knn_r, param_distributions = random_grid,
+  n_iter = 20, cv = 2, verbose=0, random_state=42)
+  knn_regressor.fit(r.pyX, r.pyY)
+  yhat = knn_regressor.predict(r.pyXts)
   
 if r.plearn=="pipelin_regr":  
   clf = Pipeline([
@@ -339,6 +377,7 @@ if r.plearn=="pipeab_regr":
   yhat = clf.predict(r.pyXts)
 
   yhat.shape=(int(r.pyNts),int(r.pym))
+  
   
   
 ############################  
