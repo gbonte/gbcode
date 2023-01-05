@@ -257,9 +257,9 @@ if r.plearn=="rf_regr":
   #from sklearn.model_selection import GridSearchCV
   from sklearn.model_selection import RandomizedSearchCV
   rf_r = RandomForestRegressor()
-  if r.pym>1:
-    from sklearn.multioutput import RegressorChain
-    rf_r = RegressorChain(base_estimator=rf_r, order='random')
+  #if r.pym>1:
+  #  from sklearn.multioutput import RegressorChain
+  #  rf_r = RegressorChain(base_estimator=rf_r, order='random')
   rf_regressor =rf_r
   rf_regressor.fit(r.pyX, r.pyY)
   yhat = rf_regressor.predict(r.pyXts)
@@ -290,6 +290,7 @@ if r.plearn=="gb_regr":
   else:
     gb_regressor = GradientBoostingRegressor()
     random_grid = {'n_estimators': [int(x) for x in np.linspace(1, 20, num = 5)]}
+  
   gb_regressor = RandomizedSearchCV(estimator = gb_regressor, param_distributions = random_grid,
   n_iter = 20, cv = 2, verbose=0, random_state=42)
   
@@ -324,13 +325,13 @@ if r.plearn=="piperf_regr":
   from sklearn.feature_selection import SelectFromModel
   from sklearn.ensemble import RandomForestRegressor
   from sklearn.multioutput import RegressorChain
-  if r.pym>1:
-    clf = Pipeline([
-    ('feature_selection', SelectFromModel(RandomForestRegressor())),
-    ('regression', RegressorChain(base_estimator=RandomForestRegressor(), order='random'))
-    ])
-  else:
-    clf = Pipeline([
+  #if r.pym>1:
+  #  clf = Pipeline([
+  #  ('feature_selection', SelectFromModel(RandomForestRegressor())),
+  #  ('regression', RegressorChain(base_estimator=RandomForestRegressor(), order='random'))
+  #  ])
+  #else:
+  clf = Pipeline([
     ('feature_selection', SelectFromModel(RandomForestRegressor())),
     ('regression', RandomForestRegressor())
     ])
