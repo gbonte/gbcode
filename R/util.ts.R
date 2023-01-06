@@ -1225,14 +1225,14 @@ rls<-function(x,y,t,P,mu=1){
 }
 
 multipreq<-function(XX,YY,H=NULL,minLambda=0.1,
-                    maxLambda=1000,nLambda=25,maha=FALSE){
+                    maxLambda=100,nLambda=25){
   n<-NCOL(XX)
   N<-NROW(XX)
-  m<-NCOL(YY)
+  m<-NCOL(YY)   
   
   minMSE<-Inf
   for (lambdah in seq(minLambda,maxLambda,length.out=nLambda)){
-    t<-array(0,c(n+1,m))
+    t<-rbind(numeric(m)+1,array(0,c(n,m)))
     P<-lambdah*diag(n+1)
     mu<-1
     E<-NULL
