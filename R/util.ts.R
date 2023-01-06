@@ -1474,7 +1474,7 @@ multiridge<-function(TS,n,H,
   if (!preq)
     ML<-mlin(XX,YY,H=H,maha=maha)
   else 
-    ML<-multipreq(XX,YY,H=H,maha=maha)
+    ML<-multipreq(XX,YY,H=H)
     beta.hat=ML$beta.hat 
   
   
