@@ -638,7 +638,7 @@ rnnpred<-function(TS,H,n,nunits=10,epochs=10,...){
   for (i in 1:NCOL(Yhat))
     Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
   return(Yhat)
- 
+  
   
   
 }
@@ -777,7 +777,7 @@ pylstmpred<-function(TS,H,n,nepochs=10,...){
   
   X<-array(M$inp,c(NROW(M$inp),n,m))
   Y=M$out #array(M$out,c(NROW(M$out),H,m))
-
+  
   Xts <- NULL
   for (j in 1:m)
     Xts<-c(Xts,sTS[seq(N,N-n+1,by=-1),j])
@@ -840,7 +840,7 @@ lstmpred<-function(TS,H,n,nunits=10,epochs=10,...){
       assign(x = names(args)[i], value = args[[i]])
     }
   
-
+  
   sTS=scale(TS)
   m=NCOL(sTS)
   N=NROW(sTS)
@@ -915,7 +915,7 @@ lstmpred2<-function(TS,H,n, nunits=10){
   sTS=scale(TS)
   m=NCOL(sTS)
   N=NROW(sTS)
- 
+  
   
   M=MakeEmbeddedrev(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
   
@@ -1214,7 +1214,42 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
   return(Yhat)
 }
 
+rls<-function(x,y,t,P,mu=1){
+  
+  P.new <-(P-(P%*%x%*%x%*%P)/as.numeric(1+x%*%P%*%x))/mu
+  ga <- P.new%*%x
+  epsi <- y-x%*%t
+  
+  t.new<-t+ga%*%as.numeric(epsi)
+  list(t.new,P.new,mean(epsi^2))
+}
 
+multipreq<-function(XX,YY,H=NULL,minLambda=0.1,
+                    maxLambda=1000,nLambdas=25,maha=FALSE){
+  n<-NCOL(XX)
+  N<-NROW(XX)
+  m<-NCOL(YY)
+  
+  minMSE<-Inf
+  for (lambdah in seq(0.1,100,length.out=10)){
+    t<-array(0,c(n+1,m))
+    P<-lambdah*diag(n+1)
+    mu<-0.95
+    E<-NULL
+    for (i in 1:N){
+      rls.step<-rls(c(1, XX[i,]),YY[i,],t,P,mu)
+      t<-rls.step[[1]]
+      P<-rls.step[[2]]
+      E<-c(E,rls.step[[3]])
+    }
+    if (mean(E)<minMSE){
+      minMSE=mean(E)
+      lambda=lambdah
+      betahat=t
+    }
+  }
+  return(list(beta.hat=betahat,minMSE=minMSE,lambda=lambda))
+}
 mlin<-function(XX,YY,H=NULL,minLambda=0.1,
                maxLambda=1000,nLambdas=25,maha=FALSE){
   N<-NROW(XX) # number training data
@@ -1409,7 +1444,7 @@ whitenridge<-function(TS,n,H,
 
 ## multi-output ridge regression with lambda selection by PRESS
 multiridge<-function(TS,n,H,
-                     verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,...){
+                     verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,preq=FALSE,...){
   if (! (MIMO|direct))
     stop("Erro in multiridge: at least MIMO  or direct should be true")
   args<-list(...)
@@ -1435,8 +1470,11 @@ multiridge<-function(TS,n,H,
     q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
   
-  ML<-mlin(XX,YY,H=H,maha=maha)
-  beta.hat=ML$beta.hat 
+  if (!preq)
+    ML<-mlin(XX,YY,H=H,maha=maha)
+  else 
+    ML<-multipreq(XX,YY,H=H,maha=maha)
+    beta.hat=ML$beta.hat 
   
   
   if (verbose)

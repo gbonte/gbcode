@@ -1475,7 +1475,9 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=multifs(TS,n,H,mod=mod,debug=debug,...)
   
   if (multi=="multiridge")
-    Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,...)$Yhat
+    Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,preq=FALSE,...)$Yhat
+  if (multi=="multiridge2")
+    Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,preq=TRUE,...)$Yhat
   if (multi=="whitenridge")
     Yhat=whitenridge(TS,n,H,mod=mod,MIMO=FALSE,direct=TRUE,...)$Yhat
   if (multi=="directridge")
