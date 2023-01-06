@@ -1240,7 +1240,8 @@ multipreq<-function(XX,YY,H=NULL,minLambda=0.1,
       rls.step<-rls(c(1, XX[i,]),YY[i,],t,P,mu)
       t<-rls.step[[1]]
       P<-rls.step[[2]]
-      E<-c(E,rls.step[[3]])
+      if (i>N/2)
+        E<-c(E,rls.step[[3]])
     }
     if (mean(E)<minMSE){
       minMSE=mean(E)
