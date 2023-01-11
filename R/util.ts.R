@@ -1215,14 +1215,17 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
 }
 
 rls<-function(x,y,t,P,mu=1){
+  x=rbind(x)
+  P.new <-(P-(P%*%t(x)%*%x%*%P)/as.numeric(1+x%*%P%*%t(x)))/mu
+  ga <- P.new%*%t(x)
   
-  P.new <-(P-(P%*%x%*%x%*%P)/as.numeric(1+x%*%P%*%x))/mu
-  ga <- P.new%*%x
   epsi <- y-x%*%t
   
   t.new<-t+ga%*%as.numeric(epsi)
   list(t.new,P.new,mean(epsi^2))
 }
+
+
 
 multipreq<-function(XX,YY,H=NULL,minLambda=0.1,
                     maxLambda=100,nLambda=25){
@@ -1240,7 +1243,7 @@ multipreq<-function(XX,YY,H=NULL,minLambda=0.1,
       rls.step<-rls(c(1, XX[i,]),YY[i,],t,P,mu)
       t<-rls.step[[1]]
       P<-rls.step[[2]]
-      if (i>N/2)
+      if (i>N/3)
         E<-c(E,rls.step[[3]])
     }
     if (mean(E)<minMSE){
