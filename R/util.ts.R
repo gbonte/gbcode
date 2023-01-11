@@ -1478,7 +1478,7 @@ multiridge<-function(TS,n,H,
     ML<-mlin(XX,YY,H=H,maha=maha)
   else 
     ML<-multipreq(XX,YY,H=H)
-    beta.hat=ML$beta.hat 
+  beta.hat=ML$beta.hat 
   
   
   if (verbose)
@@ -1586,6 +1586,105 @@ multiteridge<-function(TS,n,H,Hobj=1,
     if (MSE.loo<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-MSE.loo
+      
+    }
+  }
+  H1<- ginv(XXX+lambda*diag(p))
+  
+  beta.hat<-H1%*%t(XX)%*%YY
+  
+  
+  Yhat=NULL
+  sTS2=sTS
+  for (h in 1:H){
+    
+    N=NROW(sTS2)
+    D=0
+    q<-NULL
+    for (j in 1:m)
+      q<-c(q,sTS2[seq(N-D,N-n+1-D,by=-1),j])
+    Xts=array(q,c(1,length(q)))
+    
+    Yh1=c(1,Xts)%*%beta.hat
+    Yhat=rbind(Yhat,Yh1)
+    sTS2<-rbind(sTS2,Yh1)
+  }
+  
+  for (i in 1:NCOL(Yhat))
+    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
+  return(list(Yhat=Yhat))
+}
+
+multiteridgeMC<-function(TS,n,H,
+                         verbose=FALSE,minLambda=0.1,
+                         maxLambda=1000,nLambdas=25,R=100,...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  YDIR=multiridge(TS,n,H, direct=TRUE)$Yhat
+  sTS=scale(TS)
+  m=NCOL(sTS)
+  N=NROW(sTS)
+  
+  
+  M=MakeEmbedded(sTS,numeric(m)+n,numeric(m),numeric(m)+1,1:m)
+  
+  I=which(!is.na(apply(M$out,1,sum)))
+  XX=M$inp[I,]
+  YY=M$out[I,]
+  
+  q<-NULL
+  D=0
+  for (j in 1:m)
+    q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
+  Xts=array(q,c(1,length(q)))
+  
+  N<-NROW(XX) # number training data
+  nn<-NCOL(XX) # number input variables
+  m<-NCOL(YY)
+  p<-nn+1
+  XX<-cbind(array(1,c(N,1)),as.matrix(XX))
+  XXX<-t(XX)%*%(XX)
+  
+  min.MSE.loo<-Inf
+  bestlambdaY<-numeric(m)
+  min.MSE.looY<-numeric(m)+Inf
+  for (lambdah in seq(minLambda,maxLambda,length.out=nLambdas)){
+    H1<-
+      ginv(XXX+lambdah*diag(p))
+    
+    beta.hat<-H1%*%t(XX)%*%YY
+    HH=XX%*%H1%*%t(XX)
+    sde<-sqrt(mean(YY-HH%*%YY)^2)
+    Emc<-NULL
+    for (r in 1:R){
+      Yhat=NULL
+      sTS2=sTS
+      for (h in 1:H){
+        
+        N=NROW(sTS2)
+        D=0
+        q<-NULL
+        for (j in 1:m)
+          q<-c(q,sTS2[seq(N-D,N-n+1-D,by=-1),j])
+        Xts=array(q,c(1,length(q)))
+        
+        Yh1=c(1,Xts)%*%beta.hat
+        Yhat=rbind(Yhat,Yh1)
+        sTS2<-rbind(sTS2,Yh1+rnorm(length(Yh1),sd=sde))
+      }
+      for (ii in 1:NCOL(Yhat))
+        Yhat[,ii]=Yhat[,ii]*attr(sTS,'scaled:scale')[ii]+attr(sTS,'scaled:center')[ii]
+      
+      Emc<-c(Emc,mean((YDIR-Yhat)^2))
+    }
+    
+   
+    if (mean(Emc)<min.MSE.loo){
+      lambda<-lambdah
+      min.MSE.loo<-mean(Emc)
       
     }
   }

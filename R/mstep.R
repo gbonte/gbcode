@@ -1488,6 +1488,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=multiteridge(TS,n,H,Hobj=1,mod=mod,...)$Yhat
   if (multi=="multiteridge2")
     Yhat=multiteridge(TS,n,H,Hobj=2,mod=mod,nLambdas=10,...)$Yhat
+  if (multi=="multiteridgeMC")
+    Yhat=multiteridgeMC(TS,n,H,mod=mod,nLambdas=10,...)$Yhat
   if (multi=="multiteridgeH")
     Yhat=multiteridge(TS,n,H,Hobj=H,mod=mod,nLambdas=10,...)$Yhat
   if (multi=="ensridge")
