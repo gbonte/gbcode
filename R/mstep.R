@@ -333,7 +333,7 @@ KNN.acf<- function(X,Y,X.ts,k=10,dist="euclidean",C=2,F=0,Acf,Pacf,TS,Reg=3){
           
           err[kk]<-err[kk]+mean((ets$out-
                                    lazy.pred(X=ETS$inp[,1:jj],Y=ETS$out,
-                                             X.ts=ets$inp[,1:jj],linPar=c(5,10),class=FALSE))^2)
+                                             X.ts=rbind(ets$inp[,1:jj]),linPar=c(5,10),class=FALSE))^2)
         }
         
         err2[kk]<-mean(L)
@@ -796,7 +796,84 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     TS=TS-trnd2
     trnd.ts=trnd.ts+trnd.ts2
   }
+  ### Set of statistical methods borrowed from FPP3 
+  if (method=="fpp_ETS"){
+    library(fpp3)
+    N=length(TS)
+    TSI=tsibble(
+      date = as.Date(Sys.Date()) + 1:N,
+      index='date',
+      value = TS
+    )
+    fit<-TSI%>%model(ETS(value))
+    p=data.frame(fit%>%forecast(h=H))[,".mean"]
+    return(c(p+trnd.ts))
+  }
   
+  if (method=="fpp_Holt"){
+    library(fpp3)
+    N=length(TS)
+    TSI=tsibble(
+      date = as.Date(Sys.Date()) + 1:N,
+      index='date',
+      value = TS
+    )
+    fit<-TSI%>%model(model1=ETS(value~error("A")+trend("A")+season("N")))
+    p=data.frame(fit%>%forecast(h=H))[,".mean"]
+    return(c(p+trnd.ts))
+  }
+  
+  if (method=="fpp_Damped"){
+    library(fpp3)
+    N=length(TS)
+    TSI=tsibble(
+      date = as.Date(Sys.Date()) + 1:N,
+      index='date',
+      value = TS
+    )
+    fit<-TSI%>%model(model1=ETS(value~error("A")+trend("Ad")+season("N")))
+    p=data.frame(fit%>%forecast(h=H))[,".mean"]
+    return(c(p+trnd.ts))
+  }
+  
+  if (method=="fpp_ARIMA"){
+    library(fpp3)
+    N=length(TS)
+    TSI=tsibble(
+      date = as.Date(Sys.Date()) + 1:N,
+      index='date',
+      value = TS
+    )
+    
+    fit<-TSI%>%model(model1=ARIMA(value))
+    p=data.frame(fit%>%forecast(h=H))[,".mean"]
+    return(c(p+trnd.ts))
+  }
+  if (method=="fpp_prophet"){
+    library(fpp3)
+    library(fable.prophet)
+    N=length(TS)
+    TSI=tsibble(
+      date = as.Date(Sys.Date()) + 1:N,
+      index='date',
+      value = TS
+    )
+    fit<-TSI%>%model(model1=prophet(value))
+    p=data.frame(fit%>%forecast(h=H))[,".mean"]
+    return(c(p+trnd.ts))
+  }
+  if (method=="fpp_NNETAR"){
+    library(fpp3)
+    N=length(TS)
+    TSI=tsibble(
+      date = as.Date(Sys.Date()) + 1:N,
+      index='date',
+      value = TS
+    )
+    fit<-TSI%>%model(model1=NNETAR(value))
+    p=data.frame(fit%>%forecast(h=H))[,".mean"]
+    return(c(p+trnd.ts))
+  }
   ### Set of statistical methods borrowed from M4 competition 
   
   if (method=="stat_naive"){
@@ -862,15 +939,15 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   
   ### keras based RNN: it requires keras
   if (method=="rnn"){
-    
-    p=rnnpred(array(TS,c(length(TS),1)),  H,...)
+    p=pyrnnpredgpt(cbind(TS),H,n=n,...)
+    ##p=rnnpred(array(TS,c(length(TS),1)),  H,...)
     return(c(p+trnd.ts))
   }
   
   ### keras based RNN: it requires keras
   if (method=="lstm"){
-    
-    p=lstmpred(array(TS,c(length(TS),1)),  H,...)
+    p=pylstmpredgpt(cbind(TS),H,n=n,...)
+    #p=lstmpred(array(TS,c(length(TS),1)),  H,...)
     return(c(p+trnd.ts))
   }
   
@@ -955,7 +1032,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              }
            )
            
-           p<-forecast(fit,h=H)$mean
+           p<-predict(fit,H)$pred
          },
          timefit={
            p<-timefit(TS,n,C,H)
@@ -1015,12 +1092,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                    } else {
                      q2=q[select.var]
                      
-                     p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
+                     p[h]<-lazy.pred(Xw[,-v0],Yw,rbind(q2[-v0]),
                                      conPar=CPar,linPar=LPar,cmbPar=3)
                    }
                  }else{
                    
-                   p[h]<-lazy.pred(Xw,Yw,q[select.var],
+                   p[h]<-lazy.pred(Xw,Yw,rbind(q[select.var]),
                                    conPar=CPar,linPar=LPar,cmbPar=3)
                  }
                }else
@@ -1059,12 +1136,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                    } else {
                      q2=q[select.var]
                      
-                     p[h]<-lazy.pred(Xw[,-v0],Yw,q2[-v0],
+                     p[h]<-lazy.pred(Xw[,-v0],Yw,rbind(q2[-v0]),
                                      conPar=CPar,linPar=LPar,cmbPar=3)
                    }
                  }else{
                    
-                   p[h]<-lazy.pred(Xw,Yw,q[select.var],
+                   p[h]<-lazy.pred(Xw,Yw,rbind(q[select.var]),
                                    conPar=CPar,linPar=LPar,cmbPar=3)
                  }
                }else
@@ -1096,7 +1173,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              }else{
                if (length(wna)>9){
                  p[h]<-pred(learner,X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
-                               class=FALSE,ntree=C*50)
+                            class=FALSE,ntree=C*50)
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
              }
@@ -1271,7 +1348,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                q2<-TS[seq(N-H+h-D,N+1-n-H+h-D,by=-1),1]
                
                KK<-pred(learner, X[,select.var],Y,q2[select.var],k=Kmin,C=C,F=FF,
-                           TS=TS.acf,D,Reg=1)
+                        TS=TS.acf,D,Reg=1)
                p2[1:h]<-KK[(H-h+1):H]
                pdirect3<-rbind(pdirect3,p2)
              }
@@ -1282,7 +1359,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
              q2<-TS[seq(N-D,N+1-n-D,by=-1),1]
              
              KK<-pred(learner,X[,select.var],Y[,1:h],q2[select.var],k=Kmin,C=C,F=FF,
-                         TS=TS.acf,D,Reg=1)
+                      TS=TS.acf,D,Reg=1)
              p2[1:h]<-KK
              pdirect3<-rbind(pdirect3,p2)
            }
@@ -1311,7 +1388,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
-             piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
+             piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),rbind(q[select.var]),
                                  conPar=CPar,linPar=LPar,cmbPar=3)
              q<-c(piter[h],q[1:(length(q)-1)])
              
@@ -1326,7 +1403,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            CPar=c(Kmin,C*Kmin)
            CPar[1]=min(CPar[1],NROW(X)-1)
            for (h  in 1:H){
-             piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
+             piter[h]<-lazy.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),rbind(q[select.var]),
                                  conPar=CPar,linPar=LPar,cmbPar=3)
              q<-c(piter[h],q[1:(length(q)-1)])
              
@@ -1409,7 +1486,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #'                         dfmlmethods=c("lindirect","lazydirect"))
 #' Xhat5=MmultiplestepAhead(Xtr,n,H,multi="multifs",mod="rf")
 #' 
-MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
+MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
                              unimethod="stat_naive", 
                              dfmlmodels="lindirect",
                              mod="rf",
@@ -1427,21 +1504,23 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (m<=1)
     stop("Only for multivariate series")
   Yhat=array(NA,c(H,m))
-  if (multi=="uni")
+  if (multi=="UNI")
     for (j in 1:m){
       Yhat[,j]=multiplestepAhead(TS[,j],n,H,D=D, method=unimethod,...)
     }
-  if (multi=="pyrnngpt")
+  if (multi=="RNN")
     Yhat=pyrnnpredgpt(TS,H,n,...)
-  if (multi=="pylstmgpt")
+  if (multi=="LSTM")
     Yhat=pylstmpredgpt(TS,H,n,...)
-  if (multi=="pylstm")
-    Yhat=pylstmpred(TS,H,n,...)
-  if (multi=="lstm") 
-    Yhat=lstmpred(TS,H,n,...)
-  if (multi=="lstm2") 
-    Yhat=lstmpred2(TS,H,n,...)
-  if (multi=="dfm"){
+  
+  ## if (multi=="pylstm")
+  ##  Yhat=pylstmpred(TS,H,n,...)
+  ##if (  multi=="lstm") 
+  ##  Yhat=lstmpred(TS,H,n,...)
+  ##if (multi=="lstm2") 
+  ##  Yhat=lstmpred2(TS,H,n,...)
+  
+  if (multi=="DFM"){
     Yhat=dfml(TS,n,H,p0=pc0,dfmod=dfmlmodels[1],...)
   }
   if (multi=="kfm"){
@@ -1450,15 +1529,12 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
   if (multi=="kfm2"){
     Yhat=kfml(TS,n,H,p0=pc0,adaptive=TRUE,...)
   }
-  if (multi=="dfml"){
+  if (multi=="DFML"){
     ## DFML searches in the space: #Pcomponents(1:cdfml*pc0)
     # #models(dfmlmodels), autoregressive order (1:cdfml*n)
     Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,models=dfmlmodels,...)
     
     Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,dfmod=Ddesign$mod,...)
-    if (verbose){
-      print(Ddesign)
-    }
     
   }
   if (multi=="VAR"){
@@ -1468,29 +1544,28 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=VARpred2(TS,m=MTS::VAR(TS,p=n,output=FALSE),h=H,Out=FALSE)$pred 
   }
   if (multi=="VARs"){
-    
     Yhat=VARspred(TS,n,H)
   }
-  if (multi=="multifs")
+  if (multi=="MIMO_fs")
     Yhat=multifs(TS,n,H,mod=mod,debug=debug,...)
   
-  if (multi=="multiridge")
+  if (multi=="MIMO_rr")
     Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,preq=FALSE,...)$Yhat
   if (multi=="multiridge2")
     Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,preq=TRUE,...)$Yhat
   if (multi=="whitenridge")
     Yhat=whitenridge(TS,n,H,mod=mod,MIMO=FALSE,direct=TRUE,...)$Yhat
-  if (multi=="directridge")
+  if (multi=="MISO_rr")
     Yhat=multiridge(TS,n,H,mod=mod,MIMO=FALSE,direct=TRUE,...)$Yhat
-  if (multi=="multidiridge")
+  if (multi=="MIMOSO_rr")
     Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=TRUE,...)$Yhat
-  if (multi=="multiteridge1")
+  if (multi=="MITER_rr")
     Yhat=multiteridge(TS,n,H,Hobj=1,mod=mod,...)$Yhat
-  if (multi=="multiteridge2")
+  if (multi=="MITER_rr_2")
     Yhat=multiteridge(TS,n,H,Hobj=2,mod=mod,nLambdas=10,...)$Yhat
-  if (multi=="multiteridgeMC")
+  if (multi=="MITER_rr_MC")
     Yhat=multiteridgeMC(TS,n,H,mod=mod,nLambdas=10,...)$Yhat
-  if (multi=="multiteridgeH")
+  if (multi=="MITER_rr_H")
     Yhat=multiteridge(TS,n,H,Hobj=H,mod=mod,nLambdas=10,...)$Yhat
   if (multi=="ensridge")
     Yhat=ensridge(TS,n,H,mod=mod,...)$Yhat
@@ -1502,36 +1577,27 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="uni",
     Yhat=MR$Yhat
     for (i in 1:m){
       MRi=multiridge(TS[,i],n,H,mod=mod,MIMO=TRUE,...)
-     
+      
       if (MRi$MSE<MR$MSE[i])
         Yhat[,i]=MRi$Yhat
     }
     return(Yhat)
   }
-  if (multi=="multirr")
+  if (multi=="MIMO_red")
     Yhat=multirr(TS,n,H,...)
   if (multi=="multiml")
     Yhat=multiml(TS,n,H,learner=mod,...)
-  if (multi=="multilasso")
+  if (multi=="MIMO_las")
     Yhat=multiml(TS,n,H,learner="py.lasso_regr",...)
-  if (multi=="multirf")
+  if (multi=="MIMO_rf")
     Yhat=multiml(TS,n,H,learner="py.rf_regr",...)
-  if (multi=="multikeras")
+  if (multi=="MIMO_keras")
     Yhat=multiml(TS,n,H,learner="py.keras_regr",...)
-  if (multi=="multikeras")
-    Yhat=multiml(TS,n,H,mod=mod,...)
-  if (multi=="multicca")
+  if (multi=="MIMO_cca")
     Yhat=multicca(TS,n,H,mod=mod,...)
-  if (multi=="multipls")
-    Yhat=multipls(TS,n,H,mod=mod,...)
-  if (multi=="comb"){
-    YYhat=array(NA,c(H,m,3))
-    YYhat[,,1]=multifs(TS,n,H,mod=mod,...)
-    YYhat[,,2]=VARspred(TS,n,H,mod=mod,...)
-    YYhat[,,3]=dfml(TS,n,H,p0=pc0,...)
-    
-    Yhat=apply(YYhat,c(1,2),mean)
-  }
+  if (multi=="MIMO_pls")
+    Yhat=multiml(TS,n,H,learner="py.pls_regr",...)
+
   if (any(is.na(Yhat)))
     stop(paste(multi," is an unknown method in MmultiplestepAhead"))
   

@@ -797,10 +797,10 @@ pylstmpred<-function(TS,H,n,nepochs=10,...){
 }
 
 
-pylstmpredgpt<-function(TS,H,n,nepochs=200,nunits=20,hyper=TRUE,...){
+pylstmpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   
   m<-NCOL(TS)
-  pyTS<<-TS;       
+  pyTS<<-cbind(TS); pyY<<-TS;       
   pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
   
   if (hyper)
@@ -814,10 +814,10 @@ pylstmpredgpt<-function(TS,H,n,nepochs=200,nunits=20,hyper=TRUE,...){
   Yhat
 }
 
-pyrnnpredgpt<-function(TS,H,n,nepochs=200,nunits=20,hyper=TRUE,...){
+pyrnnpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   
   m<-NCOL(TS)
-  pyTS<<-TS;       
+  pyTS<<-cbind(TS); pyY<<-TS;         
   pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
   
   if (hyper)
@@ -1107,8 +1107,8 @@ svdcca<-function(X,Y){
   if (NROW(X)!= NROW(Y) | NCOL(Y)<=1)
     stop("error in svdcca")
   
-  SigmaX=array(cov.shrink(X),c(NCOL(X),NCOL(X)))
-  SigmaY=array(cov.shrink(Y),c(NCOL(Y),NCOL(Y)))
+  SigmaX=array(cov.shrink(X,verbose=FALSE),c(NCOL(X),NCOL(X)))
+  SigmaY=array(cov.shrink(Y,verbose=FALSE),c(NCOL(Y),NCOL(Y)))
   modSX=-0.5*logm(SigmaX)
   modSY=-0.5*logm(SigmaY)
   SigmaYX=cov(Y,X)

@@ -17,13 +17,13 @@ print(dim(D))
 visualize=TRUE
 season=TRUE
 execute=TRUE
-methods=c("uni","VAR","VARs","dfm","dfml","uni")
+methods=c("uni","multiridge","VARs","dfm","dfml","directridge")
 colors=c("red","green","magenta","cyan","orange","blue")
 
 if (execute){
   n=3
   Nmax<-1000
-  mmax<-200
+  mmax<-20
   if (NROW(D)>Nmax)
     D=D[1:Nmax,]
   if (NCOL(D)>mmax)
@@ -57,7 +57,7 @@ if (execute){
     SPts=SeasP[(Ntr+1):N,]
   } 
   
-  Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1])
+  Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1],uni="stat_comb")
   cat(".")
   Xhat2=MmultiplestepAhead(Xtr,n,H,multi=methods[2])
   cat(".")

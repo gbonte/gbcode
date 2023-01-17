@@ -12,13 +12,13 @@ print(dim(D))
 visualize=TRUE
 season=TRUE
 execute=TRUE
-methods=c("uni","VAR","VARs","dfm","dfml","multifs")
+methods=c("uni","multiridge","VARs","dfm","dfml","directridge")
 colors=c("red","green","magenta","cyan","orange","blue")
 
 if (execute){
-  n=3
-  N<-2000
-  mmax<-50
+  n=10
+  N<-1000
+  mmax<-20
   if (NROW(D)>N)
     D=D[1:N,]
   if (NCOL(D)>mmax)
@@ -26,7 +26,7 @@ if (execute){
   D=scale(D)
   m=NCOL(D)
   N=NROW(D)
-  H=20
+  H=10
   SeasP<-NULL
   Ntr=N-H
   
@@ -51,7 +51,7 @@ if (execute){
     SPts=SeasP[(Ntr+1):N,]
   } 
   
-  Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1],uni=c("lazyiter"))
+  Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1],uni=c("stat_comb"))
   cat(".")
   Xhat2=MmultiplestepAhead(Xtr,n,H,multi=methods[2])
   cat(".")
@@ -59,10 +59,10 @@ if (execute){
   cat(".")
   Xhat4=MmultiplestepAhead(Xtr,n,H,multi=methods[4])
   cat(".")
-  Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5],cdfml=2,Lcv=10,
-                           dfmlmodels=c("lindirect","lazydirect"))
+  Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5],cdfml=2,Lcv=3,
+                           dfmlmodels=c("lindirect"))
   cat(".")
-  Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6],uni="mimo.comb")
+  Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6])
   cat(".")
 } 
 if (season){

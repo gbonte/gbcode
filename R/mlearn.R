@@ -183,6 +183,7 @@ pred<-function(algo="svm",X,Y,X.ts,classi=TRUE,to.scale=FALSE,...){
   
   
   if (to.scale){
+    
     P<-unscale2(P,Y)
   }
   
@@ -386,6 +387,7 @@ lazy.pred<- function(X,Y,X.ts,class=FALSE,return.more=FALSE,
   
   
   if (scaleX){
+    
     X=scale(X)
     X.ts=scale(X.ts,attr(X,"scaled:center"), attr(X,"scaled:scale"))
     if (any(is.na(X))| any(is.na(X.ts)))
