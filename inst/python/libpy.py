@@ -179,11 +179,11 @@ if r.plearn=="keras_regr":
 if r.plearn=="pls_regr":
   from sklearn.cross_decomposition import PLSRegression
   from sklearn.model_selection import RandomizedSearchCV
-  random_grid = {'n_components': [int(x) for x in np.linspace(1, 20, num = 10)]}
-  reg = PLSRegression(n_components=2)
+  random_grid = {'n_components': [int(x) for x in np.linspace(1, 20, num = 15)]}
+  reg = PLSRegression()
     
   pls_regressor = RandomizedSearchCV(estimator = reg, param_distributions = random_grid,
-  n_iter = 50, cv = 3, verbose=0, random_state=42)
+  n_iter = 70, cv = 3, verbose=0, random_state=42)
   
   pls_regressor.fit(r.pyX, r.pyY)
   yhat = pls_regressor.predict(r.pyXts)
@@ -799,7 +799,7 @@ if r.plearn=="lstm_gpt_hyper":
   
   # Train the model on the training data.  
   tuner = kt.Hyperband(model_builder,
-                     objective='val_accuracy',
+                     #objective='val_accuracy',
                      max_epochs=10,
                      factor=3)
   stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)

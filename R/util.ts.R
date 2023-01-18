@@ -38,11 +38,20 @@ MASE<-function(y,yhat){
 #' @export
 #'
 remNA<-function(TS){
-  if (is.vector(TS))
-    return(approx(seq(TS),TS,seq(TS))$y)
+  if (is.vector(TS)){
+    TS2=approx(seq(TS),TS,seq(TS))$y
+    w<-which(is.na(TS2))
+    if (length(w)>0)
+      TS2[w]=mean(TS2,na.rm=TRUE)
+    return(TS2)
+  }
   TS2=TS*0
-  for (i in 1:NCOL(TS))
+  for (i in 1:NCOL(TS)){
     TS2[,i]=approx(seq(TS[,i]),TS[,i],seq(TS[,i]))$y
+    w<-which(is.na(TS2[,i]))
+    if (length(w)>0)
+      TS2[w,i]=mean(TS2[,i],na.rm=TRUE)
+  }
   return(TS2)
 }
 
@@ -1681,7 +1690,7 @@ multiteridgeMC<-function(TS,n,H,
       Emc<-c(Emc,mean((YDIR-Yhat)^2))
     }
     
-   
+    
     if (mean(Emc)<min.MSE.loo){
       lambda<-lambdah
       min.MSE.loo<-mean(Emc)
