@@ -951,6 +951,11 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(c(p+trnd.ts))
   }
   
+  if (method=="transf"){
+    p=pytransfpredgpt(cbind(TS),H,n=n,...)
+    return(c(p+trnd.ts))
+  }
+  
   if (method=="gluon"){
     
     p=gluonpred(array(TS,c(length(TS),1)),n=n,  H=H,...)
@@ -1512,6 +1517,8 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
     Yhat=pyrnnpredgpt(TS,H,n,...)
   if (multi=="LSTM")
     Yhat=pylstmpredgpt(TS,H,n,...)
+  if (multi=="TRANSF")
+    Yhat=pytransfpredgpt(TS,H,n,...)
   
   ## if (multi=="pylstm")
   ##  Yhat=pylstmpred(TS,H,n,...)

@@ -840,6 +840,21 @@ pyrnnpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   Yhat
 }
 
+pytransfpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
+  
+  m<-NCOL(TS)
+  pyTS<<-cbind(TS); pyY<<-TS;         
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
+  
+  
+  plearn<<-"transformer_gpt"
+  
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  
+  Yhat
+}
+
 
 
 lstmpred<-function(TS,H,n,nunits=10,epochs=10,...){
