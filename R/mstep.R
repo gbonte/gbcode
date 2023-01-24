@@ -1483,8 +1483,12 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #' \item{MIMO_rr}: prediction based on a MIMO ridge regressor (lambda estimation based on PRESS)
 #' \item{MITER_rr}: prediction based on an iterated ridge regressor (lambda estimation based on PRESS and a criterion with horizon Hobj) 
 #' \item{MIMO_red}: prediction based on a MIMO reduced rank regressor (\pkg{rrpack})
-#' \item{MIMO_red}: prediction based on a MIMO partial least-squares (Sklearn python)
-#' \item{multifs}: prediction based on MISO direct strategy and feature selection (predictor from \link{pred})
+#' \item{MIMO_cca}: prediction based on a MIMO CCA 
+#' \item{MIMO_pls}: prediction based on a MIMO partial least-squares (Sklearn python)
+#' \item{MIMO_las}: prediction based on a MIMO lasso (Sklearn python)
+#' \item{MIMO_rf}: prediction based on a MIMO Random Forest (Sklearn python)
+#' \item{MIMO_ml}: prediction based on MIMO direct strategy and predictor from \link{pred}
+#' \item{MIMO_fs}: prediction based on MISO direct strategy and feature selection (predictor from \link{pred})
 #' }
 #' @return matrix [H,m] with the H step ahead predictions for m series
 #' @export
@@ -1622,7 +1626,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
   }
   if (multi=="MIMO_red")
     Yhat=multirr(TS,n,H,...)
-  if (multi=="multiml")
+  if (multi=="MIMO_pred")
     Yhat=multiml(TS,n,H,learner=mod,...)
   if (multi=="MIMO_las")
     Yhat=multiml(TS,n,H,learner="py.lasso_regr",...)

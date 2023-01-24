@@ -33,7 +33,7 @@ try:
   import keras_tuner
 except ImportError as e:
   print(e)
-  print("Missing package tensorflow. Install it first using py_install ") 
+  print("Missing package keras_tuner. Install it first using py_install ") 
   sys.exit(1)
   
 yhat=[]
@@ -407,253 +407,7 @@ if r.plearn=="pipeab_regr":
 ############################  
 ## TIMESERIES
 
-if r.plearn=="lstm_ts0":
-  from tensorflow import keras 
-  from tensorflow.keras import layers
-  from keras.layers import LSTM
-  r.pyY=r.pyY.reshape(int(r.pyN),int(r.pyH)*int(r.pym))
-  model = keras.Sequential()
-  nunits=10
-  model.add(keras.layers.LSTM(units            = nunits, 
-               input_shape      = (int(r.pyn),int(r.pym)), 
-               batch_size         =1,
-               return_sequences = True, 
-               stateful         = True))
-  model.add(keras.layers.LSTM(units            = nunits, 
-               batch_size         =1,
-               return_sequences = False, 
-               stateful         = True))
-  model.add(keras.layers.Dense(int(r.pym)*int(r.pyH)))
  
-  model.compile(optimizer="rmsprop",
-                loss="mse",
-                metrics=['accuracy'])
-
-  for i in np.arange(int(r.pynepochs)):
-      model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=0)
-      model.reset_states()
-
-  #model.fit(r.pyX, r.pyY,epochs=100)
-  print(r.pyXts.shape)
-  yhat=model.predict(r.pyXts, batch_size = 1)
-  print(yhat)
-
-    
-if r.plearn=="lstm_ts":
-  from tensorflow import keras 
-  from tensorflow.keras import layers
-  from keras.layers import LSTM
-  import keras_tuner as kt
-  import tensorflow as tf
-  def model_builder(hp):
-    model = keras.Sequential()
-    nunits = hp.Int('units', min_value=32, max_value=512, step=32)
-  
-    model.add(keras.layers.LSTM(units            = nunits, 
-               input_shape      = (int(r.pyn),1), 
-               batch_size         =1,
-               return_sequences = True, 
-               stateful         = False))
-    model.add(keras.layers.LSTM(units            = nunits, 
-               batch_size         =1,
-               return_sequences = True, 
-               stateful         = False))
-    model.add(keras.layers.Dense(int(r.pym)))
- 
-    model.compile(optimizer="rmsprop",
-                loss="mse",
-                metrics=['accuracy'])
-    # Tune the number of units in the first Dense layer
-    # Choose an optimal value between 32-512
-    #hp_droprate = hp.Choice('droprate', values=[0.1, 0.5, 0.7, 0.9])
-    #model.add(keras.layers.Dropout(hp_droprate))
-    #model.add(keras.layers.Dense(r.pym))
-
-   
-    return model
-  
-  tuner = kt.Hyperband(model_builder,
-                     objective='val_accuracy',
-                     max_epochs=10,
-                     factor=3)
-  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-  tuner.search(r.pyX, r.pyY,
-    epochs=50, validation_split=0.2, callbacks=[stop_early],verbose=0)
-
-  # Get the optimal hyperparameters
-  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
-  model = tuner.hypermodel.build(best_hps)
-  
-  #for i in np.arange(10):
-  #    model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=0)
-  #    model.reset_states()
-  
-  model.fit(r.pyX, r.pyY,epochs=int(r.pynepochs),verbose=0)
-  #
-  yhat=model.predict(r.pyXts, batch_size = 1,verbose=0)
-
-
-
-if r.plearn=="lstm_ts2":
-  from tensorflow import keras 
-  from tensorflow.keras import layers
-  from keras.layers import LSTM
-  from tensorflow.keras.models import Sequential
-  from tensorflow.keras.layers import Dropout
-  from tensorflow.keras.layers import Dense, Reshape
-  from keras_tuner.tuners import RandomSearch
-  import keras_tuner as kt
-  import tensorflow as tf
-  bsize=1
-  def model_builder(hp):
-    model = Sequential()
-    model.add(LSTM(hp.Int('input_unit',min_value=2,max_value=512,step=32),
-    return_sequences=True, batch_size=bsize,stateful         = True,
-    input_shape=(int(r.pyn),int(r.pym))))
-    for i in range(hp.Int('n_layers', 1, 2)):
-        model.add(LSTM(hp.Int(f'lstm_{i}_units',min_value=2,max_value=512,step=32),return_sequences=True))
-    model.add(LSTM(hp.Int('layer_2_neurons',min_value=2,max_value=512,step=32),return_sequences=True,
-    stateful = True))
-    model.add(Dropout(hp.Float('Dropout_rate',min_value=0,max_value=0.5,step=0.1)))
-    model.add(Dense((int(r.pyH)*int(r.pym))))# activation=hp.Choice('dense_activation',values=['relu', 'sigmoid'],default='relu')))
-    #model.add(Reshape((int(r.pyH),int(r.pym))))
-    model.compile(loss='mean_squared_error', optimizer='adam',metrics = ['mse'])
-    return model
-  
-  
-  
-  r.pyY=r.pyY.reshape(int(r.pyN),int(r.pyH)*int(r.pym))
-  tuner = kt.Hyperband(model_builder,
-                     objective='val_accuracy',
-                     max_epochs=100,
-                     factor=3)
-  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-  tuner.search(r.pyX, r.pyY,
-    epochs=500, validation_split=0.2, callbacks=[stop_early],verbose=1)
- 
-  # Get the optimal hyperparameters
-  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
-  print(best_hps)
-  model = tuner.hypermodel.build(best_hps)
-  
-  #for i in np.arange(100):
-  #    model.fit(r.pyX, r.pyY,batch_size =1,epochs=1,shuffle=False,verbose=1)
-  #    model.reset_states()
-
-  model.fit(r.pyX, r.pyY,epochs=int(r.pynepochs),validation_split=0.2, verbose=0,
-    batch_size =bsize,shuffle=False,)
-  #print(r.pyXts.shape)
-  yhat=model.predict(r.pyXts, batch_size = 1,verbose=0)
-
-
-
-if r.plearn=="rnn_ts":
-  from tensorflow import keras 
-  from tensorflow.keras import layers
-  from keras.layers import SimpleRNN
-  import keras_tuner as kt
-  import tensorflow as tf
-  def model_builder(hp):
-    model = keras.Sequential()
-    nunits = hp.Int('units', min_value=1, max_value=200, step=1)
-  
-    model.add(keras.layers.SimpleRNN(units            = nunits, 
-               input_shape      = (int(r.pyn),1), 
-               batch_size         =1,
-               return_sequences = True, 
-               stateful         = True))
-    nunits2 = hp.Int('units', min_value=1, max_value=200, step=5)
-    model.add(keras.layers.SimpleRNN(units            = nunits, 
-               batch_size         =1,
-               return_sequences = True, 
-               stateful         = True))
-    hp_droprate = hp.Choice('droprate', values=[0.1, 0.5, 0.7, 0.9])
-    model.add(keras.layers.Dropout(hp_droprate))
-    model.add(keras.layers.Dense(int(r.pym)))
- 
-    model.compile(optimizer="rmsprop",
-                loss="mse",
-                metrics=['accuracy'])
-    # Tune the number of units in the first Dense layer
-    # Choose an optimal value between 32-512
-    #
-    #model.add(keras.layers.Dense(r.pym))
-
-   
-    return model
-  
-  tuner = kt.Hyperband(model_builder,
-                     objective='val_accuracy',
-                     max_epochs=10,
-                     factor=3)
-  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-  tuner.search(r.pyX, r.pyY,
-    epochs=int(r.pynepochs), validation_split=0.2, callbacks=[stop_early],verbose=1)
-
-  # Get the optimal hyperparameters
-  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
-  model = tuner.hypermodel.build(best_hps)
-  
-
-  yhat=model.predict(r.pyXts, batch_size = 1,verbose=0)
-
-if r.plearn=="lstm_gpt2":
-  import numpy as np
-  import pandas as pd
-  from keras.layers import Dense, LSTM, Dropout
-  from keras.models import Sequential
-  from sklearn.preprocessing import StandardScaler
-
-  def create_dataset(data, look_back=1, look_ahead=1):
-    data_X, data_Y = [], []
-    for i in range(len(data) - look_back - look_ahead + 1):
-        a = data[i:(i + look_back),:].T
-        data_X.append(a)
-        data_Y.append(data[i + look_back:i + look_back + look_ahead, :].T)
-    return np.array(data_X), np.array(data_Y)
-
-  def create_query(data, look_back=1):    
-    query=[]   
-    query.append(data[(len(data)-look_back):len(data), :].T)
-    return  query
-
-  # Scale the time series data
-  scaler = StandardScaler()
-  scaled_data = scaler.fit_transform(r.pyTS)
-  scaled_data =r.pyTS
-  m=int(r.pym)
-  look_back = int(r.pyn)
-  look_ahead = int(r.pyH)
-  
-  # Create training and testing datasets
-  
-  train_X, train_Y = create_dataset(scaled_data, look_back=look_back, look_ahead=look_ahead)
-
-  train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], train_X.shape[2]))
-  test_X = np.reshape(test_X, (test_X.shape[0], test_X.shape[1], test_X.shape[2]))
-  train_Y = np.reshape(train_Y, (train_Y.shape[0], train_Y.shape[1], train_Y.shape[2]))
-  test_Y = np.reshape(test_Y, (test_Y.shape[0], test_Y.shape[1], test_Y.shape[2]))
-  model = Sequential()
-  model.add(LSTM(units=int(r.pynunits), input_shape=(m,look_back), return_sequences=True))
-  #model.add(Dense(look_ahead*m))
-  model.add(TimeDistributed(Dense(look_ahead)))
-  model.compile(loss='mean_squared_error', optimizer='adam')
-
-  # Train the model on the training data.  
-
-  model.fit(train_X, train_Y, epochs=int(r.pynepochs), batch_size=1, verbose=2)
-
-  ## forecasting
-  
-  q=create_query(scaled_data, look_back=look_back)
-  q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
-  print(q)
-  fore = model.predict(q,verbose=0)[0,:,:]
-  
-  ##fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
-  ##yhat=scaler.inverse_transform(fore.T)
-  yhat=fore.T
-
 if r.plearn=="lstm_gpt":
   import numpy as np
   import pandas as pd
@@ -698,6 +452,85 @@ if r.plearn=="lstm_gpt":
   model.compile(loss='mean_squared_error', optimizer='adam')
 
   # Train the model on the training data.  
+
+  model.fit(train_X, train_Y, epochs=int(r.pynepochs), batch_size=50, verbose=0)
+
+  ## forecasting
+  
+  q=create_query(scaled_data, look_back=look_back)
+  q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
+  fore = model.predict(q,verbose=0)
+  
+  fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
+  fore=scaler.inverse_transform(fore[0,:,:])
+  yhat=fore
+
+
+
+if r.plearn=="lstm_gpt_hyper":
+  import numpy as np
+  import pandas as pd
+  import keras_tuner as kt
+  from keras.layers import Dense, LSTM, Dropout
+  from keras.models import Sequential
+  from sklearn.preprocessing import StandardScaler
+  import tensorflow as tf
+  
+  # Create a function that converts an array of data into a dataset for training or testing
+  def create_dataset(data, look_back=1, look_ahead=1):
+    data_X, data_Y = [], []
+    for i in range(len(data) - look_back - look_ahead + 1):
+        a = data[i:(i + look_back), :]
+        data_X.append(a)
+        data_Y.append(data[i + look_back:i + look_back + look_ahead, :])
+    return np.array(data_X), np.array(data_Y)
+
+
+  def create_query(data, look_back=1):    
+    query=[]   
+    query.append(data[(len(data)-look_back):len(data), :])
+    return  query
+  
+  def model_builder(hp):
+    model = Sequential()
+    nunits = hp.Int('units', min_value=20, max_value=200, step=10)
+    model.add(LSTM(units=nunits, input_shape=(look_back, m)))
+    hp_droprate = hp.Choice('droprate', values=[0.1, 0.5, 0.7, 0.9])
+    model.add(Dropout(hp_droprate))
+    model.add(Dense(look_ahead*m))
+    model.compile(loss='mean_squared_error', optimizer='adam')
+    return model
+  
+  
+  # Scale the time series data
+  scaler = StandardScaler()
+  scaled_data = scaler.fit_transform(r.pyTS)
+
+  m=int(r.pym)
+  look_back = int(r.pyn)
+  look_ahead = int(r.pyH)
+  
+  # Create training and testing datasets
+  
+  train_X, train_Y = create_dataset(scaled_data, look_back=look_back, look_ahead=look_ahead)
+
+  # Reshape the input data for use with a LSTM model
+  train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], train_X.shape[2]))
+  train_Y = np.reshape(train_Y, (train_Y.shape[0], train_Y.shape[1]* train_Y.shape[2]))
+  # Create a LSTM model
+  
+  # Train the model on the training data.  
+  tuner = kt.Hyperband(model_builder,
+                     objective='val_loss',
+                     max_epochs=10,
+                     factor=3)
+  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+  tuner.search(train_X, train_Y,
+    epochs=int(r.pynepochs), validation_split=0.2, callbacks=[stop_early],verbose=0)
+
+  # Get the optimal hyperparameters
+  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
+  model = tuner.hypermodel.build(best_hps)
 
   model.fit(train_X, train_Y, epochs=int(r.pynepochs), batch_size=50, verbose=0)
 
@@ -763,87 +596,6 @@ if r.plearn=="rnn_gpt":
   q=create_query(scaled_data, look_back=look_back)
   q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
   fore = model.predict(q, verbose=0)
-  
-  fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
-  fore=scaler.inverse_transform(fore[0,:,:])
-  yhat=fore
-
-
-
-if r.plearn=="lstm_gpt_hyper":
-  import numpy as np
-  import pandas as pd
-  import keras_tuner as kt
-  from keras.layers import Dense, LSTM, Dropout
-  from keras.models import Sequential
-  from sklearn.preprocessing import StandardScaler
-  import tensorflow as tf
-  
-  # Create a function that converts an array of data into a dataset for training or testing
-  def create_dataset(data, look_back=1, look_ahead=1):
-    data_X, data_Y = [], []
-    for i in range(len(data) - look_back - look_ahead + 1):
-        a = data[i:(i + look_back), :]
-        data_X.append(a)
-        data_Y.append(data[i + look_back:i + look_back + look_ahead, :])
-    return np.array(data_X), np.array(data_Y)
-
-
-  def create_query(data, look_back=1):    
-    query=[]   
-    query.append(data[(len(data)-look_back):len(data), :])
-    return  query
-  
-  def model_builder(hp):
-    model = Sequential()
-    nunits = hp.Int('units', min_value=20, max_value=200, step=10)
-    model.add(LSTM(units=nunits, input_shape=(look_back, m)))
-    hp_droprate = hp.Choice('droprate', values=[0.1, 0.5, 0.7, 0.9])
-    model.add(Dropout(hp_droprate))
-    model.add(Dense(look_ahead*m))
-    model.compile(loss='mean_squared_error', optimizer='adam')
-    return model
-
-
-  
-  
-  # Scale the time series data
-  scaler = StandardScaler()
-  scaled_data = scaler.fit_transform(r.pyTS)
-
-  m=int(r.pym)
-  look_back = int(r.pyn)
-  look_ahead = int(r.pyH)
-  
-  # Create training and testing datasets
-  
-  train_X, train_Y = create_dataset(scaled_data, look_back=look_back, look_ahead=look_ahead)
-
-  # Reshape the input data for use with a LSTM model
-  train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], train_X.shape[2]))
-  train_Y = np.reshape(train_Y, (train_Y.shape[0], train_Y.shape[1]* train_Y.shape[2]))
-  # Create a LSTM model
-  
-  # Train the model on the training data.  
-  tuner = kt.Hyperband(model_builder,
-                     #objective='val_accuracy',
-                     max_epochs=10,
-                     factor=3)
-  stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-  tuner.search(train_X, train_Y,
-    epochs=int(r.pynepochs), validation_split=0.2, callbacks=[stop_early],verbose=0)
-
-  # Get the optimal hyperparameters
-  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
-  model = tuner.hypermodel.build(best_hps)
-
-  model.fit(train_X, train_Y, epochs=int(r.pynepochs), batch_size=50, verbose=0)
-
-  ## forecasting
-  
-  q=create_query(scaled_data, look_back=look_back)
-  q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
-  fore = model.predict(q,verbose=0)
   
   fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
   fore=scaler.inverse_transform(fore[0,:,:])
@@ -906,7 +658,7 @@ if r.plearn=="rnn_gpt_hyper":
   
   # Train the model on the training data.  
   tuner = kt.Hyperband(model_builder,
-                     objective='val_accuracy',
+                     objective='val_loss',
                      max_epochs=10,
                      factor=3)
   stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
@@ -924,63 +676,6 @@ if r.plearn=="rnn_gpt_hyper":
   q=create_query(scaled_data, look_back=look_back)
   q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
   fore = model.predict(q,verbose=0)
-  
-  fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
-  fore=scaler.inverse_transform(fore[0,:,:])
-  yhat=fore
-
-
-if r.plearn=="rnn_gpt":
-  import numpy as np
-  import pandas as pd
-  from keras.layers import Dense,  SimpleRNN
-  from keras.models import Sequential
-  from sklearn.preprocessing import StandardScaler
-
-  # Create a function that converts an array of data into a dataset for training or testing
-  def create_dataset(data, look_back=1, look_ahead=1):
-    data_X, data_Y = [], []
-    for i in range(len(data) - look_back - look_ahead + 1):
-        a = data[i:(i + look_back), :]
-        data_X.append(a)
-        data_Y.append(data[i + look_back:i + look_back + look_ahead, :])
-    return np.array(data_X), np.array(data_Y)  
-
-
-  def create_query(data, look_back=1):    
-    query=[]   
-    query.append(data[(len(data)-look_back):len(data), :])
-    return  query
-  
-  # Scale the time series data
-  scaler = StandardScaler()
-  scaled_data = scaler.fit_transform(r.pyTS)
-
-  m=int(r.pym)
-  look_back = int(r.pyn)
-  look_ahead = int(r.pyH)
-  
-  # Create training and testing datasets
-  
-  train_X, train_Y = create_dataset(scaled_data, look_back=look_back, look_ahead=look_ahead)
-
-  # Reshape the input data for use with a LSTM model
-  train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], train_X.shape[2]))
-  train_Y = np.reshape(train_Y, (train_Y.shape[0], train_Y.shape[1]* train_Y.shape[2]))
-  # Create a LSTM model
-  model = Sequential()
-  model.add(SimpleRNN(units=int(r.pynunits), input_shape=(look_back, m)))
-  model.add(Dense(look_ahead*m))
-  model.compile(loss='mean_squared_error', optimizer='adam')
-
-  # Train the model on the training data
-  model.fit(train_X, train_Y, epochs=int(r.pynepochs), batch_size=50, verbose=0)
-
-  ## forecasting
-  
-  q=create_query(scaled_data, look_back=look_back)
-  q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
-  fore = model.predict(q, verbose=0)
   
   fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
   fore=scaler.inverse_transform(fore[0,:,:])
@@ -1192,7 +887,7 @@ if r.plearn=="transformer_gpt_hyper":
   
   # Train the model on the training data.  
   tuner = kt.Hyperband(model_builder,
-                     objective='val_accuracy',
+                     objective='val_loss',
                      max_epochs=10,
                      factor=3)
   stop_early = tensorflow.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)

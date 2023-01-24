@@ -22,8 +22,7 @@ if (m>1){
   #                    nepochs=100, nunits=10)
   #P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="MIMO_rr",
   #                     nLambdas=50)
-  P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="DFML",cdfml=2,
-                       dfmlmodels=c("MIMO"))
+  P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="RNN")
 } else {
   ## P=multiplestepAhead(TS[1:(N-H),],n=n,H=H,method="mimo_rr",epochs=1000)
   P=multiplestepAhead(TS[1:(N-H),],n=n,H=H,method="transf",epochs=1000)
