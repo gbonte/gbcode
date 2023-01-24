@@ -37,7 +37,7 @@ Multioutput KNN for multi-step-ahed prediction. It performs a locally constant m
 }
 \examples{
 ## Multi-step ahead time series forecasting
-
+require(gbcode)
 t=seq(0,200,by=0.1)
 N<-length(t)
 H<-500 ## horizon prediction
@@ -51,7 +51,7 @@ X<-E$inp
 Y<-E$out
 N<-NROW(X)
 ACF.lag<-5
-Y.cont<-KNN.acf.lin(X,Y,rev(TS.tr[(N.tr-H):N.tr]),Acf=acf(TS.tr,lag.max=ACF.lag,plot=F)$acf,Pacf=pacf(TS.tr,lag.max=ACF.lag,plot=F)$acf,TS=TS.tr)
+Y.cont<-KNN.acf.lin(X,Y,rev(TS.tr[(N.tr-H):N.tr]),Acf=acf(TS.tr,lag.max=ACF.lag,plot=FALSE)$acf,Pacf=pacf(TS.tr,lag.max=ACF.lag,plot=FALSE)$acf,TS=TS.tr)
 plot(t[(N-H+1):N],TS.ts)
 lines(t[(N-H+1):N],Y.cont)
 }

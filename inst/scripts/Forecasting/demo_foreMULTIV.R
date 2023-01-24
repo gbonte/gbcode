@@ -11,7 +11,7 @@ methods=c("DFML","MIMO_rr","MIMO_rf","MISO_rr",
           "MIMOSO_rr","DFM","MITER_rr","MITER_rr_H",
           "VARs","LSTM", "RNN","UNI")
 load("./data/STdata.Rdata")
-for ( f in 5:length(STnames)){
+for ( f in 1:length(STnames)){
   D=STdata[[f]]
   wna<-which(apply(D,2,sd)<0.001)
   if (length(wna)>0)

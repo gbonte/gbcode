@@ -707,12 +707,22 @@ lin.pls<- function(X,Y,X.ts){
 #' \item{mimo.acf.lin}: MIMO prediction based on \link{KNN.acf.lin} function which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo.pls}: MIMO prediction based on \link{KNN.pls} function which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo.lin.pls}: MIMO prediction based on Partial Least Squares which combines a set of predictors based on different horizons and different starting points
+#' \item{mimo_rr}: MIMO prediction based on linear ridge regression 
+#' \item{mimo_red}: MIMO prediction based on linear reduced rank regression 
+#' \item{mimo_cca}: MIMO prediction based on linear canonical correlation 
+#' \item{mimo_red}: MIMO prediction based on linear reduced rank regression 
+#' \item{rnn}:  prediction based on python (\pkg{reticulate})  implementation of rnn (recurrent neural networks)
+#' \item{lstm}:  prediction based on python (\pkg{reticulate})  implementation of lstm neural networks
+#' \item{transf}:  prediction based on python (\pkg{reticulate})  implementation of transformer neural networks
 #' }
 #' @return H step ahead predictions
+#' @details
+#' The python forecasters require the installation of \pkg{reticulate} and several python packages (scikit-learn, tensorflow, keras)
 #' @export
 #' @examples
 #' ## Multi-step ahead time series forecasting
 #'
+#' rm(list=ls())
 #' t=seq(0,400,by=0.1)
 #' N<-length(t)
 #' H<-500 ## horizon prediction
@@ -750,7 +760,7 @@ lin.pls<- function(X,Y,X.ts){
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                             FF=0,smooth=FALSE,maxfs=6,
                             XC=NULL,detrend=0, forget=-1, engin=FALSE,
-                            Kmin=3,C=2,debug=FALSE, learner="rf",
+                            Kmin=5,C=2,debug=FALSE, learner="rf",
                             verbose=FALSE,...){
   
   args<-list(...)
@@ -923,16 +933,16 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(c(p+trnd.ts))
   }
   
-  if (method=="mimolin"){
+  if (method=="mimo_rr"){
     p=multiridge(array(TS,c(length(TS),1)),n,H,MIMO=TRUE,verbose=verbose,...)$Yhat 
     return(c(p+trnd.ts))
   }
   
-  if (method=="mimorr"){
+  if (method=="mimo_red"){
     p=multirr(array(TS,c(length(TS),1)),n,H,B=0,QRdec=FALSE,verbose=verbose,...) 
     return(c(p+trnd.ts))
   }
-  if (method=="mimocca"){
+  if (method=="mimo_cca"){
     p=multicca(array(TS,c(length(TS),1)),n,H,...) 
     return(c(p+trnd.ts))
   }
@@ -1462,40 +1472,68 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
 #' @param unimethod: method from \link{MmultiplestepAhead} used to predict each univariate series
 #' @param  multi:
 #' \itemize{
-#' \item{uni}: prediction based on univariate forecasting with unimethod in \link{MmultiplestepAhead}
-#' \item{dfm}: prediction based on DFM
-#' \item{dfml}: prediction based on DFML
+#' \item{UNI}: prediction based on univariate forecasting with unimethod in \link{MmultiplestepAhead}
+#' \item{DFM}: prediction based on DFM
+#' \item{DFML}: prediction based on DFML
 #' \item{VAR}: prediction based on VAR 
 #' \item{VARs}: prediction based on VAR shrink from \pkg{VARshrink} package
-#' \item{rnn}: prediction based on \pkg{keras} rnn
-#' \item{lstm}: prediction based on \pkg{keras} lstm
+#' \item{RNN}: prediction based on python (\pkg{reticulate}) implementation of rnn (recurrent neural network)
+#' \item{LSTM}: prediction based on python (\pkg{reticulate}) implementation of  lstm (long short term memory)
+#' \item{TRANSF}: prediction based on python (\pkg{reticulate}) implementation of a transformer
+#' \item{MIMO_rr}: prediction based on a MIMO ridge regressor (lambda estimation based on PRESS)
+#' \item{MITER_rr}: prediction based on an iterated ridge regressor (lambda estimation based on PRESS and a criterion with horizon Hobj) 
+#' \item{MIMO_red}: prediction based on a MIMO reduced rank regressor (\pkg{rrpack})
+#' \item{MIMO_red}: prediction based on a MIMO partial least-squares (Sklearn python)
 #' \item{multifs}: prediction based on MISO direct strategy and feature selection (predictor from \link{pred})
 #' }
 #' @return matrix [H,m] with the H step ahead predictions for m series
 #' @export
+#' @details
+#' The python forecasters require the installation of \pkg{reticulate} and several python packages (scikit-learn, tensorflow, keras)
 #' @examples
 #' ## Multi-variate Multi-step-ahead time series forecasting
 #' rm(list=ls())
-#' require(gbcode)
-#' require(VARshrink)
-#' N=100
-#' n=10 
-#' Xtr=array(rnorm(N*n),c(N,n))
-#' ## random data: only to show the syntax
-#' n=3
-#' H=10
-#' Xhat1=MmultiplestepAhead(Xtr,n,H,multi="uni",uni=c("lazyiter"))
-#' Xhat2=MmultiplestepAhead(Xtr,n,H,multi="dfm")
-#' Xhat3=MmultiplestepAhead(Xtr,n,H,multi="VARs")
-#' Xhat4=MmultiplestepAhead(Xtr,n,H,multi="dfml",cdfml=3,
-#'                         dfmlmethods=c("lindirect","lazydirect"))
-#' Xhat5=MmultiplestepAhead(Xtr,n,H,multi="multifs",mod="rf")
+#' library(gbcode)
+#'library(reticulate)
+#'set.seed(0)
+#'N=1000
+#'m=3
+#'n=3 
+#'H=10
+#'TS<-array(0,c(N,m))
+#'for (j in 1:m){
+#'  for (f in 1:5)
+#'    TS[,j]=TS[,j]+sin(2*pi*(1:(N))/runif(1,8,20))
+#'  TS[,j]=TS[,j]+rnorm(N,sd=0.3)
+#' 
+#'}
+#'TS=scale(TS)
+#'N=NROW(TS)
+#'
+#'#P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="RNN",
+#'#                    nepochs=100, nunits=10)
+#'P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="MITER_rr",
+#'                     nLambdas=150)
+#'if (m==1)
+#'  P=cbind(P)
+
+#'cat("MSE=",mean((P-TS[(N-H+1):N,])^2),"\n")
+#'par(mfrow=c(1,m))
+#'Nvis=round(N-4*H)
+#'for (j in 1:m){
+#'  Yhat=numeric(N)+NA
+  
+#'  Yhat[(N-H+1):N]=P[,j]
+#'  plot(TS[Nvis:N,j],type="l",
+#'       main=paste("MSE=",round(mean((TS[(N-H+1):N,j]- Yhat[(N-H+1):N])^2),2)))
+#'  lines(Yhat[Nvis:N],col="red",lw=3)
+#'}
 #' 
 MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
                              unimethod="stat_naive", 
                              dfmlmodels="lindirect",
                              mod="rf",
-                             pc0=2,
+                             pc0=2,cdfml=2,
                              verbose=FALSE,
                              debug=FALSE,...){
   args<-list(...)
@@ -1505,7 +1543,9 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
     }
   m<-NCOL(TS)
   N=NROW(TS)
-  
+  if (any(is.na(TS)))
+    stop("Remove NA values before using this function")
+    
   if (m<=1)
     stop("Only for multivariate series")
   Yhat=array(NA,c(H,m))
@@ -1520,13 +1560,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
   if (multi=="TRANSF")
     Yhat=pytransfpredgpt(TS,H,n,...)
   
-  ## if (multi=="pylstm")
-  ##  Yhat=pylstmpred(TS,H,n,...)
-  ##if (  multi=="lstm") 
-  ##  Yhat=lstmpred(TS,H,n,...)
-  ##if (multi=="lstm2") 
-  ##  Yhat=lstmpred2(TS,H,n,...)
-  
+   
   if (multi=="DFM"){
     Yhat=dfml(TS,n,H,p0=pc0,dfmod=dfmlmodels[1],...)
   }
@@ -1541,7 +1575,7 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
     # #models(dfmlmodels), autoregressive order (1:cdfml*n)
     Ddesign=dfmldesign(TS,cdfml*n,H,p0=cdfml*pc0,models=dfmlmodels,...)
     
-    Yhat=dfml(TS,Ddesign$m,H,p0=Ddesign$p,dfmod=Ddesign$mod,...)
+    Yhat=dfml(TS,Ddesign$n,H,p0=Ddesign$p,dfmod=Ddesign$mod,...)
     
   }
   if (multi=="VAR"){
@@ -1557,33 +1591,29 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
     Yhat=multifs(TS,n,H,mod=mod,debug=debug,...)
   
   if (multi=="MIMO_rr")
-    Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,preq=FALSE,...)$Yhat
+    Yhat=multiridge(TS,n,H,MIMO=TRUE,direct=FALSE,preq=FALSE,...)$Yhat
   if (multi=="multiridge2")
-    Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=FALSE,preq=TRUE,...)$Yhat
+    Yhat=multiridge(TS,n,H,MIMO=TRUE,direct=FALSE,preq=TRUE,...)$Yhat
   if (multi=="whitenridge")
-    Yhat=whitenridge(TS,n,H,mod=mod,MIMO=FALSE,direct=TRUE,...)$Yhat
+    Yhat=whitenridge(TS,n,H,MIMO=FALSE,direct=TRUE,...)$Yhat
   if (multi=="MISO_rr")
-    Yhat=multiridge(TS,n,H,mod=mod,MIMO=FALSE,direct=TRUE,...)$Yhat
+    Yhat=multiridge(TS,n,H,MIMO=FALSE,direct=TRUE,...)$Yhat
   if (multi=="MIMOSO_rr")
-    Yhat=multiridge(TS,n,H,mod=mod,MIMO=TRUE,direct=TRUE,...)$Yhat
+    Yhat=multiridge(TS,n,H,MIMO=TRUE,direct=TRUE,...)$Yhat
   if (multi=="MITER_rr")
-    Yhat=multiteridge(TS,n,H,Hobj=1,mod=mod,...)$Yhat
-  if (multi=="MITER_rr_2")
-    Yhat=multiteridge(TS,n,H,Hobj=2,mod=mod,nLambdas=10,...)$Yhat
+    Yhat=multiteridge(TS,n,H,...)$Yhat
   if (multi=="MITER_rr_MC")
-    Yhat=multiteridgeMC(TS,n,H,mod=mod,nLambdas=10,...)$Yhat
-  if (multi=="MITER_rr_H")
-    Yhat=multiteridge(TS,n,H,Hobj=H,mod=mod,nLambdas=10,...)$Yhat
+    Yhat=multiteridgeMC(TS,n,H,nLambdas=10,...)$Yhat
   if (multi=="ensridge")
-    Yhat=ensridge(TS,n,H,mod=mod,...)$Yhat
+    Yhat=ensridge(TS,n,H,...)$Yhat
   if (multi=="multiridge2")
-    Yhat=multiridge(TS,n,H,mod=mod,maha=TRUE,MIMO=TRUE,...)$Yhat
+    Yhat=multiridge(TS,n,H,maha=TRUE,MIMO=TRUE,...)$Yhat
   
   if (multi=="unimultiridge"){
-    MR=multiridge(TS,n,H,mod=mod,MIMO=TRUE,...)
+    MR=multiridge(TS,n,H,MIMO=TRUE,...)
     Yhat=MR$Yhat
     for (i in 1:m){
-      MRi=multiridge(TS[,i],n,H,mod=mod,MIMO=TRUE,...)
+      MRi=multiridge(TS[,i],n,H,MIMO=TRUE,...)
       
       if (MRi$MSE<MR$MSE[i])
         Yhat[,i]=MRi$Yhat

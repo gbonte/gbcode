@@ -37,15 +37,20 @@
 \item{lazydirect}: locally linear  direct prediction based on \link{lazy.pred} function
 \item{clazydirect}: locally constant direct prediction based on \link{lazy.pred} function
 \item{lazyiter}: recursive prediction based on \link{lazy.pred} function
-\item{lindirect}: direct prediction based on \link{lin.pred} function
-\item{rfdirect}: direct prediction based on \link{rf.pred} function
-\item{rfiter}: recursive prediction based on \link{rf.pred} function
+\item{lindirect}: direct prediction based on linear predictor
+\item{rfdirect}: direct prediction based on Random Forest predictor
+\item{rfiter}: recursive prediction based on Random Forest predictor
 \item{mimo}: MIMO prediction based on \link{KNN.multioutput} function
 \item{mimo.comb}: MIMO prediction based on \link{KNN.multioutput} function which combines a set of predictors based on different horizons and different starting points
 \item{mimo.acf}: MIMO prediction based on \link{KNN.acf} function which combines a set of predictors based on different horizons and different starting points
 \item{mimo.acf.lin}: MIMO prediction based on \link{KNN.acf.lin} function which combines a set of predictors based on different horizons and different starting points
 \item{mimo.pls}: MIMO prediction based on \link{KNN.pls} function which combines a set of predictors based on different horizons and different starting points
 \item{mimo.lin.pls}: MIMO prediction based on Partial Least Squares which combines a set of predictors based on different horizons and different starting points
+\item{mimo_rr}: MIMO prediction based on linear ridge regression 
+\item{mimo_red}: MIMO prediction based on linear reduced rank regression 
+\item{rnn}:  prediction based on python (\pkg{reticulate})  implementation of rnn (recurrent neural networks)
+\item{lstm}:  prediction based on python (\pkg{reticulate})  implementation of lstm neural networks
+\item{transf}:  prediction based on python (\pkg{reticulate})  implementation of transformer neural networks
 }}
 }
 \value{
@@ -62,6 +67,7 @@ Wrapper over a set of methods for univariate multi-step-ahead time series foreca
 \examples{
 ## Multi-step ahead time series forecasting
 
+rm(list=ls())
 t=seq(0,400,by=0.1)
 N<-length(t)
 H<-500 ## horizon prediction

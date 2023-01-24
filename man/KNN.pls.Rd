@@ -36,6 +36,7 @@ Multioutput KNN for multi-step-ahed prediction. It performs a locally constant m
 \examples{
 ## Multi-step ahead time series forecasting
 library(pls)
+require(gbcode)
 t=seq(0,400,by=0.1)
 N<-length(t)
 H<-1500 ## horizon prediction
@@ -44,18 +45,19 @@ TS.tr=TS[1:(N-H)]
 N.tr<-length(TS.tr)
 TS.ts<-TS[(N-H+1):N]
 TS.tr=array(TS.tr,c(length(TS.tr),1))
-E=MakeEmbedded(TS.tr,n=3,delay=0,hor=H,1)
+n=3
+E=MakeEmbedded(TS.tr,n=n,delay=0,hor=H,1)
 X<-E$inp
 Y<-E$out
-N<-NROW(X)
 ACF.lag<-5
-Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-H):N.tr]))
+Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-n+1):N.tr]))
 plot(t[(N-H+1):N],TS.ts)
-lines(t[(N-H+1):N],Y.cont)
+lines(t[(N-H+1):N],Y.cont,col="red")
 
 
-## Multi-step ahead time series forecasting chaotic time series
-rm(list=ls()
+rm(list=ls())
+require(gbcode)
+data(A)
 N<-NROW(A)
 H<-200 ## horizon prediction
 TS<-A[,1]
@@ -63,14 +65,13 @@ TS.tr=TS[1:(N-H)]
 N.tr<-length(TS.tr)
 TS.ts<-TS[(N-H+1):N]
 TS.tr=array(TS.tr,c(length(TS.tr),1))
+n=16
 E=MakeEmbedded(TS.tr,n=16,delay=0,hor=H,1)
 X<-E$inp
 Y<-E$out
-N<-NROW(X)
-
-Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-H):N.tr]))
-plot(t[(N-H+1):N],TS.ts)
-lines(t[(N-H+1):N],Y.cont)
+Y.cont<-KNN.pls(X,Y,rev(TS.tr[(N.tr-n+1):N.tr]))
+plot((N-H+1):N,TS.ts)
+lines((N-H+1):N,Y.cont)
 
 }
 \references{

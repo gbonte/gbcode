@@ -4,10 +4,21 @@
 \alias{pred}
 \title{Wrapper on learning algoritmhs for regression and classification}
 \usage{
-pred(algo = "svm", X, Y, X.ts, classi = TRUE, ...)
+pred(algo = "svm", X, Y, X.ts, classi = TRUE, to.scale = FALSE, ...)
 }
 \arguments{
-\item{algo:}{learning algoritmh: \code{"lin"}: linear, \code{"rf"}: \pkg{randomForest}, \code{"svm"}: \pkg{e1071} , \code{"lazy"}: \pkg{lazy}, \code{"gbm"}: \pkg{gbm},\code{"gam"}: \pkg{gam}, \code{"nb"}: \pkg{e1071}, \code{"lasso"}: \pkg{lars},\code{"mboost"}: \pkg{mboost}}
+\item{algo:}{learning algoritmh: \code{"lin"}: linear, 
+\code{"rf"}: \pkg{randomForest}, 
+\code{"svm"}: \pkg{e1071} , 
+\code{"lazy"}: \pkg{lazy}, 
+\code{"gbm"}: \pkg{gbm},
+\code{"gam"}: \pkg{gam}, \code{"nb"}: \pkg{e1071}, 
+\code{"lasso"}:  \pkg{lars},
+\code{"mboost"}: \pkg{mboost}, 
+\code{"py.keras_regr","py.ridge_regr","py.rf_regr","py.piperf_regr","py.lasso_regr",
+"py.keras_regr","py.pls_regr","py.enet_regr","py.gb_regr","py.knn_regr","py.pipeknn_regr","py.ab_regr"}: sklearn regressors 
+\code{ "py.sgd_class", "py.rf_class","py.gb_class","py.piperf_class",
+"py.gp_class","py.nb_class", "py.ab_class","py.knn_class","py.lsvm_class"}: sklearn classifiers}
 
 \item{X:}{training input}
 
@@ -28,6 +39,9 @@ if \code{classi=FALSE} predicted test output; if \code{classi=TRUE} a list with
 }
 \description{
 Wrapper on learning algoritmhs
+}
+\details{
+The sklearn predictors require the installation of \pkg{reticulate} and the scikit-learn package
 }
 \examples{
 ## regression example

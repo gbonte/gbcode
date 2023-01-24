@@ -8,7 +8,7 @@ Maintainer: Gianluca Bontempi <Gianluca.Bontempi@ulb.be>
 Description: Code from the handbook "Statistical foundations of machine learning" https://tinyurl.com/sfmlh
 License: Common Sense
 LazyData: TRUE
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 Suggests: knitr,  rmarkdown
 VignetteBuilder: knitr
 Depends: 

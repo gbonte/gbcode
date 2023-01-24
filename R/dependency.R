@@ -18,7 +18,7 @@ Posdef <- function (n, ev = runif(n, 0, 10)) {
 RKfct<-function(X,NK=3){
   ## it returns the output of a function sum_{i=1}^NK alpha_i K(xi,x) 
   ## belonging to the RKHS space defined by
-  ## a kernel K(°,°), NK random basis and NK random coefficients alpha_i
+  ## a kernel K(,), NK random basis and NK random coefficients alpha_i
   require(kernlab)
   ke <- rbfdot(sigma =runif(1,0.01,0.1))
   ## calculate kernel matrix

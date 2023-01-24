@@ -35,6 +35,7 @@ Multioutput KNN which perform a locally constant model with weighted combination
 }
 \examples{
 ## Multi-step ahead time series forecasting
+require(gbcode)
 t=seq(0,200,by=0.1)
 N<-length(t)
 H<-50 ## horizon prediction

@@ -24,6 +24,7 @@ AUC
 }
 \examples{
 ## random prediction
+library(ROCR)
 AUC(round(runif(100)),rnorm(100))
 
 }

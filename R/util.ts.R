@@ -255,7 +255,7 @@ constloo<-function(x,w=rep(1,length(x))){
 }
 
 
-dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
+oldfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
                      models=c("stat_naive","lindirect"),...){
   args<-list(...)
   if (length(args)>0)
@@ -331,8 +331,9 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
             Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
           }
           if (mod=="multifs"){
-            
-            Xhat=multiml(Z[1:(Ntr+s),1:p],m,H,learner="lin")%*%V[1:p,]
+            Xhat=multiridge(Z[1:(Ntr+s),1:p],m,H,MIMO=TRUE,direct=FALSE,preq=FALSE,...)$Yhat
+            Xhat=Xhat%*%V[1:p,]
+            #Xhat=multiml(Z[1:(Ntr+s),1:p],m,H,learner="lin")%*%V[1:p,]
             Ehat[m,p,mm]<-Ehat[m,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
           }
           
@@ -365,6 +366,115 @@ dfmldesign<-function(TS,m0,H,p0=2,Lcv=3,
   return (list(p=bestp,m=bestm,mod=bestmod))
 }
 
+dfmldesign<-function(TS,n0,H,p0=2,Lcv=3,
+                     models=c("stat_naive","lindirect"),...){
+  args<-list(...)
+  if (length(args)>0)
+    for(i in 1:length(args)) {
+      assign(x = names(args)[i], value = args[[i]])
+    }
+  m<-NCOL(TS)  ## number of series
+  maxp=min(m,p0)  ## max no PC components
+  maxn=n0 ## max autoregressive order
+  nmods=length(models) ## number of forecasting models
+  
+  N<-NROW(TS)
+  Xtr<-TS[1:min(N-H-1,floor(9*N/10)),]
+  Ntr<-NROW(Xtr)
+  Xts<-TS[(Ntr+1):N,]
+  Nts<-NROW(Xts)
+  
+  C=cov(Xtr) 
+  V=t(eigen(C,TRUE)$vectors[,1:maxp])
+  Z=(TS%*%t(V))
+  eps=1e-4
+  
+  Ehat<-array(0,c(maxn,maxp,nmods))
+  Eref<-0
+  for (mm in 1:nmods){ ## loop over forecasting model
+    mod=models[mm]
+    
+    for (nn in 1:maxn){ ## loop over autoregressive order
+      
+      for (s in round(seq(0,Nts-H-1,length.out=Lcv))){
+        XXts=TS[(Ntr+s+1):(Ntr+s+H),]
+        
+        if (nn==1 & mm==1){
+          Xref=NULL
+          for (j in 1:m)
+            Xref=cbind(Xref,multiplestepAhead(TS[1:(Ntr+s),j],nn,H, method="stat_comb"))
+          Eref<-Eref+mean(apply((XXts-Xref)^2,2,mean))
+        }
+        if (mod=="vars"){
+          Xhat=VARspred(TS[1:(Ntr+s),],nn,H,method=1)
+          Ehat[nn,1,mm]<-Ehat[nn,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+        }
+        Zhat<-array(NA,c(H,maxp))
+        muZ=mean(Z[1:(Ntr+s),1])
+        stdZ=sd(Z[1:(Ntr+s),1])+eps
+        sZ=(Z[1:(Ntr+s),1]-muZ)/stdZ
+        if (mod=="MIMO"){
+          Zhat[,1]=multiplestepAhead(sZ,n=nn, H=H,method="mimo_rr")
+          
+          ##Zhat[,1]=multifs2(array(sZ,c(length(sZ),1)),n=m, H=H)
+          Zhat[,1]=Zhat[,1]*stdZ+muZ
+          
+          Xhat=(Zhat[,1])%*%array(V[1,],c(1,m))
+          Ehat[nn,1,mm]<-Ehat[nn,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+        }
+        
+        if (!is.element(mod,c("vars","MIMO"))){
+          
+          Zhat[,1]=multiplestepAhead(sZ,n=nn, H=H,method=mod,...)
+          Zhat[,1]=Zhat[,1]*stdZ+muZ
+          
+          Xhat=(Zhat[,1])%*%array(V[1,],c(1,m))
+          
+          Ehat[nn,1,mm]<-Ehat[nn,1,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+        }
+        for (p in 2:maxp){ ## loop over number of Pcomponents
+          muZ=mean(Z[1:(Ntr+s),p])
+          stdZ=sd(Z[1:(Ntr+s),p])+eps
+          sZ=(Z[1:(Ntr+s),p]-muZ)/stdZ
+          if (mod=="vars"){
+            Xhat=VARspred(TS[1:(Ntr+s),],nn,H,method=p)
+            Ehat[nn,p,mm]<-Ehat[nn,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+          }
+          if (mod=="MIMO"){
+            Xhat=multiridge(Z[1:(Ntr+s),1:p],nn,H,MIMO=TRUE,direct=FALSE,preq=FALSE,...)$Yhat
+            Xhat=Xhat%*%V[1:p,]
+            #Xhat=multiml(Z[1:(Ntr+s),1:p],m,H,learner="lin")%*%V[1:p,]
+            Ehat[nn,p,mm]<-Ehat[nn,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+          }
+          
+          
+          if (!is.element(mod,c("vars","MIMO"))){
+            Zhat[,p]=multiplestepAhead(sZ,n=nn, H=H,method=mod,...)
+            Zhat[,p]=Zhat[,p]*stdZ+muZ
+            Xhat=Zhat[,1:p]%*%V[1:p,]
+            Ehat[nn,p,mm]<-Ehat[nn,p,mm]+mean(apply((XXts-Xhat)^2,2,mean))
+          }
+        } ## for p
+        
+      } ## for s
+      
+    } ## for nn
+  }
+  
+  Emin=min(Ehat)
+  
+  ## comparison with univariate model
+  if (quantile(Ehat,0.05)<Eref){
+    bestp<-which.min(apply(Ehat,2,min))
+    bestn<-which.min(apply(Ehat,1,min))
+    bestmod=models[which.min(apply(Ehat,3,min))]
+  } else {
+    bestp<--1
+    bestn<-0
+    bestmod="uni"
+  }
+  return (list(p=bestp,n=bestn,mod=bestmod))
+}
 
 dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
   ## n: autoregressive order
@@ -373,7 +483,6 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
     for(i in 1:length(args)) {
       assign(x = names(args)[i], value = args[[i]])
     }
-  
   
   m<-NCOL(TS)
   p0=min(p0,m)
@@ -384,11 +493,8 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
       Xhat=cbind(Xhat,multiplestepAhead(TS[,j],n,H, method="stat_comb"))
     return(Xhat)
   }
-  
   if (dfmod=="vars") 
     return(VARspred(TS,n,H,method=p0))
-  
-  
   
   N=NROW(TS)
   Zhat<-array(NA,c(H,p0))
@@ -397,20 +503,20 @@ dfml<-function(TS,n,H,p0=3,dfmod="lindirect",...){
   eps=1e-4
   Ztr=TS%*%t(V)
   
-  if (dfmod=="multifs"){
+  if (dfmod=="MIMO"){
     if (p0==1){
-      Zhat=multiplestepAhead(Ztr[,1],n=n, H=H,method="stat_comb")
-      
+      Zhat=multiplestepAhead(Ztr[,1],n=n, H=H,method="mimo_rr")
       return(Zhat%*%array(V[1:p0,],c(1,m)))
     }
-    Zhat=multiml(Ztr[,1:p0],m,H,learner="lin")
+    ##Zhat=multiml(Ztr[,1:p0],n,H,learner="lin")
+    Zhat=MmultiplestepAhead(Ztr[,1:p0],n,H,multi="MIMO_rr")
     return(Zhat%*%V[1:p0,])
   }
   
   muZ=mean(Ztr[,1])
   stdZ=sd(Ztr[,1])+eps
   sZ=(Ztr[,1]-muZ)/stdZ
-  Zhat[,1]=multiplestepAhead(sZ,n=m, H=H,method=dfmod,...)
+  Zhat[,1]=multiplestepAhead(sZ,n=n, H=H,method=dfmod,...)
   Zhat[,1]=(Zhat[,1]*stdZ+muZ)
   if (p0>1){
     for (p in 2:p0){
@@ -503,154 +609,7 @@ kfml<-function(TS,n,H,p0=3,dfmod="lindirect",adaptive=FALSE,...){
   
 }
 
-rnnpred2<-function(TS,H,n){
-  require(keras)
-  sTS=scale(TS)
-  m=NCOL(sTS)
-  N=NROW(sTS)
-  
-  M=MakeEmbeddedrev(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
-  
-  I=which(!is.na(apply(M$out,1,sum)))
-  M$inp=M$inp[I,]
-  M$out=M$out[I,]
-  N=NROW(M$inp)
-  n1=NCOL(M$inp)
-  p<-NCOL(M$out)
-  
-  trainX=array(M$inp,c(NROW(M$inp),n,m))
-  trainY=M$out
-  
-  model <- keras_model_sequential()
-  model %>%
-    layer_lstm(units            = 50, 
-               input_shape      = c(n,m), 
-               # batch_size       = 5,
-               return_sequences = TRUE, 
-               # stateful         = TRUE
-    ) %>% 
-    layer_lstm(units            = 50, 
-               return_sequences = FALSE, 
-               stateful         = FALSE) %>% 
-    layer_dense(ncol(trainY))
-  
-  model %>% 
-    compile(loss = 'mae', optimizer = 'adam')
-  model
-  
-  #model <- keras_model_sequential() %>%
-  #  layer_simple_rnn(units = 6,input_shape=c(n,m))%>%
-  #  layer_dropout(0.2) %>%
-  #  layer_dense(ncol(trainY))
-  
-  #model %>% compile(loss = 'mse',
-  #                  optimizer = 'RMSprop',
-  #                  metrics = c('accuracy'))
-  
-  
-  model %>% fit(
-    x = trainX, # sequence we're using for prediction                                                          
-    y = trainY, # sequence we're predicting                                                                    
-    epochs = 100, # how many times we'll look @ the whole dataset                                           
-    validation_split = 0.1,verbose=0)
-  
-  lmodel=model
-  q<-NULL
-  D=0
-  for (j in 1:m)
-    q<-c(q,rev(TS[seq(N-D,N-n+1-D,by=-1),j]))
-  
-  Xts=array(q,c(1,1,length(q)))
-  trainXts=array(Xts,c(1,n,m))
-  
-  
-  Yhat<-array(NA,c(H,m))
-  
-  
-  Yhat  <- lmodel%>% predict(trainXts,verbose=0)
-  Yhat  <- (array(Yhat,c(H,m)))
-  for (i in 1:NCOL(Yhat))
-    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
-  return(Yhat)
-  
-  
-}
 
-rnnpred<-function(TS,H,n,nunits=10,epochs=10,...){
-  args<-list(...)
-  if (length(args)>0)
-    for(i in 1:length(args)) {
-      assign(x = names(args)[i], value = args[[i]])
-    }
-  
-  sTS=scale(TS)
-  m=NCOL(sTS)
-  N=NROW(sTS)
-  if (m==1){
-    x_train_arr <- array(sTS[1:(N-H)], c(N-H,1,1))
-    y_train_arr <- array(sTS[(H+1):(N)], c(N-H,1))
-    x_test_arr <- array(sTS[(H+1):(N)], c(N-H,1,1))
-  } else {
-    x_train_arr <- array(sTS[1:(N-H),], c(N-H,m,1))
-    y_train_arr <- array(sTS[(H+1):(N),],c(N-H,m)) #lag_train_tbl$value
-    x_test_arr <- array(sTS[(H+1):(N),], c(N-H,m,1))
-  }
-  
-  batch_size=1
-  model <- keras_model_sequential()
-  
-  model %>%
-    layer_simple_rnn(units            = nunits, 
-                     input_shape      = c(m,1), 
-                     return_sequences = TRUE, 
-                     batch_size=batch_size,
-                     stateful         = TRUE) %>% 
-    layer_dropout(rate = 0.1) %>%
-    layer_simple_rnn(units            = round(nunits/2), 
-                     return_sequences = FALSE, 
-                     stateful         = TRUE) %>% 
-    layer_dense(units = m)
-  
-  model %>% 
-    compile(loss = 'mae', optimizer = 'adam')
-  
-  # 5.1.7 Fitting RNN
-  if (FALSE){
-    model %>% fit(x          = x_train_arr, 
-                  y          = y_train_arr, 
-                  batch_size = batch_size,
-                  epochs     = epochs, 
-                  verbose    = 0, 
-                  shuffle    = FALSE)
-  } else {
-    for (i in 1:epochs) {
-      model %>% fit(x          = x_train_arr, 
-                    y          = y_train_arr, 
-                    batch_size = batch_size,
-                    epochs     = 1, 
-                    verbose    = 0, 
-                    shuffle    = FALSE)
-      model %>% reset_states()
-      #    #cat("Epoch: ", i)
-    }
-  }
-  
-  # 5.1.8 Predict and Return Tidy Data
-  # Make Predictions
-  pred_out <- model %>% 
-    predict(x_test_arr, batch_size = batch_size)
-  
-  N2=NROW(pred_out)
-  
-  Yhat=pred_out[(N2-H+1):N2,]
-  
-  for (i in 1:NCOL(Yhat))
-    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
-  return(Yhat)
-  
-  
-  
-}
 VARspred<-function(TS,n,H,method=1,...){
   n=NCOL(TS)
   colnames(TS)=1:n
@@ -817,7 +776,10 @@ pylstmpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   else
     plearn<<-"lstm_gpt"
   
+  cdir=getwd()
+  setwd(paste(find.package("gbcode"),"python",sep="/"))
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  setwd(cdir)
   Yhat=array(py$yhat,c(H,m))
   
   Yhat
@@ -833,8 +795,10 @@ pyrnnpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
     plearn<<-"rnn_gpt_hyper"
   else
     plearn<<-"rnn_gpt"
-  
+  cdir=getwd()
+  setwd(paste(find.package("gbcode"),"python",sep="/"))
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  setwd(cdir)
   Yhat=array(py$yhat,c(H,m))
   
   Yhat
@@ -847,9 +811,15 @@ pytransfpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
   
   
-  plearn<<-"transformer_gpt"
+  if (hyper)
+    plearn<<-"transformer_gpt_hyper"
+  else
+    plearn<<-"transformer_gpt"
   
+  cdir=getwd()
+  setwd(paste(find.package("gbcode"),"python",sep="/"))
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  setwd(cdir)
   Yhat=array(py$yhat,c(H,m))
   
   Yhat
@@ -857,136 +827,7 @@ pytransfpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
 
 
 
-lstmpred<-function(TS,H,n,nunits=10,epochs=10,...){
-  args<-list(...)
-  if (length(args)>0)
-    for(i in 1:length(args)) {
-      assign(x = names(args)[i], value = args[[i]])
-    }
-  
-  
-  sTS=scale(TS)
-  m=NCOL(sTS)
-  N=NROW(sTS)
-  
-  if (m==1){
-    x_train_arr <- array(sTS[1:(N-H)], c(N-H,1,1))
-    y_train_arr <- array(sTS[(H+1):(N)], c(N-H,1))
-    x_test_arr <- array(sTS[(H+1):(N)], c(N-H,1,1))
-  } else {
-    x_train_arr <- array(sTS[1:(N-H),], c(N-H,m,1))
-    y_train_arr <- array(sTS[(H+1):(N),],c(N-H,m)) #lag_train_tbl$value
-    x_test_arr <- array(sTS[(H+1):(N),], c(N-H,m,1))
-  }
-  
-  batch_size=1
-  model <- keras_model_sequential()
-  
-  model %>%
-    layer_lstm(units            = nunits, 
-               input_shape      = c(m,1), 
-               batch_size         =batch_size,
-               
-               return_sequences = TRUE, 
-               stateful         = TRUE) %>% 
-    layer_lstm(units            = round(nunits/2), 
-               return_sequences = FALSE, 
-               stateful         = TRUE) %>% 
-    layer_dense(units = m)
-  
-  model %>% 
-    compile(loss = 'mae', optimizer = 'adam')
-  
-  # 5.1.7 Fitting LSTM
-  if (FALSE){
-    model %>% fit(x          = x_train_arr, 
-                  y          = y_train_arr, 
-                  epochs     = epochs, 
-                  batch_size = batch_size,
-                  verbose    = 0, 
-                  shuffle    = FALSE)
-  } else {
-    for (i in 1:epochs) {
-      model %>% fit(x          = x_train_arr, 
-                    y          = y_train_arr, 
-                    batch_size = batch_size,
-                    epochs     = 1, 
-                    verbose    = 0, 
-                    shuffle    = FALSE)
-      model %>% reset_states()
-      #cat("Epoch: ", i)
-    }
-  }
-  
-  # 5.1.8 Predict and Return Tidy Data
-  # Make Predictions
-  pred_out <- model %>% 
-    predict(x_test_arr, batch_size = batch_size)
-  
-  N2=NROW(pred_out)
-  Yhat=pred_out[(N2-H+1):N2,]
-  
-  for (i in 1:NCOL(Yhat))
-    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
-  return(Yhat)
-  
-  
-}
 
-
-lstmpred2<-function(TS,H,n, nunits=10){
-  require(keras)
-  sTS=scale(TS)
-  m=NCOL(sTS)
-  N=NROW(sTS)
-  
-  
-  M=MakeEmbeddedrev(sTS,numeric(m)+n,numeric(m),numeric(m)+H,1:m)
-  
-  I=which(!is.na(apply(M$out,1,sum)))
-  M$inp=M$inp[I,]
-  M$out=M$out[I,]
-  N=NROW(M$inp)
-  n1=NCOL(M$inp)
-  p<-NCOL(M$out)
-  
-  trainX=array(M$inp,c(NROW(M$inp),n,m))
-  trainY=array(M$out,c(NROW(M$out),H*m))
-  
-  model <- keras_model_sequential() %>%
-    layer_lstm(units = nunits,input_shape=c(n,m))%>%
-    layer_dropout(0.2) %>%
-    layer_dense(ncol(trainY))
-  
-  model %>% compile(loss = 'mse',
-                    optimizer = 'RMSprop',
-                    metrics = c('accuracy'))
-  
-  
-  model %>% fit(
-    x = trainX, # sequence we're using for prediction                                                          
-    y = trainY, # sequence we're predicting                                                                    
-    epochs = 500, # how many times we'll look @ the whole dataset                                           
-    validation_split = 0.1,verbose=0)
-  
-  lmodel=model
-  q<-NULL
-  D=0
-  for (j in 1:m)
-    q<-c(q,TS[seq(N-D,N-n+1-D,by=-1),j])
-  
-  Xts=array(q,c(1,1,length(q)))
-  trainXts=array(Xts,c(1,n,m))
-  Yhat<-array(NA,c(H,m))
-  
-  Yhat  <- lmodel%>% predict(trainXts,verbose=0)
-  Yhat  <- (array(Yhat,c(H,m)))
-  for (i in 1:NCOL(Yhat))
-    Yhat[,i]=Yhat[,i]*attr(sTS,'scaled:scale')[i]+attr(sTS,'scaled:center')[i]
-  return(Yhat)
-  
-  
-}
 
 
 # for each series and for each horizon it selects relevant features and
@@ -1027,7 +868,7 @@ multifs<-function(TS,n,H,w=NULL,nfs=3,mod,...){
   return(Yhat)
 }
 
-multipls<-function(TS,n,H,w=NULL,nfs=3,...){
+multipls<-function(TS,n,H,w=NULL,...){
   args<-list(...)
   if (length(args)>0)
     for(i in 1:length(args)) {
@@ -1073,7 +914,7 @@ multipls<-function(TS,n,H,w=NULL,nfs=3,...){
   return(Yhat)
 }
 
-multirr<-function(TS,n,H,w=NULL,nfs=3,...){
+multirr<-function(TS,n,H,w=NULL,nfold = 10,...){
   require(rrpack)
   args<-list(...)
   if (length(args)>0)
@@ -1156,7 +997,7 @@ svdcca<-function(X,Y){
 }
 
 multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
-                   maxLambda=1000,...){
+                   maxLambda=1000,nLambdas=25,...){
   
   args<-list(...)
   if (length(args)>0)
@@ -1201,7 +1042,7 @@ multicca<-function(TS,n,H,nfs=10,minLambda=0.1,
       p<-NCOL(XX1)
       XXX<-t(XX1)%*%(XX1)
       
-      for (lambdah in seq(0.1,100,length.out=10)){
+      for (lambdah in seq(0.1,100,length.out=nLambdas)){
         H1<-ginv(XXX+lambdah*diag(p))
         beta.hat<-H1%*%t(XX1)%*%YYc
         HH=XX1%*%H1%*%t(XX1)
@@ -1279,7 +1120,7 @@ multipreq<-function(XX,YY,H=NULL,minLambda=0.1,
   return(list(beta.hat=betahat,minMSE=minMSE,lambda=lambda))
 }
 mlin<-function(XX,YY,H=NULL,minLambda=0.1,
-               maxLambda=1000,nLambdas=25,maha=FALSE){
+               maxLambda=5000,nLambdas=25,maha=FALSE){
   N<-NROW(XX) # number training data
   nn<-NCOL(XX) # number input variables
   m<-NCOL(YY)
@@ -1405,7 +1246,7 @@ colourMaha<-function(Y,meanX,IsigmaX){
 
 ## multi-output ridge regression with lambda selection by PRESS
 whitenridge<-function(TS,n,H,
-                      verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,...){
+                      verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,nLambdas=25,...){
   if (! (MIMO|direct))
     stop("Erro in multiridge: at least MIMO  or direct should be true")
   args<-list(...)
@@ -1434,7 +1275,7 @@ whitenridge<-function(TS,n,H,
     q<-c(q,sTS[seq(N-D,N-n+1-D,by=-1),j])
   Xts=array(q,c(1,length(q)))
   
-  ML<-mlin(XX,YY,H=H,maha=maha)
+  ML<-mlin(XX,YY,H=H,maha=maha,nLambdas=nLambdas)
   beta.hat=ML$beta.hat 
   
   
@@ -1472,7 +1313,8 @@ whitenridge<-function(TS,n,H,
 
 ## multi-output ridge regression with lambda selection by PRESS
 multiridge<-function(TS,n,H,
-                     verbose=FALSE,maha=FALSE, direct=FALSE, MIMO=FALSE,preq=FALSE,...){
+                     verbose=FALSE,maha=FALSE, direct=FALSE, 
+                     MIMO=FALSE,preq=FALSE,nLambdas=25,...){
   if (! (MIMO|direct))
     stop("Erro in multiridge: at least MIMO  or direct should be true")
   args<-list(...)
@@ -1499,7 +1341,7 @@ multiridge<-function(TS,n,H,
   Xts=array(q,c(1,length(q)))
   
   if (!preq)
-    ML<-mlin(XX,YY,H=H,maha=maha)
+    ML<-mlin(XX,YY,H=H,maha=maha,nLambdas=nLambdas)
   else 
     ML<-multipreq(XX,YY,H=H)
   beta.hat=ML$beta.hat 

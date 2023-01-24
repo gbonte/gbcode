@@ -11,7 +11,8 @@ ridgeFsel(X, Y, nmax = 5, alpha = 0)
 
 \item{Y:}{output dataset}
 
-\item{nmax:}{number of top returned features}
+\item{nmax:}{number of top returned features
+#'}
 }
 \description{
 Ridge based feature selection based on glmnet
@@ -20,6 +21,17 @@ Ridge based feature selection based on glmnet
 ridgeFsel
 
 Ridge based feature selection based on glmnet
+}
+\examples{
+N<-100
+n<-5
+neff<-3
+R<-regrDataset(N,n,neff,0.1,seed=0)
+X<-R$X
+Y<-R$Y
+real.features<-R$feat
+ranked.features<-ridgeFsel(X,Y,nmax=3)
+
 }
 \references{
 Handbook \emph{Statistical foundations of machine learning} available in \url{https://tinyurl.com/sfmlh}

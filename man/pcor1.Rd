@@ -25,7 +25,7 @@ pcor1
 partial correlation cor(x,y|z)
 }
 \examples{
-pcor1(rnorm(100),rnorm(100),rnorm(100),)
+pcor1(rnorm(100),rnorm(100),rnorm(100))
 
 }
 \references{

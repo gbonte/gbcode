@@ -5,10 +5,37 @@
 
 import numpy as np
 import warnings 
+import sys
 warnings.filterwarnings("ignore")
+
+try:
+  import sklearn
+except ImportError as e:
+  print(e)
+  print("Missing python package sklearn. Install it first using py_install") 
+  sys.exit(1)  
+
+try:
+  import tensorflow
+except ImportError as e:
+  print(e)
+  print("Missing package tensorflow. Install it first using py_install ") 
+  sys.exit(1)
   
-
-
+try:
+  import tensorflow.keras
+except ImportError as e:
+  print(e)
+  print("Missing package tensorflow.keras. Install it first using py_install ") 
+  sys.exit(1)  
+  
+try:
+  import keras_tuner
+except ImportError as e:
+  print(e)
+  print("Missing package tensorflow. Install it first using py_install ") 
+  sys.exit(1)
+  
 yhat=[]
 if r.pym==1:
   r.pyY=np.ravel(r.pyY)
@@ -1020,6 +1047,8 @@ if r.plearn=="transformer_gpt":
     return x + res
   
   
+
+  
   
   def build_model( input_shape, head_size,
     num_heads,ff_dim, num_transformer_blocks, mlp_units, dropout=0,
@@ -1044,11 +1073,135 @@ if r.plearn=="transformer_gpt":
     head_size=256,
     num_heads=2,
     ff_dim=4,
-    num_transformer_blocks=4,
+    num_transformer_blocks=int(r.pynunits),
     mlp_units=[128],
     mlp_dropout=0.4,
     dropout=0.5,
   )
+
+  model.compile(
+    loss='mean_squared_error', optimizer='adam'
+  )
+  #model.summary()
+
+  callbacks = [keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)]
+
+  model.fit(
+    train_X,
+    train_Y,
+    validation_split=0.1,
+    epochs=int(r.pynepochs),
+    batch_size=64,
+    callbacks=callbacks,verbose=0
+  )
+
+  #model.evaluate(train_X, train_Y, verbose=1)
+  q=create_query(scaled_data, look_back=look_back)
+  q = np.reshape(q, (1, train_X.shape[1], train_X.shape[2]))
+  fore = model.predict(q, verbose=0)
+  
+  fore=np.reshape(fore, (1, int(r.pyH), int(r.pym)))
+  fore=scaler.inverse_transform(fore[0,:,:])
+  yhat=fore
+
+
+if r.plearn=="transformer_gpt_hyper":
+  import tensorflow
+  from tensorflow import keras
+  from tensorflow.keras import layers
+  import numpy as np
+  import pandas as pd
+  import keras_tuner as kt
+  
+  from keras.layers import Dense
+  from keras.models import Sequential
+  from sklearn.preprocessing import StandardScaler
+
+  # Create a function that converts an array of data into a dataset for training or testing
+  def create_dataset(data, look_back=1, look_ahead=1):
+    data_X, data_Y = [], []
+    for i in range(len(data) - look_back - look_ahead + 1):
+      a = data[i:(i + look_back), :]
+      data_X.append(a)
+      data_Y.append(data[i + look_back:i + look_back + look_ahead, :])
+    return np.array(data_X), np.array(data_Y)  
+
+
+  def create_query(data, look_back=1):    
+    query=[]   
+    query.append(data[(len(data)-look_back):len(data), :])
+    return  query
+  
+# Scale the time series data
+  scaler = StandardScaler()
+  scaled_data = scaler.fit_transform(r.pyTS)
+
+  m=int(r.pym)
+  look_back = int(r.pyn)
+  look_ahead = int(r.pyH)
+  
+  # Create training and testing datasets
+  
+  train_X, train_Y = create_dataset(scaled_data, look_back=look_back, look_ahead=look_ahead)
+
+  # Reshape the input data for use with a LSTM model
+  train_X = np.reshape(train_X, (train_X.shape[0], train_X.shape[1], train_X.shape[2]))
+  train_Y = np.reshape(train_Y, (train_Y.shape[0], train_Y.shape[1]* train_Y.shape[2]))
+  input_shape = train_X.shape[1:]
+ 
+  def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
+    # Normalization and Attention
+    x = layers.LayerNormalization(epsilon=1e-6)(inputs)
+    x = layers.MultiHeadAttention(
+        key_dim=head_size, num_heads=num_heads, dropout=dropout
+    )(x, x)
+    x = layers.Dropout(dropout)(x)
+    res = x + inputs
+
+    # Feed Forward Part
+    x = layers.LayerNormalization(epsilon=1e-6)(res)
+    x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation="relu")(x)
+    x = layers.Dropout(dropout)(x)
+    x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)
+    return x + res
+  
+  
+  def model_builder(hp,input_shape=input_shape, head_size=256,
+    ff_dim=4,  mlp_units=[128], dropout=0.5):
+      num_transformer_blocks = hp.Int('num_transformer_blocks', 
+        min_value=2, max_value=40, step=2)
+      num_heads = hp.Int('num_heads', 
+        min_value=2, max_value=5, step=1)
+      mlp_dropout = hp.Choice('mlp_dropout', values=[0.1, 0.5, 0.7, 0.9])
+      inputs = keras.Input(shape=input_shape)
+      x = inputs
+      for _ in range(num_transformer_blocks):
+        x = transformer_encoder(x, head_size, num_heads, ff_dim, dropout)
+
+      x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)
+      for dim in mlp_units:
+        x = layers.Dense(dim, activation="relu")(x)
+        x = layers.Dropout(mlp_dropout)(x)
+      outputs = layers.Dense(look_ahead*m)(x)
+      return keras.Model(inputs, outputs)
+  
+  
+
+  
+  
+  
+  # Train the model on the training data.  
+  tuner = kt.Hyperband(model_builder,
+                     objective='val_accuracy',
+                     max_epochs=10,
+                     factor=3)
+  stop_early = tensorflow.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+  tuner.search(train_X, train_Y,
+    epochs=20, validation_split=0.2, callbacks=[stop_early],verbose=0)
+
+  # Get the optimal hyperparameters
+  best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
+  model = tuner.hypermodel.build(best_hps,input_shape)
 
   model.compile(
     loss='mean_squared_error', optimizer='adam'

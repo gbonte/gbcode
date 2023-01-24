@@ -6,6 +6,15 @@
 \usage{
 SMAPE(ts1, ts2, Cent = 0, Sc = 1)
 }
+\arguments{
+\item{ts1:}{series 1}
+
+\item{ts2:}{series 2}
+
+\item{Cent:}{center}
+
+\item{Sc:}{scale factor}
+}
 \description{
 Symmetric mean absolute percentage error
 }

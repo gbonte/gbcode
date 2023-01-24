@@ -37,6 +37,7 @@ Multioutput KNN for multi-step-ahed prediction. It performs a locally constant m
 }
 \examples{
 ## Multi-step ahead time series forecasting
+require(gbcode)
 library(lazy)
 t=seq(0,200,by=0.1)
 N<-length(t)
@@ -45,12 +46,13 @@ TS<-sin(t)+rnorm(N,sd=0.1)
 TS.tr=TS[1:(N-H)]
 N.tr<-length(TS.tr)
 TS.ts<-TS[(N-H+1):N]
+n=3
 TS.tr=array(TS.tr,c(length(TS.tr),1))
-E=MakeEmbedded(TS.tr,n=3,delay=0,hor=H,1)
+E=MakeEmbedded(TS.tr,n=n,delay=0,hor=H,1)
 X<-E$inp
 Y<-E$out
 N<-NROW(X)
-Y.cont<-KNN.acf(X,Y,rev(TS.tr[(N.tr-H):N.tr]),TS=TS.tr)
+Y.cont<-KNN.acf(X,Y,rev(TS.tr[(N.tr-n+1):N.tr]),TS=TS.tr)
 plot(t[(N-H+1):N],TS.ts)
 lines(t[(N-H+1):N],Y.cont)
 }
