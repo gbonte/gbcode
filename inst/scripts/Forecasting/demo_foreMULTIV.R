@@ -2,12 +2,13 @@ rm(list=ls())
 library(reticulate)
 library("VARshrink")
 require(gbcode)
+library(keras)
 
 
 
 Fhat<-NULL
 savefile<-"assessMV.Rdata"
-methods=c("DFML","MIMO_rr","MIMO_rf","MISO_rr",
+methods=c("DFML","MIMO_rr","MIMO_pls","MISO_rr",
           "MIMOSO_rr","DFM","MITER_rr","MITER_rr_H",
           "VARs","LSTM", "RNN","UNI")
 load("./data/STdata.Rdata")
@@ -23,7 +24,7 @@ for ( f in 1:length(STnames)){
   Nsets=5  
   Lcv=1 ## number of rolling validations
   n=3
-  Nmax<-1000 ## max number of series samples
+  Nmax<-500 ## max number of series samples
   mmax<-20  ## max number of series
   
   if (NCOL(D)<mmax)
@@ -37,7 +38,7 @@ for ( f in 1:length(STnames)){
     D=D[1:Nmax,]
   
   N=NROW(D)
-  H=10#max(2,min(20,round(N/30)))
+  H=10
   cat("H=",H,"\n")
   E.hat1=NULL
   E.hat2=NULL
@@ -89,9 +90,8 @@ for ( f in 1:length(STnames)){
       if (season){
         SPts=SeasP[(Ntr+1):(Ntr+H),]
       } 
-      #  methods=c("uni","VAR","VARs","dfm","dfml","uni","multifs","multifs2","multirr","lstm")
      
-      Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1],cdfml=2,dfmlmodels = "multifs")
+      Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1],cdfml=2,dfmlmodels = "MIMO")
       
       
       cat(".")
