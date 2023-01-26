@@ -48,6 +48,8 @@
 \item{mimo.lin.pls}: MIMO prediction based on Partial Least Squares which combines a set of predictors based on different horizons and different starting points
 \item{mimo_rr}: MIMO prediction based on linear ridge regression 
 \item{mimo_red}: MIMO prediction based on linear reduced rank regression 
+\item{mimo_cca}: MIMO prediction based on linear canonical correlation 
+\item{mimo_red}: MIMO prediction based on linear reduced rank regression 
 \item{rnn}:  prediction based on python (\pkg{reticulate})  implementation of rnn (recurrent neural networks)
 \item{lstm}:  prediction based on python (\pkg{reticulate})  implementation of lstm neural networks
 \item{transf}:  prediction based on python (\pkg{reticulate})  implementation of transformer neural networks
@@ -63,6 +65,9 @@ multiplestepAhead: : univariate multi-step-ahead forecaster
 multiplestepAhead
 
 Wrapper over a set of methods for univariate multi-step-ahead time series forecasting
+
+
+The python forecasters require the installation of \pkg{reticulate} and several python packages (scikit-learn, tensorflow, keras)
 }
 \examples{
 ## Multi-step ahead time series forecasting

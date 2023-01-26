@@ -26,8 +26,12 @@
 \item{MIMO_rr}: prediction based on a MIMO ridge regressor (lambda estimation based on PRESS)
 \item{MITER_rr}: prediction based on an iterated ridge regressor (lambda estimation based on PRESS and a criterion with horizon Hobj) 
 \item{MIMO_red}: prediction based on a MIMO reduced rank regressor (\pkg{rrpack})
-\item{MIMO_red}: prediction based on a MIMO partial least-squares (Sklearn python)
-\item{multifs}: prediction based on MISO direct strategy and feature selection (predictor from \link{pred})
+\item{MIMO_cca}: prediction based on a MIMO CCA 
+\item{MIMO_pls}: prediction based on a MIMO partial least-squares (Sklearn python)
+\item{MIMO_las}: prediction based on a MIMO lasso (Sklearn python)
+\item{MIMO_rf}: prediction based on a MIMO Random Forest (Sklearn python)
+\item{MIMO_ml}: prediction based on MIMO direct strategy and predictor from \link{pred}
+\item{MIMO_fs}: prediction based on MISO direct strategy and feature selection (predictor from \link{pred})
 }}
 }
 \value{
@@ -40,6 +44,9 @@ MmultiplestepAhead: multi-variate multi-step-ahead forecaster
 MmultiplestepAhead
 
 Wrapper over a set of methods for multi variate multiple step ahead time series prediction
+
+
+The python forecasters require the installation of \pkg{reticulate} and several python packages (scikit-learn, tensorflow, keras)
 }
 \examples{
 ## Multi-variate Multi-step-ahead time series forecasting
