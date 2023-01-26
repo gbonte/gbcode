@@ -27,9 +27,9 @@ n=48
 method1="arima"
 method2="mimo_rr"
 method3="lazydirect"
-method4="lstm"
+method4="lindirect"
 method5="rnn"
-method6="mimolin"
+method6="mimo"
 colors=c("red","green","magenta","cyan","orange","yellow")
 if (assess)
   for (i in seq(500,1000,by=50))
