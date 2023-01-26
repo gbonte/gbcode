@@ -5,11 +5,10 @@ require(gbcode)
 library(keras)
 
 
-
 Fhat<-NULL
 savefile<-"assessMV.Rdata"
 methods=c("DFML","MIMO_rr","MIMO_pls","MISO_rr",
-          "MIMOSO_rr","DFM","MITER_rr","MITER_rr_H",
+          "MIMOSO_rr","DFM","MITER_rr","MIMO_cca",
           "VARs","LSTM", "RNN","UNI")
 load("./data/STdata.Rdata")
 for ( f in 1:length(STnames)){
@@ -18,9 +17,9 @@ for ( f in 1:length(STnames)){
   if (length(wna)>0)
     D=D[,-wna]
   cat(STnames[[f]],"\n"
-      )
+  )
   print(dim(D))
-  print(D[1:3,1])
+#  print(D[1:3,1])
   Nsets=5  
   Lcv=1 ## number of rolling validations
   n=3
@@ -64,8 +63,8 @@ for ( f in 1:length(STnames)){
     
     NtrCV=round(seq(N-3*H,N-H,length.out=Lcv))
     
-  FF<-foreach( Ntr=NtrCV )%do%{
-##            for (Ntr in NtrCV){
+    FF<-foreach( Ntr=NtrCV )%do%{
+      ##            for (Ntr in NtrCV){
       SeasP<-NULL
       
       if (season){
@@ -82,7 +81,7 @@ for ( f in 1:length(STnames)){
         X=D2
       }
       
-     
+      
       
       
       Xtr=X[1:Ntr,]
@@ -90,7 +89,7 @@ for ( f in 1:length(STnames)){
       if (season){
         SPts=SeasP[(Ntr+1):(Ntr+H),]
       } 
-     
+      
       Xhat1=MmultiplestepAhead(Xtr,n,H,multi=methods[1],cdfml=2,dfmlmodels = "MIMO")
       
       
@@ -99,23 +98,23 @@ for ( f in 1:length(STnames)){
       
       cat(".")
       Xhat3=MmultiplestepAhead(Xtr,n,H,multi=methods[3])
-     
+      
       cat(".")
-     
+      
       Xhat4=MmultiplestepAhead(Xtr,n,H,multi=methods[4])
-     
+      
       cat(".")
       
       Xhat5=MmultiplestepAhead(Xtr,n,H,multi=methods[5])
       
       cat(".")
-     
+      
       Xhat6=MmultiplestepAhead(Xtr,n,H,multi=methods[6])
       
       cat(".")
       
       Xhat7=MmultiplestepAhead(Xtr,n,H,multi=methods[7])
-     
+      
       
       cat(".")
       
@@ -209,7 +208,7 @@ for ( f in 1:length(STnames)){
   colnames(Fhat)=c("file",methods)
   
   if (NROW(Fhat)>1)
-  print(apply(Fhat[,2:NCOL(Fhat)],2,mean))
+    print(apply(Fhat[,2:NCOL(Fhat)],2,mean))
   save(file=savefile,list=c("Fhat","Nmax","mmax","Lcv","Nsets"))
   
 } ## for f
