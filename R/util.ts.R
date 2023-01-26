@@ -776,10 +776,7 @@ pylstmpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   else
     plearn<<-"lstm_gpt"
   
-  cdir=getwd()
-  setwd(paste(find.package("gbcode"),"python",sep="/"))
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-  setwd(cdir)
   Yhat=array(py$yhat,c(H,m))
   
   Yhat
@@ -795,10 +792,7 @@ pyrnnpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
     plearn<<-"rnn_gpt_hyper"
   else
     plearn<<-"rnn_gpt"
-  cdir=getwd()
-  setwd(paste(find.package("gbcode"),"python",sep="/"))
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-  setwd(cdir)
   Yhat=array(py$yhat,c(H,m))
   
   Yhat
@@ -816,10 +810,7 @@ pytransfpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   else
     plearn<<-"transformer_gpt"
   
-  cdir=getwd()
-  setwd(paste(find.package("gbcode"),"python",sep="/"))
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
-  setwd(cdir)
   Yhat=array(py$yhat,c(H,m))
   
   Yhat

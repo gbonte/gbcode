@@ -24,7 +24,7 @@ NMSE5=NULL
 NMSE6=NULL
 TS=scale(remNA((rawTS)))
 n=48
-method1="arima"
+method1="transf"
 method2="mimo_rr"
 method3="lazydirect"
 method4="lindirect"
@@ -32,7 +32,7 @@ method5="rnn"
 method6="mimo"
 colors=c("red","green","magenta","cyan","orange","yellow")
 if (assess)
-  for (i in seq(500,1000,by=50))
+  for (i in seq(200,500,by=50))
     for (H in c(10, 20,50)){
       TStr=TS[1:i]
       Ntr=length(TStr)

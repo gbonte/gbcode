@@ -2,12 +2,12 @@ rm(list=ls())
 library(reticulate)
 library(gbcode)
 
-
 set.seed(0)
-N=200
-m=3
-H=10
-n=24
+N=200. ## number of observations
+m=5 ## number of time series
+H=10 ## horizon
+n=24 ## embedding order
+
 TS<-array(0,c(N,m))
 for (j in 1:m){
   for (f in 1:15)
@@ -18,13 +18,11 @@ TS=scale(TS)
 N=NROW(TS)
 
 if (m>1){
-  #P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="RNN",
-  #                    nepochs=100, nunits=10)
-  P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="MIMO_rr",
-                       nLambdas=50)
+  P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="TRANSF", nepochs=100, nunits=10)
+  ## P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="MIMO_rr")
   ##P=MmultiplestepAhead(TS[1:(N-H),],n=n,H=H,multi="TRANSF",epochs=1000)
 } else {
-  P=multiplestepAhead(TS[1:(N-H),],n=n,H=H,method="mimo_rr",epochs=1000)
+  P=multiplestepAhead(TS[1:(N-H),],n=n,H=H,method="mimo_rr")
   ##P=multiplestepAhead(TS[1:(N-H),],n=n,H=H,method="transf",epochs=1000)
   
 }
