@@ -708,7 +708,8 @@ lin.pls<- function(X,Y,X.ts){
 #' \item{mimo.pls}: MIMO prediction based on \link{KNN.pls} function which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo.lin.pls}: MIMO prediction based on Partial Least Squares which combines a set of predictors based on different horizons and different starting points
 #' \item{mimo_rr}: MIMO prediction based on linear ridge regression 
-#' \item{mimo_red}: MIMO prediction based on linear reduced rank regression 
+#' \item{mimo_red}: MIMO prediction based on linear reduced rank regression (\pkg{rrpack})
+#' \item{mimo_las}: MIMO prediction based on linear lasso regression based on python (\pkg{reticulate})  
 #' \item{mimo_cca}: MIMO prediction based on linear canonical correlation 
 #' \item{mimo_red}: MIMO prediction based on linear reduced rank regression 
 #' \item{rnn}:  prediction based on python (\pkg{reticulate})  implementation of rnn (recurrent neural networks)
@@ -946,7 +947,10 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     p=multicca(array(TS,c(length(TS),1)),n,H,...) 
     return(c(p+trnd.ts))
   }
-  
+  if (method=="mimo_las"){
+    p=multiml(cbind(TS),n,H,learner="py.lasso_regr",...)
+    return(c(p+trnd.ts))
+  }
   ### keras based RNN: it requires keras
   if (method=="rnn"){
     p=pyrnnpredgpt(cbind(TS),H,n=n,...)

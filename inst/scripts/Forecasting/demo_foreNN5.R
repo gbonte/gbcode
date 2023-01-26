@@ -14,7 +14,7 @@ NMSE4=NULL
 NMSE5=NULL
 NMSE6=NULL
 
-method1="transf"
+method1="rnn"
 method2="mimo_rr"
 method3="mimo_cca"
 method4="stat_comb"
