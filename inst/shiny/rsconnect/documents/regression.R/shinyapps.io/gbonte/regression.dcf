@@ -5,9 +5,10 @@ account: gbonte
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3552149
-bundleId: 4352414
+bundleId: 5652168
 url: https://gbonte.shinyapps.io/regression/
-when: 1615893287.61661
+when: 1646666123.08529
+lastSyncTime: 1646666123.0853
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: bimodal.R|bootstrap.R|cart.R|classif.R|condind.R|condpro.R|estimation.R|gaussian.R|lawlarge.R|leastsquares.R|mcarlo.R|server.R|ui.R|unimodal.R
+ignoredFiles: bimodal.R|bootstrap.R|cart.R|classif.R|classif2.R|condind.R|condpro.R|estimation.R|gaussian.R|lawlarge.R|leastsquares.R|mcarlo.R|server.R|ui.R|unimodal.R
