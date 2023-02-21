@@ -17,16 +17,16 @@ To change the directory to the one containing scripts
 
 > setwd(find.package("gbcode"))
 
-If you wish to run a script mentioned in the main text (e.g. the script Probability/freq.R) without changing the local directory you should run
+If you wish to run a script mentioned in the main text (e.g. the script "Probability/freq.R") without changing the local directory you should run
 
 
 > source(system.file("scripts","Probability/freq.R",package = "gbcode"))
 
-If you wish to edit a script mentioned in the main text (e.g. the script Probability/freq.R) without changing the local directory you should run
+If you wish to edit a script mentioned in the main text (e.g. the script "Probability/freq.R") without changing the local directory you should run
 
 > edit(file=system.file("scripts","Probability/freq.R",package ="gbcode"))
 
-If you wish to execute a Shiny dashboard (e.g. leastsquares.R) you should run
+If you wish to execute a Shiny dashboard (e.g. "leastsquares.R") you should run
 
 > library(shiny) 
 > setwd(paste(find.package("gbcode"),"shiny",sep="/"))
