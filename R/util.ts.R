@@ -870,6 +870,37 @@ pytorchntft<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   
   Yhat
 }
+
+dartstft<-function(TS,H,n,nepochs=5,nunits=20,hyper=TRUE,...){
+  
+  m<-NCOL(TS)
+  pyTS<<-cbind(TS); pyY<<-TS;         
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
+  
+  
+  plearn<<-"darts_tft"
+  
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  
+  Yhat
+}
+
+dartsnbeats<-function(TS,H,n,nepochs=5,nunits=20,hyper=TRUE,...){
+  
+  m<-NCOL(TS)
+  pyTS<<-cbind(TS); pyY<<-TS;         
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
+  
+  
+  plearn<<-"darts_nbeats"
+  
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  
+  Yhat
+}
+
 # for each series and for each horizon it selects relevant features and
 # return the forecast
 multifs<-function(TS,n,H,w=NULL,nfs=3,mod,...){

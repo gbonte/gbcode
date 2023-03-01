@@ -250,7 +250,7 @@ if r.plearn=="enet_regr":
   
   
 if r.plearn=="lin_regr":
-# Create linear regression object
+  # Create linear regression object
   from sklearn import linear_model
   linear_regressor = linear_model.LinearRegression()
   linear_regressor.fit(r.pyX, r.pyY)
@@ -707,8 +707,7 @@ if r.plearn=="transformer_gpt":
     query=[]   
     query.append(data[(len(data)-look_back):len(data), :])
     return  query
-  
-# Scale the time series data
+  # Scale the time series data
   scaler = StandardScaler()
   scaled_data = scaler.fit_transform(r.pyTS)
 
@@ -826,8 +825,7 @@ if r.plearn=="transformer_gpt_hyper":
     query=[]   
     query.append(data[(len(data)-look_back):len(data), :])
     return  query
-  
-# Scale the time series data
+  # Scale the time series data
   scaler = StandardScaler()
   scaled_data = scaler.fit_transform(r.pyTS)
 
@@ -1278,7 +1276,55 @@ if r.plearn=="tft_pytorch":
   baseline_predictions = Baseline().predict(test_dataloader)
   yhat=np.array(predictions)
 
+if r.plearn=="darts_nbeats":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import NBEATSModel,NaiveSeasonal,NaiveDrift,ExponentialSmoothing, TBATS, AutoARIMA, Theta
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  model = NBEATSModel(input_chunk_length=24, 
+    output_chunk_length=12, random_state=42)
+  
+  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)
 
+if r.plearn=="darts_tft":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import TransformerModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  #naive_model = ExponentialSmoothing()#NaiveDrift() #NaiveSeasonal(K=1)
+  #naive_
+  model = TransformerModel(
+    batch_size=32,
+    input_chunk_length=125,
+    output_chunk_length=36,
+    n_epochs=int(r.pynepochs),
+    model_name="transformer",
+    nr_epochs_val_period=5,
+    d_model=16,
+    nhead=4,
+    num_encoder_layers=2,
+    num_decoder_layers=2,
+    dim_feedforward=int(r.pynunits),
+    dropout=0.1,
+    random_state=42,
+    optimizer_kwargs={"lr": 1e-3},
+    save_checkpoints=False,
+    force_reset=True,
+  )
+  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)
+  
 if yhat==[]:
   import sys
   sys.exit("empty output in the call "+ r.plearn)

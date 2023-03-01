@@ -997,6 +997,17 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(c(p+trnd.ts))
   }
   
+  if (method=="darts_nbeats"){
+    
+    p=dartsnbeats(array(TS,c(length(TS),1)),n=n,  H=H,...)
+    return(c(p+trnd.ts))
+  }
+  
+  if (method=="darts_tft"){
+    
+    p=dartstft(array(TS,c(length(TS),1)),n=n,  H=H,...)
+    return(c(p+trnd.ts))
+  }
   if (method=="nbeatsens"){
     
     p=nbeatsenspred(array(TS,c(length(TS),1)),n=n,  H=H,...)
@@ -1582,8 +1593,10 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
     Yhat=pylstmpredgpt(TS,H,n,...)
   if (multi=="TRANSF")
     Yhat=pytransfpredgpt(TS,H,n,...)
-  
-   
+  if (multi=="darts_nbeats")
+    Yhat=dartsnbeats(TS,H,n,...)
+  if (multi=="darts_tft")
+    Yhat=dartstft(TS,H,n,...) 
   if (multi=="DFM"){
     Yhat=dfml(TS,n,H,p0=pc0,dfmod=dfmlmodels[1],...)
   }
