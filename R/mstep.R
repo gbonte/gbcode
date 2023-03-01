@@ -970,6 +970,21 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
     return(c(p+trnd.ts))
   }
   
+  if (method=="nbeats"){
+    p=pytorchnbeats(cbind(TS),H,n=n,...)
+    return(c(p+trnd.ts))
+  }
+  
+  if (method=="deepar"){
+    p=pytorchndeepar(cbind(TS),H,n=n,...)
+    return(c(p+trnd.ts))
+  }
+  
+  if (method=="tft"){
+    p=pytorchntft(cbind(TS),H,n=n,...)
+    return(c(p+trnd.ts))
+  }
+  
   if (method=="gluon"){
     
     p=gluonpred(array(TS,c(length(TS),1)),n=n,  H=H,...)

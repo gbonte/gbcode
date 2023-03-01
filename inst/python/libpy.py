@@ -924,6 +924,360 @@ if r.plearn=="transformer_gpt_hyper":
   yhat=fore
 
 
+if r.plearn=="nbeats_pytorch":
+  import pytorch_lightning as pl
+  from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor
+
+  from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+  import os
+  import warnings
+  import numpy as np
+  warnings.filterwarnings("ignore")
+
+
+  import pandas as pd
+  import pytorch_lightning as pl
+  from pytorch_lightning.callbacks import EarlyStopping
+  import torch
+
+  from pytorch_forecasting import Baseline, NBeats, TimeSeriesDataSet
+  from pytorch_forecasting.data import NaNLabelEncoder
+  from pytorch_forecasting.data.examples import generate_ar_data
+  from pytorch_forecasting.metrics import SMAPE,MultivariateNormalDistributionLoss
+  import logging
+  logging.getLogger("lightning").setLevel(logging.ERROR)
+  m=int(r.pym)
+  look_back = int(r.pyn)
+  r.pyTS=np.reshape(r.pyTS,-1)
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  
+  max_prediction_length = H
+  data = generate_ar_data(seasonality=0.0, timesteps=N+H, n_series=1, seed=42)
+  
+  TS=np.concatenate((np.array(r.pyTS),np.arange(H)*0.0))
+ 
+  data["value"]=TS
+  training_cutoff = N-H #data["time_idx"].max() - (2*max_prediction_length)
+  validation_cutoff = N
+
+
+  # create dataset and dataloaders
+  max_encoder_length = int(r.pyn)
+
+  context_length = max_encoder_length
+  prediction_length = max_prediction_length
+
+  training = TimeSeriesDataSet(
+    data[lambda x: x.time_idx < training_cutoff],
+    time_idx="time_idx",
+    target="value",
+    categorical_encoders={"series": NaNLabelEncoder().fit(data.series)},
+    group_ids=["series"],
+    # only unknown variable is "value" - and N-Beats can also not take any additional variables
+    time_varying_unknown_reals=["value"],
+    max_encoder_length=context_length,
+    #min_encoder_length=context_length//2,
+    max_prediction_length=prediction_length,
+  )
+
+  validation = TimeSeriesDataSet.from_dataset(training, 
+    data[lambda x: x.time_idx<=validation_cutoff],
+    min_prediction_idx=training_cutoff + 1)
+  test = TimeSeriesDataSet.from_dataset(training, data, 
+    min_prediction_idx=validation_cutoff )
+
+  batch_size = 128
+  train_dataloader = training.to_dataloader(train=True, batch_size=batch_size, num_workers=0)
+  val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
+  test_dataloader = test.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
+  pl.seed_everything(42)
+  trainer = pl.Trainer(gpus=0, gradient_clip_val=0.01,enable_progress_bar=False)
+  
+
+  net = NBeats.from_dataset(training, learning_rate=3e-2, 
+    weight_decay=1e-2, widths=[32, 512], backcast_loss_ratio=0.1,
+    optimizer='adam')
+
+  res = trainer.tuner.lr_find(net, 
+    train_dataloaders=train_dataloader, 
+    val_dataloaders=val_dataloader, min_lr=1e-5)
+  net.hparams.learning_rate = res.suggestion()
+
+
+  early_stop_callback = EarlyStopping(monitor="val_loss", 
+    min_delta=1e-4, patience=10, verbose=False, mode="min")
+  trainer = pl.Trainer(
+      max_epochs=20,
+      gpus=0,
+      enable_model_summary=False,
+      gradient_clip_val=0.01,
+      callbacks=[early_stop_callback],
+      limit_train_batches=30,
+      enable_progress_bar=False
+    
+  )
+
+
+  net = NBeats.from_dataset(
+    training,
+    learning_rate=4e-3,
+    log_interval=10,
+    log_val_interval=1,
+    weight_decay=1e-2,
+    widths=[32, 512],
+    backcast_loss_ratio=1.0,
+  )
+
+  
+  trainer.fit(
+    net,
+    train_dataloaders=train_dataloader,
+    val_dataloaders=val_dataloader
+  )
+
+  best_model_path = trainer.checkpoint_callback.best_model_path
+  best_model = NBeats.load_from_checkpoint(best_model_path)
+     
+  predictions = best_model.predict(test_dataloader)    
+  yhat=np.array(predictions)
+
+if r.plearn=="deepar_pytorch":
+  import pytorch_lightning as pl
+  from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor
+
+  from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+  import os
+  import warnings
+  import numpy as np
+  warnings.filterwarnings("ignore")
+
+
+  import pandas as pd
+  import pytorch_lightning as pl
+  from pytorch_lightning.callbacks import EarlyStopping
+  import torch
+
+  from pytorch_forecasting import Baseline, TimeSeriesDataSet,DeepAR
+  from pytorch_forecasting.data import NaNLabelEncoder
+  from pytorch_forecasting.data.examples import generate_ar_data
+  from pytorch_forecasting.metrics import SMAPE,MultivariateNormalDistributionLoss
+  import logging
+  logging.getLogger("lightning").setLevel(logging.ERROR)
+  m=int(r.pym)
+  look_back = int(r.pyn)
+  r.pyTS=np.reshape(r.pyTS,-1)
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  
+  max_prediction_length = H
+  data = generate_ar_data(seasonality=0.0, timesteps=N+H, n_series=1, seed=42)
+  
+  TS=np.concatenate((np.array(r.pyTS),np.arange(H)*0.0))
+ 
+  data["value"]=TS
+  training_cutoff = N-H #data["time_idx"].max() - (2*max_prediction_length)
+  validation_cutoff = N
+
+  # create dataset and dataloaders
+  max_encoder_length = int(r.pynunits)
+
+  context_length = max_encoder_length
+  prediction_length = max_prediction_length
+
+  training = TimeSeriesDataSet(
+    data[lambda x: x.time_idx < training_cutoff],
+    time_idx="time_idx",
+    target="value",
+    #categorical_encoders={"series": NaNLabelEncoder().fit(data.series)},
+    group_ids=["series"],
+    # only unknown variable is "value" - and N-Beats can also not take any additional variables
+    time_varying_unknown_reals=["value"],
+    min_encoder_length=context_length//2,
+    max_encoder_length=context_length,
+    max_prediction_length=prediction_length,
+  )
+
+  validation = TimeSeriesDataSet.from_dataset(training, 
+    data[lambda x: x.time_idx<=validation_cutoff],
+    min_prediction_idx=training_cutoff + 1)
+  test = TimeSeriesDataSet.from_dataset(training, data, 
+    min_prediction_idx=validation_cutoff )
+
+  batch_size = 128
+  train_dataloader = training.to_dataloader(train=True, batch_size=batch_size, num_workers=0)
+  val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
+  test_dataloader = test.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
+  pl.seed_everything(42)
+  trainer = pl.Trainer(gpus=0, gradient_clip_val=0.01,enable_progress_bar=False)
+  net = DeepAR.from_dataset(
+    training, learning_rate=3e-2, hidden_size=30, 
+    rnn_layers=2, optimizer='adam',
+    loss=MultivariateNormalDistributionLoss(rank=30)
+  )
+
+ 
+  res = trainer.tuner.lr_find(net, 
+    train_dataloaders=train_dataloader, 
+    val_dataloaders=val_dataloader, min_lr=1e-5)
+ 
+  net.hparams.learning_rate = res.suggestion()
+
+
+  early_stop_callback = EarlyStopping(monitor="val_loss", 
+    min_delta=1e-4, patience=10, verbose=False, mode="min")
+  trainer = pl.Trainer(
+      max_epochs=20,
+      gpus=0,
+      enable_model_summary=False,
+      gradient_clip_val=0.01,
+      callbacks=[early_stop_callback],
+      limit_train_batches=30,
+      enable_progress_bar=False
+    
+  )
+
+
+  net = DeepAR.from_dataset(
+    training,
+    learning_rate=0.1,
+    log_interval=10,
+    log_val_interval=1,
+    hidden_size=30,
+    rnn_layers=2,
+    loss=MultivariateNormalDistributionLoss(rank=30),
+    optimizer='adam'
+  )
+  trainer.fit(
+    net,
+    train_dataloaders=train_dataloader,
+    val_dataloaders=val_dataloader
+  )
+
+  best_model_path = trainer.checkpoint_callback.best_model_path
+  best_model = DeepAR.load_from_checkpoint(best_model_path)
+     
+  predictions = best_model.predict(test_dataloader)    
+  yhat=np.array(predictions)
+
+
+if r.plearn=="tft_pytorch":
+  import pytorch_lightning as pl
+  from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor
+
+  from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+  import os
+  import warnings
+  import numpy as np
+  warnings.filterwarnings("ignore")
+
+
+  import pandas as pd
+  import pytorch_lightning as pl
+  from pytorch_lightning.callbacks import EarlyStopping
+  import torch
+
+  from pytorch_forecasting import Baseline, TimeSeriesDataSet,DeepAR
+  from pytorch_forecasting.data import NaNLabelEncoder
+  from pytorch_forecasting.data.examples import generate_ar_data
+  from pytorch_forecasting.metrics import SMAPE,QuantileLoss
+  import logging
+  m=int(r.pym)
+  look_back = int(r.pyn)
+  r.pyTS=np.reshape(r.pyTS,-1)
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  
+  max_prediction_length = H
+  data = generate_ar_data(seasonality=0.0, timesteps=N+H, n_series=1, seed=42)
+  
+  TS=np.concatenate((np.array(r.pyTS),np.arange(H)*0.0))
+ 
+  data["value"]=TS
+  training_cutoff = N-H #data["time_idx"].max() - (2*max_prediction_length)
+  validation_cutoff = N
+
+  # create dataset and dataloaders
+  max_encoder_length = 24
+
+  context_length = max_encoder_length
+  prediction_length = max_prediction_length
+
+  training = TimeSeriesDataSet(
+    data[lambda x: x.time_idx < training_cutoff],
+    time_idx="time_idx",
+    target="value",
+    categorical_encoders={"series": NaNLabelEncoder().fit(data.series)},
+    group_ids=["series"],
+    # only unknown variable is "value" - and N-Beats can also not take any additional variables
+    time_varying_unknown_reals=["value"],
+    #min_encoder_length=context_length//2,
+    max_encoder_length=context_length,
+    max_prediction_length=prediction_length,
+    add_relative_time_idx=True,
+    add_target_scales=True,
+    add_encoder_length=True
+  )
+
+  validation = TimeSeriesDataSet.from_dataset(training, 
+    data[lambda x: x.time_idx<=validation_cutoff],
+    min_prediction_idx=training_cutoff + 1)
+  test = TimeSeriesDataSet.from_dataset(training, data, 
+    min_prediction_idx=validation_cutoff )
+
+  batch_size = 128
+  train_dataloader = training.to_dataloader(train=True, batch_size=batch_size, num_workers=0)
+  val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
+  test_dataloader = test.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
+  pl.seed_everything(42)
+  trainer = pl.Trainer(gpus=0, gradient_clip_val=0.01,
+    enable_progress_bar=False,max_epochs=20,
+    enable_model_summary=False)
+  tft = TemporalFusionTransformer.from_dataset(
+    training,
+    # not meaningful for finding the learning rate but otherwise very important
+    learning_rate=0.08268905348250247,
+    hidden_size=int(r.pynunits),  # most important hyperparameter apart from learning rate
+    # number of attention heads. Set to up to 4 for large datasets
+    attention_head_size=3,
+    #dropout=0.1,  # between 0.1 and 0.3 are good values
+    hidden_continuous_size=16,  # set to <= hidden_size
+    output_size=7,  # 7 quantiles by default
+    loss=QuantileLoss(),
+    # reduce learning rate if no improvement in validation loss after x epochs
+    reduce_on_plateau_patience=4,optimizer='adam'
+  )
+  res = trainer.tuner.lr_find(tft, 
+    train_dataloaders=train_dataloader, 
+    val_dataloaders=val_dataloader, min_lr=1e-5)
+ 
+  tft.hparams.learning_rate = res.suggestion()
+  early_stop_callback = EarlyStopping(monitor="val_loss", 
+    min_delta=1e-4, patience=10, verbose=False, mode="min")
+  trainer = pl.Trainer(
+      max_epochs=int(r.pynepochs),
+      gpus=0,
+      enable_model_summary=False,
+      gradient_clip_val=0.01,
+      callbacks=[early_stop_callback],
+      limit_train_batches=30,
+      enable_progress_bar=True
+    
+  )
+
+  trainer.fit(
+    tft,
+    train_dataloaders=train_dataloader,
+    val_dataloaders=val_dataloader
+  )
+
+  best_model_path = trainer.checkpoint_callback.best_model_path
+  best_model = TemporalFusionTransformer.load_from_checkpoint(best_model_path)
+      
+  predictions = best_model.predict(test_dataloader)    
+  baseline_predictions = Baseline().predict(test_dataloader)
+  yhat=np.array(predictions)
+
 
 if yhat==[]:
   import sys

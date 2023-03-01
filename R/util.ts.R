@@ -817,10 +817,59 @@ pytransfpredgpt<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
 }
 
 
+pytorchnbeats<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
+  
+  m<-NCOL(TS)
+  pyTS<<-cbind(TS); pyY<<-TS;         
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
+  
+  if (m>1)
+    stop("pytorchnbeats only for univariate")
+  
+ 
+  plearn<<-"nbeats_pytorch"
+  
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  
+  Yhat
+}
 
+pytorchndeepar<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
+  
+  m<-NCOL(TS)
+  pyTS<<-cbind(TS); pyY<<-TS;         
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
+  
+  if (m>1)
+    stop("pytorchdeepar only for univariate")
+  
+  
+  plearn<<-"deepar_pytorch"
+  
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  
+  Yhat
+}
 
-
-
+pytorchntft<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
+  
+  m<-NCOL(TS)
+  pyTS<<-cbind(TS); pyY<<-TS;         
+  pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
+  
+  if (m>1)
+    stop("pytorchtft only for univariate")
+  
+  
+  plearn<<-"tft_pytorch"
+  
+  py_run_file(system.file("python", "libpy.py", package = "gbcode"))
+  Yhat=array(py$yhat,c(H,m))
+  
+  Yhat
+}
 # for each series and for each horizon it selects relevant features and
 # return the forecast
 multifs<-function(TS,n,H,w=NULL,nfs=3,mod,...){
