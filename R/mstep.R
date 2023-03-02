@@ -1593,10 +1593,14 @@ MmultiplestepAhead<-function(TS,n=1,H=1,D=0, multi="UNI",
     Yhat=pylstmpredgpt(TS,H,n,...)
   if (multi=="TRANSF")
     Yhat=pytransfpredgpt(TS,H,n,...)
-  if (multi=="darts_nbeats")
-    Yhat=dartsnbeats(TS,H,n,...)
-  if (multi=="darts_tft")
-    Yhat=dartstft(TS,H,n,...) 
+  
+  if (is.element(multi, c("darts_nbeats","darts_tft","darts_TCN",
+                          "darts_transformer","darts_nhits","darts_RNN",
+                          "darts_blockRNN","darts_lightGBM","darts_xGBM",
+                          "darts_RandomForest" )))
+    Yhat=darts(TS,H,n,plearn=multi,...)
+
+  
   if (multi=="DFM"){
     Yhat=dfml(TS,n,H,p0=pc0,dfmod=dfmlmodels[1],...)
   }

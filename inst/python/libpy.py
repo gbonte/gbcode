@@ -1301,8 +1301,6 @@ if r.plearn=="darts_tft":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  #naive_model = ExponentialSmoothing()#NaiveDrift() #NaiveSeasonal(K=1)
-  #naive_
   model = TransformerModel(
     batch_size=32,
     input_chunk_length=125,
@@ -1324,6 +1322,139 @@ if r.plearn=="darts_tft":
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H)
   yhat=np.array(forecast.pd_dataframe().values)
+
+if r.plearn=="darts_nhits":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import NHiTSModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  model = NHiTSModel(input_chunk_length=125,
+    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)
+  
+if r.plearn=="darts_transformer":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import TransformerModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  model = TransformerModel(input_chunk_length=125,
+    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)  
+
+if r.plearn=="darts_TCN":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import TCNModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  model = TCNModel(input_chunk_length=125,
+    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)  
+
+if r.plearn=="darts_RNN":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import RNNModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  model = RNNModel(input_chunk_length=125,
+    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)  
+
+if r.plearn=="darts_blockRNN":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import BlockRNNModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  model = BlockRNNModel(input_chunk_length=125,
+    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)
+  
+if r.plearn=="darts_lightGBM":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import LightGBMModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  #naive_model = ExponentialSmoothing()#NaiveDrift() #NaiveSeasonal(K=1)
+  #naive_
+  model = LightGBMModel(lags=int(r.pyn))
+  model.fit(series,verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)  
+
+if r.plearn=="darts_xGBM":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import XGBModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  #naive_model = ExponentialSmoothing()#NaiveDrift() #NaiveSeasonal(K=1)
+  #naive_
+  model = XGBModel(lags=int(r.pyn))
+  model.fit(series,verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)  
+  
+if r.plearn=="darts_RandomForest":
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import XGBModel
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  model = XGBModel(lags=int(r.pyn))
+  model.fit(series,verbose=False)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)  
+  import pandas as pd
+  import numpy as np
+  from darts import TimeSeries
+  from darts.models import RandomForest
+  series=TimeSeries.from_values(np.array(r.pyTS))
+  
+  N=len(r.pyTS)
+  H=int(r.pyH)
+  model = RandomForest(lags=int(r.pyn))
+  model.fit(series)
+  forecast = model.predict(H)
+  yhat=np.array(forecast.pd_dataframe().values)  
   
 if yhat==[]:
   import sys

@@ -871,14 +871,14 @@ pytorchntft<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   Yhat
 }
 
-dartstft<-function(TS,H,n,nepochs=5,nunits=20,hyper=TRUE,...){
+darts<-function(TS,H,n,plearn="darts_tft",nepochs=5,nunits=20,hyper=TRUE,...){
   
   m<-NCOL(TS)
   pyTS<<-cbind(TS); pyY<<-TS;         
   pym<<-m;pyn<<-n;pyH<<-H;pynepochs<<-nepochs;pynunits<<-nunits;
   
   
-  plearn<<-"darts_tft"
+  plearn<<-plearn
   
   py_run_file(system.file("python", "libpy.py", package = "gbcode"))
   Yhat=array(py$yhat,c(H,m))
