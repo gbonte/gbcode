@@ -1301,10 +1301,11 @@ if r.plearn=="darts_tft":
   
   N=len(r.pyTS)
   H=int(r.pyH)
+  n=int(r.pyn)
   model = TransformerModel(
     batch_size=32,
-    input_chunk_length=125,
-    output_chunk_length=36,
+    input_chunk_length=3*n,
+    output_chunk_length=H,
     n_epochs=int(r.pynepochs),
     model_name="transformer",
     nr_epochs_val_period=5,
