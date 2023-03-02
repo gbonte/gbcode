@@ -1280,7 +1280,7 @@ if r.plearn=="darts_nbeats":
   import pandas as pd
   import numpy as np
   from darts import TimeSeries
-  from darts.models import NBEATSModel,NaiveSeasonal,NaiveDrift,ExponentialSmoothing, TBATS, AutoARIMA, Theta
+  from darts.models import NBEATSModel
   series=TimeSeries.from_values(np.array(r.pyTS))
   
   N=len(r.pyTS)
@@ -1288,7 +1288,7 @@ if r.plearn=="darts_nbeats":
   model = NBEATSModel(input_chunk_length=24, 
     output_chunk_length=12, random_state=42)
   
-  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  model.fit(series,epochs=int(r.pynepochs),verbose=True)
   forecast = model.predict(H)
   yhat=np.array(forecast.pd_dataframe().values)
 
