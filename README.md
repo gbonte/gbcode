@@ -15,7 +15,7 @@ Once installed, all the scripts will be available in the root directory of the p
 
 To change the directory to the one containing scripts
 
-> setwd(find.package("gbcode"))
+> setwd(paste(find.package("gbcode"),"/scripts",sep=""))
 
 If you wish to run a script mentioned in the main text (e.g. the script "Probability/freq.R") without changing the local directory you should run
 
