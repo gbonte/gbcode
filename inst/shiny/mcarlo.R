@@ -112,7 +112,7 @@ ui <- dashboardPage(
                 box(width=6,title = "Joint distribution",collapsible = TRUE,plotOutput("uniPlotNP2"))),
               
               fluidRow(   
-                box(width=20,title = "Dependent case: linear combination (a*red+b*green)",plotOutput("SumNP2"))               
+                box(width=20,title = "Dependent case: linear combination",plotOutput("SumNP2"))               
               )
       ),
       tabItem(tabName = "about",

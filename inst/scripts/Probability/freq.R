@@ -22,9 +22,10 @@ for (r in seq(1,R,by=5000)){
   freq<-c(freq,lH/r)
   trials<-c(trials,r)
  
-  
+  cat(".")
   
 }
+cat("\n")
 plot(trials,freq,type="l",ylim=c(0.2,0.6),xlab="Number of trials",
      ylab="Relative frequency")
 lines(trials,0.5+numeric(length(freq)))

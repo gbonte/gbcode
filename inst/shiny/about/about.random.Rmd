@@ -23,7 +23,7 @@ Suggested manipulations:
 * use the slider "Number terms" to see how the shape changes by considering more addends.
 
 
-### Operations on two r.v.
+### Operations on two r.v.s
 
 This tab shows the results of simple operations
 on two independent r.v.s by Monte Carlo simulation. This is to make evident for the

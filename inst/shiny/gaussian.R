@@ -78,6 +78,7 @@ server<-function(input, output,session) {
     
     x<-seq(-BOUND,BOUND,by=0.001)
     P=pnorm(input$Xrange[2])-pnorm(input$Xrange[1])
+    
     if (!input$Inner)
       P=1-P
     plot(x,dnorm(x), type="l",ylab="Normal density",main=paste("Prob=",P))
