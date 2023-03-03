@@ -871,7 +871,7 @@ pytorchntft<-function(TS,H,n,nepochs=50,nunits=20,hyper=TRUE,...){
   Yhat
 }
 
-darts<-function(TS,H,n,plearn="darts_tft",nepochs=5,nunits=20,...){
+darts<-function(TS,H,n,plearn="darts_tft",nepochs=10,nunits=20,...){
   
   m<-NCOL(TS)
   pyTS<<-cbind(TS); pyY<<-TS;         

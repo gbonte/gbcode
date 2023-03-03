@@ -1288,8 +1288,8 @@ if r.plearn=="darts_nbeats":
   model = NBEATSModel(input_chunk_length=24, 
     output_chunk_length=12, random_state=42)
   
-  model.fit(series,epochs=int(r.pynepochs),verbose=True)
-  forecast = model.predict(H)
+  model.fit(series,epochs=int(r.pynepochs),verbose=False)
+  forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)
 
 if r.plearn=="darts_tft":
@@ -1321,7 +1321,7 @@ if r.plearn=="darts_tft":
     force_reset=True,
   )
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
-  forecast = model.predict(H)
+  forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)
 
 if r.plearn=="darts_nhits":
@@ -1336,7 +1336,7 @@ if r.plearn=="darts_nhits":
   model = NHiTSModel(input_chunk_length=125,
     output_chunk_length=36,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
-  forecast = model.predict(H)
+  forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)
   
 if r.plearn=="darts_transformer":
@@ -1351,7 +1351,7 @@ if r.plearn=="darts_transformer":
   model = TransformerModel(input_chunk_length=125,
     output_chunk_length=36,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
-  forecast = model.predict(H)
+  forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)  
 
 if r.plearn=="darts_TCN":
@@ -1366,7 +1366,7 @@ if r.plearn=="darts_TCN":
   model = TCNModel(input_chunk_length=125,
     output_chunk_length=36,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
-  forecast = model.predict(H)
+  forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)  
 
 if r.plearn=="darts_RNN":
@@ -1381,7 +1381,7 @@ if r.plearn=="darts_RNN":
   model = RNNModel(input_chunk_length=125,
     output_chunk_length=36,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
-  forecast = model.predict(H)
+  forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)  
 
 if r.plearn=="darts_blockRNN":
@@ -1396,7 +1396,7 @@ if r.plearn=="darts_blockRNN":
   model = BlockRNNModel(input_chunk_length=125,
     output_chunk_length=36,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
-  forecast = model.predict(H)
+  forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)
   
 if r.plearn=="darts_lightGBM":
