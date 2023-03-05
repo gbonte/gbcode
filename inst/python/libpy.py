@@ -1285,8 +1285,9 @@ if r.plearn=="darts_nbeats":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  model = NBEATSModel(input_chunk_length=24, 
-    output_chunk_length=12, random_state=42)
+  n=int(r.pyn)
+  model = NBEATSModel(input_chunk_length=3*n,
+    output_chunk_length=H, random_state=42)
   
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
@@ -1333,8 +1334,9 @@ if r.plearn=="darts_nhits":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  model = NHiTSModel(input_chunk_length=125,
-    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  n=int(r.pyn)
+  model = NHiTSModel(input_chunk_length=3*n,
+    output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)
@@ -1348,8 +1350,9 @@ if r.plearn=="darts_transformer":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  model = TransformerModel(input_chunk_length=125,
-    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  n=int(r.pyn)
+  model = TransformerModel(input_chunk_length=3*n,
+    output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)  
@@ -1363,8 +1366,9 @@ if r.plearn=="darts_TCN":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  model = TCNModel(input_chunk_length=125,
-    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  n=int(r.pyn)
+  model = TCNModel(input_chunk_length=3*n,
+    output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)  
@@ -1378,8 +1382,9 @@ if r.plearn=="darts_RNN":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  model = RNNModel(input_chunk_length=125,
-    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  n=int(r.pyn)
+  model = RNNModel(input_chunk_length=3*n,
+    output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)  
@@ -1393,8 +1398,9 @@ if r.plearn=="darts_blockRNN":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  model = BlockRNNModel(input_chunk_length=125,
-    output_chunk_length=36,n_epochs=int(r.pynepochs),)
+  n=int(r.pyn)
+  model = BlockRNNModel(input_chunk_length=3*n,
+    output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
   yhat=np.array(forecast.pd_dataframe().values)
@@ -1408,9 +1414,8 @@ if r.plearn=="darts_lightGBM":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  #naive_model = ExponentialSmoothing()#NaiveDrift() #NaiveSeasonal(K=1)
-  #naive_
-  model = LightGBMModel(lags=int(r.pyn))
+  n=int(r.pyn)
+  model = LightGBMModel(lags=n)
   model.fit(series,verbose=False)
   forecast = model.predict(H)
   yhat=np.array(forecast.pd_dataframe().values)  
@@ -1424,9 +1429,9 @@ if r.plearn=="darts_xGBM":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  #naive_model = ExponentialSmoothing()#NaiveDrift() #NaiveSeasonal(K=1)
-  #naive_
-  model = XGBModel(lags=int(r.pyn))
+  n=int(r.pyn)
+ 
+  model = XGBModel(lags=n)
   model.fit(series,verbose=False)
   forecast = model.predict(H)
   yhat=np.array(forecast.pd_dataframe().values)  
@@ -1440,7 +1445,8 @@ if r.plearn=="darts_RandomForest":
   
   N=len(r.pyTS)
   H=int(r.pyH)
-  model = XGBModel(lags=int(r.pyn))
+  n=int(r.pyn)
+  model = XGBModel(lags=n)
   model.fit(series,verbose=False)
   forecast = model.predict(H)
   yhat=np.array(forecast.pd_dataframe().values)  
