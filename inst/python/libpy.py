@@ -1286,7 +1286,7 @@ if r.plearn=="darts_nbeats":
   N=len(r.pyTS)
   H=int(r.pyH)
   n=int(r.pyn)
-  model = NBEATSModel(input_chunk_length=3*n,
+  model = NBEATSModel(input_chunk_length=max(H+1,5*n),
     output_chunk_length=H, random_state=42)
   
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
@@ -1305,7 +1305,7 @@ if r.plearn=="darts_tft":
   n=int(r.pyn)
   model = TransformerModel(
     batch_size=32,
-    input_chunk_length=3*n,
+    input_chunk_length=max(H+1,5*n),
     output_chunk_length=H,
     n_epochs=int(r.pynepochs),
     model_name="transformer",
@@ -1335,7 +1335,7 @@ if r.plearn=="darts_nhits":
   N=len(r.pyTS)
   H=int(r.pyH)
   n=int(r.pyn)
-  model = NHiTSModel(input_chunk_length=3*n,
+  model = NHiTSModel(input_chunk_length=max(H+1,5*n),
     output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
@@ -1351,7 +1351,7 @@ if r.plearn=="darts_transformer":
   N=len(r.pyTS)
   H=int(r.pyH)
   n=int(r.pyn)
-  model = TransformerModel(input_chunk_length=3*n,
+  model = TransformerModel(input_chunk_length=max(H+1,5*n),
     output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
@@ -1367,7 +1367,7 @@ if r.plearn=="darts_TCN":
   N=len(r.pyTS)
   H=int(r.pyH)
   n=int(r.pyn)
-  model = TCNModel(input_chunk_length=3*n,
+  model = TCNModel(input_chunk_length=max(H+1,5*n),
     output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
@@ -1383,7 +1383,7 @@ if r.plearn=="darts_RNN":
   N=len(r.pyTS)
   H=int(r.pyH)
   n=int(r.pyn)
-  model = RNNModel(input_chunk_length=3*n,
+  model = RNNModel(input_chunk_length=max(H+1,5*n),
     output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
@@ -1399,7 +1399,7 @@ if r.plearn=="darts_blockRNN":
   N=len(r.pyTS)
   H=int(r.pyH)
   n=int(r.pyn)
-  model = BlockRNNModel(input_chunk_length=3*n,
+  model = BlockRNNModel(input_chunk_length=max(H+1,5*n),
     output_chunk_length=H,n_epochs=int(r.pynepochs),)
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
