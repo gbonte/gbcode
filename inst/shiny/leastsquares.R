@@ -43,13 +43,14 @@ ui <- dashboardPage(
                               sliderInput("b0",withMathJax(sprintf('$$\\beta_0:$$')), min = -BOUND2,max = BOUND2, 
                                           value = -1,step=0.01)),
                        column(4,
-                              sliderInput("m",withMathJax(sprintf('$$\\hat{\\beta}_1:$$')), min = -BOUND2,max = BOUND2, 
+                              sliderInput("bhat1",withMathJax(sprintf('$$\\hat{\\beta}_1:$$')), min = -BOUND2,max = BOUND2, 
                                           value = 0,step=0.01),
-                              sliderInput("q",withMathJax(sprintf('$$\\hat{\\beta}_0:$$')), min = -BOUND2,max = BOUND2, 
+                              sliderInput("bhat0",withMathJax(sprintf('$$\\hat{\\beta}_0:$$')), min = -BOUND2,max = BOUND2, 
                                           value = 0,step=0.01)),
                        column(4,    sliderInput("eta",withMathJax(sprintf('$${\\eta}:$$')), min = 0.0001,max = 1, 
                                                 value = 0.01,step=0.01)),
                        actionButton("do", "Gradient step"),
+                       actionButton("doLS", "Least-squares step"),
                        
                        box(width=6,collapsible = TRUE,title = "Data set",plotOutput("Data", height = 300)), 
                        box(width=6,collapsible = TRUE,title = "Residual sum of squares",
@@ -219,7 +220,7 @@ server<-function(input, output,session) {
   
   output$Data <- renderPlot( {
     
-    yhat=input$m*Xtr()+input$q
+    yhat=input$bhat1*Xtr()+input$bhat0
     
     x.hat<-mean(Xtr())
     S.xx<-sum((Xtr()-x.hat)^2)
@@ -235,21 +236,31 @@ server<-function(input, output,session) {
     
     #plot(Xtr,Ytr,main=paste("LS estimates: betahat1=", round(beta.hat.1,2), ": betahat0=", round(beta.hat.0,2)),
     #    xlim=c(-BOUND2, BOUND2),ylim=c(-1.5*BOUND2, 1.5*BOUND2))
-    lines(Xtr(),yhat,col="red",lwd=2)
-    lines(Xtr(),beta.hat.1*Xtr()+beta.hat.0,col="green",lwd=2)
+    lines(Xtr(),yhat,col="red",lwd=3)
+    lines(Xtr(),input$b1*Xtr()+input$b0,col="green",lwd=2)
   })
   
   observeEvent(input$do,{
-    Yhat=input$q+input$m*Xtr()
+    Yhat=input$bhat0+input$bhat1*Xtr()
     e=Yhat-Ytr()
     grad0=-2*mean(e)
     grad1=-2*mean(e*Xtr())
     eta=input$eta
-    updateSliderInput(session, "q", value =input$q+eta*grad0 )
-    updateSliderInput(session, "m", value =input$m+eta*grad1 )
+    updateSliderInput(session, "q", value =input$bhat0+eta*grad0 )
+    updateSliderInput(session, "bhat1", value =input$bhat1+eta*grad1 )
   })
   
-  
+  observeEvent(input$doLS,{
+    xbar=mean(Xtr())
+    ybar=mean(Ytr())
+    Sxy=sum((Xtr()-xbar)*Ytr())
+    Sxx=sum((Xtr()-xbar)*Xtr())
+    Yhat=input$bhat0+input$bhat1*Xtr()
+    betahat1=Sxy/Sxx
+    betahat0=ybar-betahat1*xbar
+    updateSliderInput(session, "bhat0", value =betahat0 )
+    updateSliderInput(session, "bhat1", value =betahat1 )
+  })
   
   output$EmpErr <- renderPlot( {
     
@@ -268,7 +279,7 @@ server<-function(input, output,session) {
     }
     
     Emq=0
-    yhat=input$m*Xtr()+input$q
+    yhat=input$bhat1*Xtr()+input$bhat0
     Emq=sum((Ytr()-yhat)^2)
     
     x.hat<-mean(Xtr())
@@ -289,10 +300,10 @@ server<-function(input, output,session) {
                    main=paste("Err=",round(Emq,2), "; LS Err=",round(E.ls,2)),
                    xlab="beta1", ylab="beta0" )
     
-    points (trans3d(x=input$m, 
-                    y = input$q, z = Emq, pmat = surface), col = "red",lwd=8)
-    points (trans3d(x=beta.hat.1, 
-                    y = beta.hat.0, z = min(c(EE)), pmat = surface), col = "green",lwd=8)
+    points (trans3d(x=input$bhat1, 
+                    y = input$bhat0, z = Emq, pmat = surface), col = "red",lwd=8)
+    points (trans3d(x=input$b1, 
+                    y = input$b0, z = min(c(EE)), pmat = surface), col = "green",lwd=8)
     # lines (trans3d(y=input$varhatL2, 
     #               x = seq(-BOUND2, BOUND2, by= .2), z =elogLik, pmat = surface), col = "green",lwd=1)
     #plot(xaxis,logLik,type="l",main=paste("logLik=",round(elogLik,2)))
