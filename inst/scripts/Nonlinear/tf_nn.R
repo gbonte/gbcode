@@ -1,4 +1,10 @@
-## Based on https://tensorflow.rstudio.com/tutorials/
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
+## Automatic differentiation example
+## Based on https://tensorflow.rstudio.com/guides/tensorflow/autodiff
+
 
 library(tensorflow)
 library(keras)

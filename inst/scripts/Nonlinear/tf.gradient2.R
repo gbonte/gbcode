@@ -1,3 +1,13 @@
+## "INFOF422 Statistical foundations of machine learning" course
+## R package gbcode 
+## Author: G. Bontempi
+
+##Use of tensorflow to fit linear parameters by gradient-based iteration
+
+
+
+rm(list=ls())
+
 library(tensorflow)
 
 
@@ -6,17 +16,14 @@ Model <- R6::R6Class(
   public = list(
     n=NULL,
     W = NULL,
-  
-   
     
     initialize = function(n) {
       self$n=n
-      self$W <- tf$Variable(array(rnorm(n+1),c(n+1,1)),shape=shape(n+1,1), dtype="float32")
-
+      self$W <- tf$Variable(array(rnorm(n+1),c(n+1,1)),shape=shape(n+1,1),
+                            dtype="float32")
     },
     
     predict = function(X) {
-     
       tf$matmul(X, self$W)
     }
     
@@ -49,7 +56,7 @@ train <- function(model, inputs, outputs, learning_rate) {
   
   d <- t$gradient(current_loss, list(model$W))
   
- 
+  
   ### Gradient-based step
   model$W$assign_sub(learning_rate * d[[1]])
   current_loss
@@ -64,19 +71,20 @@ losses<-NULL
 for (epoch in seq_len(200)) {
   
   Ws<- rbind(Ws, as.numeric(model$W))
- 
+  
   current_loss <- train(model, inputs, outputs, learning_rate = 0.1)
   losses=c(losses,as.numeric(current_loss))
   cat(glue::glue("Epoch: {epoch}, Loss: {as.numeric(current_loss)}"), "\n")
 } 
 
 par(mfrow=c(1,2))
-plot(Ws[,1],ylim=c(min(Ws)-0.1,max(Ws)-0.1),type="l",ylab="Estimations",lwd=2)
+plot(Ws[,1],ylim=c(min(Ws)-0.1,max(Ws)-0.1),type="l",
+     ylab="Estimations",xlab="Epochs",lwd=2)
 abline(h=TRUE_W[1], col="black",lty=2)
-for (i in (2:(n+1))){
-lines(Ws[,i],col="red",lwd=2)
-abline(h=TRUE_W[i], col="red",lty=2)
 
+for (i in (2:(n+1))){
+  lines(Ws[,i],col="red",lwd=2)
+  abline(h=TRUE_W[i], col="red",lty=2)
 }
 
-plot(losses,ylim=c(0,5),type="l",ylab="Loss")
+plot(losses,ylim=c(0,5),type="l",ylab="Loss",xlab="Epochs")
