@@ -1292,8 +1292,12 @@ if r.plearn=="darts_nbeats":
   N=len(r.pyTS)
   H=int(r.pyH)
   n=int(r.pyn)
-  model = NBEATSModel(input_chunk_length=max(H+1,5*n),
-    output_chunk_length=H, random_state=42)
+  model = NBEATSModel(input_chunk_length=max(H+1,5*n),output_chunk_length=H, random_state=42,
+    force_reset=True,
+    pl_trainer_kwargs={
+      "accelerator": "gpu",
+      "devices": [0]
+    } )
   
   model.fit(series,epochs=int(r.pynepochs),verbose=False)
   forecast = model.predict(H,verbose=False)
