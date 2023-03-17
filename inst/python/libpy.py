@@ -29,12 +29,7 @@ except ImportError as e:
   print("Missing package tensorflow.keras. Install it first using py_install ") 
   sys.exit(1)  
   
-try:
-  import keras_tuner
-except ImportError as e:
-  print(e)
-  print("Missing package keras_tuner. Install it first using py_install ") 
-  sys.exit(1)
+
   
 yhat=[]
 if r.pym==1:
@@ -43,7 +38,7 @@ if r.pym==1:
 #############################
 ## CLASSIFICATION 
 #############################
-
+print(r.plearn)
 
 if r.plearn=="sgd_class": 
   from sklearn.linear_model import SGDClassifier
@@ -603,6 +598,13 @@ if r.plearn=="rnn_gpt":
 
 
 if r.plearn=="rnn_gpt_hyper":
+  try:
+    import keras_tuner
+  except ImportError as e:
+    print(e)
+    print("Missing package keras_tuner. Install it first using py_install ") 
+    sys.exit(1)
+    
   import numpy as np
   import pandas as pd
   import keras_tuner as kt
@@ -990,7 +992,9 @@ if r.plearn=="nbeats_pytorch":
   val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
   test_dataloader = test.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
   pl.seed_everything(42)
-  trainer = pl.Trainer(gpus=0, gradient_clip_val=0.01,enable_progress_bar=False)
+  trainer = pl.Trainer(
+    #gpus=0, 
+    gradient_clip_val=0.01,enable_progress_bar=False)
   
 
   net = NBeats.from_dataset(training, learning_rate=3e-2, 
@@ -1007,7 +1011,7 @@ if r.plearn=="nbeats_pytorch":
     min_delta=1e-4, patience=10, verbose=False, mode="min")
   trainer = pl.Trainer(
       max_epochs=20,
-      gpus=0,
+      #gpus=0,
       enable_model_summary=False,
       gradient_clip_val=0.01,
       callbacks=[early_stop_callback],
@@ -1107,7 +1111,8 @@ if r.plearn=="deepar_pytorch":
   val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
   test_dataloader = test.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
   pl.seed_everything(42)
-  trainer = pl.Trainer(gpus=0, gradient_clip_val=0.01,enable_progress_bar=False)
+  trainer = pl.Trainer(#gpus=0, 
+    gradient_clip_val=0.01,enable_progress_bar=False)
   net = DeepAR.from_dataset(
     training, learning_rate=3e-2, hidden_size=30, 
     rnn_layers=2, optimizer='adam',
@@ -1126,7 +1131,7 @@ if r.plearn=="deepar_pytorch":
     min_delta=1e-4, patience=10, verbose=False, mode="min")
   trainer = pl.Trainer(
       max_epochs=20,
-      gpus=0,
+      #gpus=0,
       enable_model_summary=False,
       gradient_clip_val=0.01,
       callbacks=[early_stop_callback],
@@ -1228,7 +1233,8 @@ if r.plearn=="tft_pytorch":
   val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
   test_dataloader = test.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
   pl.seed_everything(42)
-  trainer = pl.Trainer(gpus=0, gradient_clip_val=0.01,
+  trainer = pl.Trainer(#gpus=0, 
+    gradient_clip_val=0.01,
     enable_progress_bar=False,max_epochs=20,
     enable_model_summary=False)
   tft = TemporalFusionTransformer.from_dataset(
@@ -1254,7 +1260,7 @@ if r.plearn=="tft_pytorch":
     min_delta=1e-4, patience=10, verbose=False, mode="min")
   trainer = pl.Trainer(
       max_epochs=int(r.pynepochs),
-      gpus=0,
+      #gpus=0,
       enable_model_summary=False,
       gradient_clip_val=0.01,
       callbacks=[early_stop_callback],
