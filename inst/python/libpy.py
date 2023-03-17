@@ -15,19 +15,7 @@ except ImportError as e:
   print("Missing python package sklearn. Install it first using py_install") 
   sys.exit(1)  
 
-try:
-  import tensorflow
-except ImportError as e:
-  print(e)
-  print("Missing package tensorflow. Install it first using py_install ") 
-  sys.exit(1)
-  
-try:
-  import tensorflow.keras
-except ImportError as e:
-  print(e)
-  print("Missing package tensorflow.keras. Install it first using py_install ") 
-  sys.exit(1)  
+
   
 
   
