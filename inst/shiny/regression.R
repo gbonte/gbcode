@@ -253,7 +253,7 @@ server<-function(input, output,session) {
     
     Yq=f(input$nrx,input$ord)
     bvtitle=paste("Bias^2=", round((Yq-mean(Y.hat))^2,3), "Var=", round(var(Y.hat),3), "MSE=", round(mean((Yq-Y.hat)^2),3) )
-    hist(Y.hat,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
+    hist(Y.hat,breaks=50,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)
     
@@ -588,7 +588,7 @@ server<-function(input, output,session) {
     
     bvtitle=paste("B2=", round((Yq-mean(Y.hat))^2,3), "V=", round(var(Y.hat),3),
                   "MSE=", round(mean((Yq-Y.hat)^2),3))
-    hist(Y.hat,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
+    hist(Y.hat,breaks=20,xlim=c(min(c(Y.hat,Yq)),max(c(Y.hat,Yq))),main=bvtitle)
     abline(v=Yq,col="blue",lwd=3)
     abline(v=mean(Y.hat),  col = "green",lwd=3)
     
