@@ -10,7 +10,7 @@
 #	  y_i = beta_0 + beta_1x_i + w_i			#
 #   with known  beta_0  and beta_1 and known w=Normal(0, sigma) 	#
 #   						
-## Visualization of bias and variance of the least sqaure estimate 	#
+## Visualization of bias and variance of the least square estimate 	#
 #################################################################
 
 

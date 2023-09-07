@@ -61,22 +61,22 @@ for (i in 2:min(p.max,N-1)){
   MISE<-c(MISE,(t(e.ts)%*%e.ts)/N)
   FPE<-c(FPE,(1+i/N)/(1-i/N)* (t(e)%*%e)/N)
   PSE<-c(PSE,(t(e)%*%e)/N+2*sde2hat*i/N)
-  title(paste("degree=", i-1, "; MISE_emp=",round(R.emp[i-1],2), "; FPE=",round(FPE[i-1],2),
+  title(paste("degree=", i-1, "; MISE_emp=",round(R.emp[i-1],4), "; FPE=",round(FPE[i-1],2),
         "; PSE=",round(PSE[i-1],3)))
   
 }
 
 par(mfrow=c(2,2))
 plot(no.par-1,R.emp,type="l",
-     xlab="# parameters", ylab="Empirical risk",main="Empirical risk",xlim=c(2,10),ylim=c(0,0.4))
+     xlab="# parameters", ylab="Empirical risk",main="Empirical risk",xlim=c(2,10),ylim=c(0.05,0.4))
 
 plot(no.par-1,MISE,type="l",
-     xlab="# parameters", ylab="Generalization error",main="Generalization error",xlim=c(2,10),ylim=c(0,5))
+     xlab="# parameters", ylab="Generalization error",main="Generalization error",xlim=c(2,10),ylim=c(1,4))
 plot(no.par-1,FPE,type="l",
-     xlab="# parameters", ylab="FPE",main="FPE",xlim=c(2,10),ylim=c(0,0.5))
+     xlab="# parameters", ylab="FPE",main="FPE",xlim=c(2,10),ylim=c(0.05,0.5))
 
 plot(no.par-1,PSE,type="l",
-     xlab="# parameters", ylab="PSE",main="PSE",xlim=c(2,10),ylim=c(0,0.5))
+     xlab="# parameters", ylab="PSE",main="PSE",xlim=c(2,10),ylim=c(0.05,0.5))
 
 cat("which.min(R.emp)=",which.min(R.emp),"\n")
 cat("which.min(MISE)=",which.min(MISE),"\n")

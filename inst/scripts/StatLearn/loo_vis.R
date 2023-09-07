@@ -6,7 +6,7 @@
 
 ## Visualization of leave-one-out strategy with a linear model
 rm(list=ls())
-
+par(ask=FALSE)
 
 f<-function(x,ord){
   f<-1
@@ -43,7 +43,7 @@ for (i in 1:N){
   Yhati=X%*%betai
   ei=(Y[i]-Yhat[i])^2
   plot(x,Y,main=paste("Squared loo residual=",round(ei,2)))
-  points(x[i],Y[i],col="red")
+  points(x[i],Y[i],col="red",cex=2,pch=20)
   lines(x,Yhat,lwd=3)
   lines(x,Yhati,col="red",lwd=3)
   segments(x[i],Y[i],x[i],Yhati[i],col="red",lwd=3,lty=2)

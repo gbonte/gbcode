@@ -51,7 +51,7 @@ ui <- dashboardPage(
                     sliderInput("variance22",withMathJax(sprintf('$$\\sigma^2_2 \\text{ (red):}$$')),min = 0.5,max = 1, 
                                 value = 0.75,step=0.05)),
                 box(width=3,
-                    sliderInput("p11",withMathJax(sprintf('$$P_1 \\text{ (green):} $$')),min = 0.01, max = 0.99 ,
+                    sliderInput("p11",withMathJax(sprintf('$$P_1 \\text{ (green):} $$')),min = 0.001, max = 0.999 ,
                                 value = 0.5,step=0.05))),
               fluidRow(box(width=6,title = "Distributions p(x|y)",collapsible = TRUE,
                            plotlyOutput("uniPlotP")),
@@ -118,7 +118,7 @@ server<-function(input, output,session) {
   
   
   output$uniPlotP <- renderPlotly({
-    
+    #p(x|y)
     x <- seq(-3*BOUND2, 3*BOUND2, by= .2)
     y <- x
     z1<-array(0,dim=c(length(x),length(y)))
@@ -136,14 +136,16 @@ server<-function(input, output,session) {
     fig <- plot_ly(x=x,y=y,z=z1, showscale=FALSE )
     fig <- fig %>% add_surface(colorscale="Greens")
     fig <- fig %>% add_surface(x=x,y=y,z=z2,colorscale="Reds")  %>% 
-      layout( scene = list(camera = list(eye = list(x = 1.25, y = -1.25, z = 1.25))))%>% 
+      layout( scene = list(camera = list(eye = list(x = 1.25, y = -1.25, z = 1.25)),
+                           xaxis = list(title = 'x1'), yaxis = list(title = 'x2'),
+                           zaxis = list(title = 'p(x|y)')))%>% 
       layout(showlegend = FALSE) 
     fig
     
   })
   
   output$uniCondP <- renderPlotly({
-    
+    # 'p(y|x)'
     x <- seq(-3*BOUND2, 3*BOUND2, by= .2)
     y <- x
     z1<-array(0,dim=c(length(x),length(y)))
@@ -154,21 +156,23 @@ server<-function(input, output,session) {
         
         z1[i,j]<-(input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean11, input$mean12),sigma=input$variance11*diag(2))/
           (input$p11*dmvnorm(c(x[i],y[j]),mean=c(input$mean11, input$mean12),sigma=input$variance11*diag(2))+
-             (1-input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean21, input$mean22),sigma=input$variance11*diag(2)))
+             (1-input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean21, input$mean22),sigma=input$variance22*diag(2)))
         
-        z2[i,j]<-(1-input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean21, input$mean22),sigma=input$variance11*diag(2))/
+        z2[i,j]<-(1-input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean21, input$mean22),sigma=input$variance22*diag(2))/
           (input$p11*dmvnorm(c(x[i],y[j]),mean=c(input$mean11, input$mean12),sigma=input$variance11*diag(2))+
-             (1-input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean21, input$mean22),sigma=input$variance11*diag(2)))
+             (1-input$p11)*dmvnorm(c(x[i],y[j]),mean=c(input$mean21, input$mean22),sigma=input$variance22*diag(2)))
       }
     }
-    
+   
     z1[is.na(z1)] <- 1
     z2[is.na(z2)] <- 1
     
     fig <- plot_ly(x=x,y=y,z=z1, showscale=FALSE )
     fig <- fig %>% add_surface(colorscale="Greens")
     fig <- fig %>% add_surface(x=x,y=y,z=z2,colorscale="Reds") %>% 
-      layout( scene = list(camera = list(eye = list(x = 1.25, y = -1.25, z = 1.25))))%>% 
+      layout( scene = list(xaxis = list(title = 'x1'), yaxis = list(title = 'x2'),
+                           zaxis = list(title = 'p(y|x)'),
+                                        camera = list(eye = list(x = 1.25, y = -1.25, z = 1.25))))%>% 
       layout(showlegend = FALSE) 
     fig
     
@@ -177,8 +181,8 @@ server<-function(input, output,session) {
   
   output$uniSamples <- renderPlotly({
     
-    Ngreen=round(input$p11*input$N)
-    Nred=input$N-Ngreen
+    Ngreen=max(1,round(input$p11*input$N))
+    Nred=max(1,input$N-Ngreen)
     
     Dg=rmvnorm(Ngreen,mean=c(input$mean11, input$mean12),sigma=input$variance11*diag(2))
     Dr=rmvnorm(Nred,mean=c(input$mean21, input$mean22),sigma=input$variance22*diag(2))
@@ -189,7 +193,7 @@ server<-function(input, output,session) {
                                                                             color = 'green'))
     fig <- fig %>% add_trace(x=Dr[,1],y=Dr[,2], type="scatter", mode = 'markers',marker = list(size = 10,
                                                                                                color = 'red'))%>% 
-      layout(showlegend = FALSE)  
+      layout(showlegend = FALSE,xaxis = list(title = 'x1'), yaxis = list(title = 'x2'))  
     fig
     
   })
@@ -197,9 +201,9 @@ server<-function(input, output,session) {
   
   output$biSamples <- renderPlotly({
     
-    Ngreena=round(input$bp11*input$N/2)
+    Ngreena=max(1,round(input$bp11*input$N/2))
     Ngreenb=Ngreena
-    Nred=input$N-Ngreena-Ngreenb
+    Nred=max(1,input$N-Ngreena-Ngreenb)
     
     Dga=rmvnorm(Ngreena,mean=c(input$bmean11a, input$bmean12a),sigma=input$variance11*diag(2))
     Dgb=rmvnorm(Ngreenb,mean=c(input$bmean11b, input$bmean12b),sigma=input$variance11*diag(2))
@@ -216,7 +220,7 @@ server<-function(input, output,session) {
     fig <- fig %>% add_trace(x=Dr[,1],y=Dr[,2], 
                              type="scatter", mode = 'markers',marker = list(size = 10,
                                                                             color = 'red'))%>% 
-      layout(showlegend = FALSE) 
+      layout(showlegend = FALSE,xaxis = list(title = 'x1'), yaxis = list(title = 'x2')) 
     fig
     
   })
@@ -242,7 +246,9 @@ server<-function(input, output,session) {
     fig <- plot_ly(x=x,y=y,z=z1, showscale=FALSE )
     fig <- fig %>% add_surface(colorscale="Greens")
     fig <- fig %>% add_surface(x=x,y=y,z=z2,colorscale="Reds") %>% 
-      layout( scene = list(camera = list(eye = list(x = 1.25, y = -1.25, z = 1.25))))%>% 
+      layout( scene = list(xaxis = list(title = 'x1'), yaxis = list(title = 'x2'),
+                           zaxis = list(title = 'p(x|y)'),
+                           camera = list(eye = list(x = 1.25, y = -1.25, z = 1.25))))%>% 
       layout(showlegend = FALSE) 
     fig
     
@@ -277,7 +283,9 @@ server<-function(input, output,session) {
     fig <- plot_ly(x=x,y=y,z=z1, showscale=FALSE )
     fig <- fig %>% add_surface(colorscale="Greens")
     fig <- fig %>% add_surface(x=x,y=y,z=z2,colorscale="Reds") %>% 
-      layout( scene = list(camera = list(eye = list(x = -1.25, y = 1.25, z = 1.25))))%>% 
+      layout( scene = list(xaxis = list(title = 'x1'), yaxis = list(title = 'x2'),
+                           zaxis = list(title = 'p(y|x)'),
+                                        camera = list(eye = list(x = -1.25, y = 1.25, z = 1.25))))%>% 
       layout(showlegend = FALSE) 
     fig
     

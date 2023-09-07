@@ -585,7 +585,7 @@ server<-function(input, output,session) {
       se<-c(STATS$SE)
       s<-sort(se,decr=FALSE,index=TRUE)$ix
       plot(se[s],pr[s],xlim=c(0,1),ylim=c(0,1),type="l",
-           xlab="Recall",ylab="PR",main=paste("PR= TP/(TP+FP)=", round(STATS$FPR[length(STATS$FPR)],2),
+           xlab="Recall",ylab="PR",main=paste("PR= TP/(TP+FP)=", round(STATS$PR[length(STATS$PR)],2),
                                               "\n RE=TN/(FP+TN)=", round(STATS$SE[length(STATS$SE)],2)))
       points(STATS$SE[length(STATS$SE)],STATS$PR[length(STATS$PR)],col="red",lwd=4)
       abline(h=NROW(RD2())/(NROW(RD1())+NROW(RD2())),lty=2)

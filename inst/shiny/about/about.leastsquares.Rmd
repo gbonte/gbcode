@@ -34,8 +34,8 @@ training data set, regression function (in green) and estimated regression funct
 
 
 Bottom right panel: convex empirical risk function $J(\hat{\beta}_0,\hat{\beta}_1)$. Green dot denotes
-the least squares estimation vector $\hat{\beta}^{LS}_0,\hat{\beta}^{LS}_1$ corresponding to the global minimum.
-Red dot denotes the estimation vector $\hat{\beta}_0,\hat{\beta}_1$ 
+the pair of real parameters $\beta_0,\beta_1$.
+Red dot denotes the pair of estimations $\hat{\beta}_0,\hat{\beta}_1$ 
 
 
 Suggested manipulations:
@@ -43,7 +43,7 @@ Suggested manipulations:
 * by clicking on the button "Gradient step" an iteration of gradient-based minimization is performed: as a consequence the
 estimated regression function is updated and the red dot changes its location
 * change the learning rate $\eta$ and see the impact on the gradient-based iteration
-
+* by reducing the number of samples and/or increasing the conditional variance, see the gap between the real regression line (in green) and the estimated least-squares line (in red)
 
 ## NNET least-squares
 Data generating process:  ${\bf y}=\sin (\pi x) + {\bf w}$ where ${\bf w} \sim {\mathcal N} (0,\sigma_w^2)$.

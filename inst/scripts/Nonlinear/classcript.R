@@ -1,6 +1,7 @@
 rm(list=ls())
 library(reticulate)
 library(tree)
+library(gbcode)
 ## classification example
 n=20
 N=200
