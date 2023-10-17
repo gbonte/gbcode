@@ -7,6 +7,13 @@ STnames<-NULL
 ###
 
 dirname="/Users/gianlucabontempi/Dropbox/bontempi_office/Rlang/gbcode2/inst/scripts/Forecasting/data"
+
+sensBxl  <- read_excel(paste(dirname,"/dataset_per_minutes.xlsx",sep=""))
+D=t(as.matrix(sensBxl))
+print(dim(D))
+STdata<-c(STdata,list(D))
+STnames<-c(STnames,"sensBxl")
+
 ###
 ped1 <- read_csv(paste(dirname,"/PedTS1.csv",sep=""))
 D=as.matrix(ped1)
@@ -326,6 +333,12 @@ for (i in 1:length(STdata)){
   
 }
 
+save(file=paste(dirname,"STdata_big.Rdata",sep="/"),list=c("STdata","STnames"))
+print(length(STdata))
+print(length(STnames))
+
+STdata=STdata[1:10]
+STnames=STnames[1:10]
 save(file=paste(dirname,"STdata.Rdata",sep="/"),list=c("STdata","STnames"))
 print(length(STdata))
 print(length(STnames))

@@ -2,7 +2,7 @@
 ## R package gbcode 
 ## Author: G. Bontempi
 
-
+ 
 
 rm(list=ls())
 N<-11

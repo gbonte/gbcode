@@ -78,7 +78,7 @@ hmm.ev <- function(A,B,p,o,scale=FALSE){
     for (i in 1:N){
       P2<- P2+beta[i,1]*alpha[i,1]
     }
-    list(prob=P,alpha=alpha,beta=beta)
+    list(prob=P,prob2=P2,alpha=alpha,beta=beta)
   }
   else
     list(prob=P,alpha=alpha)

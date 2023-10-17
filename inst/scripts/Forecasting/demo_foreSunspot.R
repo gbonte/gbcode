@@ -28,7 +28,7 @@ method1="mimo_las"
 method2="mimo_rr"
 method3="lazydirect"
 method4="lindirect"
-method5="rnn"
+method5="deepar"
 method6="mimo"
 colors=c("red","green","magenta","cyan","orange","yellow")
 if (assess)
@@ -39,19 +39,19 @@ if (assess)
       TSts=TS[(i+1):(i+H)]
       
       Y.cont=multiplestepAhead(TStr,n=n, H=H,method=method1)
-      NMSE=c(NMSE,mean(TSts-Y.cont)^2)
+      NMSE=c(NMSE,mean((TSts-Y.cont)^2))
       Y.cont2=multiplestepAhead(TStr,n=n, H=H,method=method2,epochs=15, 
                                 nunits=20)
-      NMSE2=c(NMSE2,mean(TSts-Y.cont2)^2)
+      NMSE2=c(NMSE2,mean((TSts-Y.cont2)^2))
       Y.cont3=multiplestepAhead(TStr,n=n, H=H,method=method3,epochs=150, 
                                 nunits=20)
-      NMSE3=c(NMSE3,mean(TSts-Y.cont3)^2)
+      NMSE3=c(NMSE3,mean((TSts-Y.cont3)^2))
       Y.cont4=multiplestepAhead(TStr,n=n, H=H,method=method4)
-      NMSE4=c(NMSE4,mean(TSts-Y.cont4)^2)
-      Y.cont5=multiplestepAhead(TStr,n=n, H=H,method=method5)
-      NMSE5=c(NMSE5,mean(TSts-Y.cont5)^2)
+      NMSE4=c(NMSE4,mean((TSts-Y.cont4)^2))
+      Y.cont5=multiplestepAhead(TStr,n=n, H=H,method=method5,nunuits=100)
+      NMSE5=c(NMSE5,mean((TSts-Y.cont5)^2))
       Y.cont6=multiplestepAhead(TStr,n=n, H=H,method=method6)
-      NMSE6=c(NMSE6,mean(TSts-Y.cont6)^2)
+      NMSE6=c(NMSE6,mean((TSts-Y.cont6)^2))
       
       cat("H=", H, "i=",i, ":", method1, "NMSE=",mean(NMSE), method2, " NMSE2=", mean(NMSE2),
           method3, " NMSE3=", mean(NMSE3),

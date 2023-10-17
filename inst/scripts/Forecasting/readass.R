@@ -1,0 +1,6 @@
+library(reticulate)
+pd <- import("pandas")
+MSE5data <- pd$read_pickle("MSE5.pdata")
+print(dim(MSE5data))
+library(scmamp)
+plotCD(-MSE5data)
