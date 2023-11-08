@@ -57,7 +57,7 @@ p2<-p2/(sum(p2))
 R<-500
 C<-numeric(R)
 CB<-numeric(R)
-times<-50
+times<-100
 seq<-hmm.obs(A,B,p,times)
 
 

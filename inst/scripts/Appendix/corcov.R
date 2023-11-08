@@ -20,4 +20,4 @@ D=rmvnorm(N,sigma=Sigma)
 
 for (i in 1:(n-1))
   for (j in (i+1):n)
-  cat(Corr2[i,j],":",cor(D[,i],D[,j]),"\n")
+  cat("rho=",Corr2[i,j],":",cor(D[,i],D[,j]),"\n")

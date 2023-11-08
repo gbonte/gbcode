@@ -767,6 +767,7 @@ ica<-function(X,n.comp){
 #'
 #' @param  X: input data
 #' @param  n.comp: number of returned principal components
+#' @param  Xts: input test dataset
 #' @return list
 #' \itemize{
 #' \item{data}: transformed data
@@ -774,6 +775,7 @@ ica<-function(X,n.comp){
 #' \item{val}: principal eigenvalues
 #' \item{ord}:
 #' \item{mu}: mean of original data
+#' \item{datats}: transformed test dataset
 #' }
 #' @export
 #' @examples
@@ -784,9 +786,10 @@ ica<-function(X,n.comp){
 #' X<-R$X
 #' Z<-pca(X,3)$data
 #'
-pca<-function(X,n.comp=2){
+pca<-function(X,n.comp=2,Xts=NULL){
   n<-NCOL(X)
   sX<-scale(X)
+  
   mu<-apply(X,2,mean)
   E<-eigen(cov(sX),symmetric=T,only.values=FALSE)
   pca<-E$vectors
@@ -804,7 +807,15 @@ pca<-function(X,n.comp=2){
     }
   }
 
-  list(data=sX%*%pca[,1:n.comp],vect=pca,val=E$values,ord=ord,mu=mu)
+  datats=NULL
+  if (!is.null(Xts)){
+    if (NCOL(X)!=NCOL(Xts))
+      stop("Wrong Xts dimension")
+    sXts=scale(Xts,attr(sX,"scaled:center"),attr(sX,"scaled:scale"))
+    datats=sXts%*%pca[,1:n.comp]
+  }
+    
+  list(data=sX%*%pca[,1:n.comp],vect=pca,val=E$values,ord=ord,mu=mu,datats=datats)
 }
 
 
