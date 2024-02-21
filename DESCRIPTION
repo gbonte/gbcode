@@ -13,7 +13,6 @@ Suggests: knitr,  rmarkdown
 VignetteBuilder: knitr
 Depends: 
     lazy,
-    forecast,
     e1071,
     randomForest,
     gbm,
