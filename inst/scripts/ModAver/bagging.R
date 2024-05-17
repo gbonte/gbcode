@@ -5,12 +5,14 @@
 
 
 require(nnet)
-
+N=200
+n=3
 set.seed(555)
 X <- rnorm(N*n)
 X<-array(X,c(N,n))
 
-Y<-X[,1]^2+5*X[,3]+4*log(abs(X[,2]))+0.5*rnorm(N)
+Y<-X[,1]^2+5*X[,3]+4*log(abs(X[,2]))+rnorm(N,sd=sqrt(0.25))
+
 N.tr <- N/2
 I.ts<-(N.tr+1):N
 data.train<-data.frame(y=Y[1:N.tr],x1=X[1:N.tr,1],x2=X[1:N.tr,2],x3=X[1:N.tr,3])
@@ -59,5 +61,6 @@ print(paste("Test error bagging NNET=",MSE.bag))
 print(paste("Average test error bagging NNET=", mean(MSE.nn)))
 
 hist(MSE.nn,main='')
-abline(v=MSE.bag)
+abline(v=MSE.bag,lwd=3)
+abline(v=mean(MSE.nn),lwd=3,lty=2)
 

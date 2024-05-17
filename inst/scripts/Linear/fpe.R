@@ -52,7 +52,7 @@ for (i in 2:min(p.max,N-1)){
   e<-Y-Y.hat
   R.emp<-c(R.emp,(t(e)%*%e)/N)
   sde2hat=1/(N-i)*(t(e)%*%e)
-  plot(x,f,type="l",ylim=c(min(Y),max(Y)),lwd=3)
+  plot(x,f,type="l",ylim=c(min(Y),max(Y)),lwd=3,col="green")
   points(x,Y)
   lines(xts,Y.hats,col="red")
    
@@ -68,7 +68,8 @@ for (i in 2:min(p.max,N-1)){
 
 par(mfrow=c(2,2))
 plot(no.par-1,R.emp,type="l",
-     xlab="# parameters", ylab="Empirical risk",main="Empirical risk",xlim=c(2,10),ylim=c(0.05,0.4))
+     xlab="# parameters", ylab="Empirical risk",main="Empirical risk",
+     xlim=c(2,10),ylim=c(0.05,0.4))
 
 plot(no.par-1,MISE,type="l",
      xlab="# parameters", ylab="Generalization error",main="Generalization error",xlim=c(2,10),ylim=c(1,4))

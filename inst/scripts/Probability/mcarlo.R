@@ -6,7 +6,7 @@
 
 ## Monte Carlo estimation of parameters
 
-R=1000000
+R=100000
 # number of MC trials 
 
 Ez=0.5

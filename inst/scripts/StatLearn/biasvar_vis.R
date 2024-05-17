@@ -7,7 +7,7 @@
 ## Visualization of bias variance tradeoff for a polynomial fitting
 rm(list=ls())
 
-
+par(mfrow=c(1,1))
 f<-function(x,ord){
   f<-1
   for (i in 1:ord)

@@ -5,9 +5,10 @@ account: gbonte
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3552151
-bundleId: 4161614
+bundleId: 6920803
 url: https://gbonte.shinyapps.io/leastsquares/
-when: 1612041569.73891
+when: 1678098190.95288
+lastSyncTime: 1678098190.95289
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: bimodal.R|bootstrap.R|cart.R|classif.R|condind.R|condpro.R|estimation.R|gaussian.R|lawlarge.R|random.R|regression.R|server.R|ui.R|unimodal.R
+ignoredFiles: bimodal.R|bootstrap.R|cart.R|classif.R|classif2.R|condind.R|condpro.R|estimation.R|gaussian.R|lawlarge.R|mcarlo.R|regression.R|server.R|ui.R|unimodal.R

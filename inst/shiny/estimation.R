@@ -559,8 +559,8 @@ server<-function(input, output,session) {
     input$N
     input$meanL2
     input$varL2
-    xaxis=seq(-BOUND1/2,BOUND1/2,by=0.05)
-    yaxis=seq(0.15,0.5,by=0.05)
+    xaxis=seq(-BOUND1/2,BOUND1/2,by=0.025)
+    yaxis=seq(0.15,0.5,by=0.025)
     
     logLik<-array(0,c(length(xaxis),length(yaxis)))
     mxLoglik=-Inf

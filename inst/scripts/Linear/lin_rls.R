@@ -25,6 +25,7 @@ y<-sin(X)+0.1*rnorm(N)
 t<-numeric(2)
 P<-500*diag(n+1)
 mu<-0.95
+
 for (i in 1:N){
     rls.step<-rls(c(1, X[i]),y[i],t,P,mu)
     t<-rls.step[[1]]

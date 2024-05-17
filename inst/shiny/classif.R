@@ -535,7 +535,7 @@ server<-function(input, output,session) {
     STATS$PR<-c(isolate(STATS$PR),TP/(TP+FP))
     colnames(CO)=c("Predicted red","Predicted green", " " )
     rownames(CO)=c("Actual red (-)","Actual green (+)", " " )
-    output$table <- renderTable(CO,rownames=TRUE)
+    output$table <- renderTable(t(CO),rownames=TRUE)
     fpr=isolate(STATS$FPR)
     se<-isolate(STATS$SE)
     
