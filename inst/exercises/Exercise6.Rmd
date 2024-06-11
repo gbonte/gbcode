@@ -128,7 +128,7 @@ KNN<-function(X,Y,K=3){
   
 }
 
-NB<-function(X,Y,K=3){
+NB<-function(X,Y){
   N=length(Y)
   Yhat=numeric(N)
   I1=which(Y==1)
