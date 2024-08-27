@@ -759,7 +759,7 @@ lin.pls<- function(X,Y,X.ts){
 #'
 #'
 multiplestepAhead<-function(TS,n,H,D=0, method="direct",
-                            FF=0,smooth=FALSE,maxfs=6,
+                            FF=0,smooth=FALSE,maxfs=6,maxN=Inf,
                             XC=NULL,detrend=0, forget=-1, engin=FALSE,
                             Kmin=5,C=2,debug=FALSE, learner="rf",
                             verbose=FALSE,...){
@@ -1056,7 +1056,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   if (length(select.var)==1)
     if (sd(X)<0.01)
       return(numeric(H)+mean(Y))
-  
+  if (NROW(X)>maxN)
+    X<-X[sample(1:NROW(X),maxN),]
   
   q<-TS[seq(N-D,N-n+1-D,by=-1),1]
   if (engin)
