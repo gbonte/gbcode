@@ -1056,8 +1056,13 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
   if (length(select.var)==1)
     if (sd(X)<0.01)
       return(numeric(H)+mean(Y))
-  if (NROW(X)>maxN)
-    X<-X[sample(1:NROW(X),maxN),]
+  
+  if (NROW(X)>maxN){
+    I=sample(1:NROW(X),max(10,maxN))
+    X<-X[I,]
+    Y=Y[I,]
+    
+  }
   
   q<-TS[seq(N-D,N-n+1-D,by=-1),1]
   if (engin)
