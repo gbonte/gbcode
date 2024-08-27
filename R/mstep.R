@@ -1202,7 +1202,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                p[h]=0
              }else{
                if (length(wna)>9){
-                 p[h]<-rf.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
+                 p[h]<-rf.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),rbind(q[select.var]),
                                class=FALSE,ntree=C*50)
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
@@ -1217,7 +1217,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                p[h]=0
              }else{
                if (length(wna)>9){
-                 p[h]<-pred(learner,X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
+                 p[h]<-pred(learner,X[wna,select.var],array(Y[wna,h],c(length(wna),1)),rbind(q[select.var]),
                             class=FALSE,ntree=C*50)
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
@@ -1233,7 +1233,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
                p[h]=0
              }else{
                if (length(wna)>9){
-                 p[h]<-lin.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),q[select.var],
+                 p[h]<-lin.pred(X[wna,select.var],array(Y[wna,h],c(length(wna),1)),rbind(q[select.var]),
                                 class=FALSE,lambda=1e-3*C)
                }else
                  p[h]=mean(Y[,h],na.rm=TRUE)
@@ -1241,7 +1241,7 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
            } ## for h
          },
          mimo={
-           p<-KNN.multioutput(X[,select.var],Y,q[select.var],k=Kmin,C=C,F=FF,Reg=1)
+           p<-KNN.multioutput(X[,select.var],Y,rbind(q[select.var]),k=Kmin,C=C,F=FF,Reg=1)
          },
          mimo.comb={
            pdirect2<-NULL
@@ -1458,7 +1458,8 @@ multiplestepAhead<-function(TS,n,H,D=0, method="direct",
          rfiter={
            piter<-numeric(H)
            for (h  in 1:H){
-             piter[h]<-rf.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),q[select.var],
+             
+             piter[h]<-rf.pred(X[,select.var],array(Y[,1],c(NROW(X),1)),rbind(q[select.var]),
                                class=FALSE,ntree=C*50)
              q<-c(piter[h],q[1:(length(q)-1)])
              
